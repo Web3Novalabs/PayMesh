@@ -11,6 +11,7 @@ import {
 import { useGetAllGroups } from "@/hooks/useContractInteraction";
 import WalletConnect from "@/app/components/WalletConnect";
 import { useAccount } from "@starknet-react/core";
+import { getTimeFromEpoch } from "@/utils/contract";
 
 const TransactionsPage = () => {
   const [filter, setFilter] = useState("all");
@@ -124,7 +125,7 @@ const TransactionsPage = () => {
                     Amount Recieved
                   </th>
                   <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
-                    Date
+                    Date/Time
                   </th>
                   {/* <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
                     Status
@@ -133,7 +134,7 @@ const TransactionsPage = () => {
               </thead>
               <tbody className="bg-[#FFFFFF0D] divide-y divide-[#FFFFFF0D]">
                 {transaction &&
-                  transaction
+                  [...transaction]
                     .reverse()
                     .slice(startIndex, endIndex)
                     .map((transaction, index) => (
@@ -142,15 +143,29 @@ const TransactionsPage = () => {
                           {startIndex + index + 1}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-[#E2E2E2] font-mono">
-                          {transaction.groupAddress}
+                          <div
+                            className="truncate"
+                            title={transaction.groupAddress}
+                          >
+                            {transaction.groupAddress}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#E2E2E2]">
-                          {transaction.amount
-                            ? `STRK ${transaction.amount.toFixed(2)}`
-                            : "-"}
+                          {transaction.amount && transaction.amount > 0
+                            ? `${transaction.amount.toFixed(2)} STRK`
+                            : "0 STRK"}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-[#E2E2E2]">
-                          {transaction.date}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex flex-col">
+                            <span className="text-[#E2E2E2] font-medium">
+                              {transaction.date}
+                            </span>
+                            {transaction.rawTime && (
+                              <span className="text-[#8398AD] text-xs">
+                                {transaction.rawTime}
+                              </span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}

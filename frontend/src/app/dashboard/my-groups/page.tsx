@@ -10,8 +10,6 @@ import {
 import React, { useMemo, useEffect, useState } from "react";
 import { Sofia_Sans } from "next/font/google";
 import { useAccount } from "@starknet-react/core";
-import { useRouter } from "next/navigation";
-import { GroupSummary } from "@/types/group";
 import Link from "next/link";
 import {
   Select,
@@ -22,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
+// import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import {
   GroupData,
   useAddressCreatedGroups,
@@ -45,7 +43,7 @@ const GroupCard = ({
   address: string;
 }) => {
   const groupMember = useGroupMember(group.id);
-  const role = compareAddresses(group.creator,address)
+  const role = compareAddresses(group.creator, address);
   console.log("man-3", role);
   return (
     <div className="bg-[#2A2D35] rounded-sm border-none text-sm p-6 hover:border-gray-800 transition-colors">
@@ -53,9 +51,7 @@ const GroupCard = ({
         <h3 className="text-xl font-semibold text-white">{group.name}</h3>
         <span
           className={`px-3 py-1 text-sm rounded-sm font-medium ${
-             role
-              ? "bg-[#10273E] text-[#0073E6]"
-              : "bg-[#103E3A] text-[#00E69D]"
+            role ? "bg-[#10273E] text-[#0073E6]" : "bg-[#103E3A] text-[#00E69D]"
           }`}
         >
           {role ? "Creator" : "Member"}
@@ -96,11 +92,17 @@ const sofiaSans = Sofia_Sans({
 });
 
 const MyGroupsPage = () => {
-  const router = useRouter();
-
   const { account, address } = useAccount();
-
+  const [filter, setFilter] = useState("all");
   const { transaction } = useGroupAddressHasSharesIn(address || "");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
+  console.log(
+    "allGroups?.length_______X_X__X_X_X_X_X_X_X_X_X__X_X_X_X__X_X_X",
+    transaction
+  );
+
   const { transaction: createdGroup } = useAddressCreatedGroups();
 
   // Combine and deduplicate based on id
@@ -115,12 +117,26 @@ const MyGroupsPage = () => {
       (item, index, array) =>
         array.findIndex((obj) => obj.id === item.id) === index
     );
-  //   console.log("man-1", address)
-  //   uniqueData.forEach(data => {
-  //   console.log("man-",data.creator)
-  // });
+    //   console.log("man-1", address)
+    //   uniqueData.forEach(data => {
+    //   console.log("man-",data.creator)
+    // });
     setMyGroup(uniqueData);
   }, [transaction, createdGroup]);
+
+  // Apply filtering to the combined data
+  // Filter groups based on member and creator
+  const filteredGroups = myGroup?.filter((group) => {
+    if (filter === "all") return true;
+    if (filter === "creator") return group.creator === address;
+    if (filter === "member") return group.creator !== address;
+    return true;
+  });
+
+  // Calculate pagination
+  const totalPages = Math.ceil((filteredGroups?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
 
   // console.log("created-group", createdGroup, transaction);
   // // const transaction = useGetAllGroups();
@@ -177,30 +193,32 @@ const MyGroupsPage = () => {
 
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <div className="relative">
-          <Select>
+          <Select value={filter} onValueChange={setFilter}>
             <SelectTrigger className="w-full bg-[#FFFFFF0D] border py-4 sm:py-6 px-3 sm:px-4 rounded-sm border-[#FFFFFF0D] text-[#8398AD] !text-sm sm:!text-base">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent className="bg-[#1F2937] border border-[#FFFFFF0D] w-full">
               <SelectGroup>
-                <SelectLabel className="text-[#E2E2E2]">Tokens</SelectLabel>
+                <SelectLabel className="text-[#E2E2E2]">
+                  Filter Groups
+                </SelectLabel>
                 <SelectItem
-                  value="strk"
+                  value="all"
                   className="text-[#8398AD] hover:bg-[#374151]"
                 >
                   ALL
                 </SelectItem>
                 <SelectItem
-                  value="eth"
+                  value="creator"
                   className="text-[#8398AD] hover:bg-[#374151]"
                 >
-                  PENDING
+                  CREATOR
                 </SelectItem>
                 <SelectItem
-                  value="usdc"
+                  value="member"
                   className="text-[#8398AD] hover:bg-[#374151]"
                 >
-                  CLEARED
+                  MEMBER
                 </SelectItem>
               </SelectGroup>
             </SelectContent>
@@ -259,9 +277,61 @@ const MyGroupsPage = () => {
       <div
         className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-12 gap-6 ${sofiaSans.className}`}
       >
-        {myGroup?.map((group) => (
-          <GroupCard key={group.id} group={group} address={address || ""} />
-        ))}
+        {[...(filteredGroups || [])]
+          // .reverse()
+          .sort((a, b) => {
+            return parseInt(b.id) - parseInt(a.id);
+          })
+          .slice(startIndex, endIndex)
+          ?.map((group) => (
+            <GroupCard key={group.id} group={group} address={address || ""} />
+          ))}
+      </div>
+
+      {/* Pagination */}
+      <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-16">
+        <div className="text-sm text-[#E2E2E2]">
+          Showing {startIndex + 1} to{" "}
+          {Math.min(endIndex, filteredGroups?.length || 0)} of{" "}
+          {filteredGroups?.length || 0} results
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            ← Previous
+          </button>
+
+          {/* Page Numbers */}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-2 text-sm font-medium rounded-md ${
+                  currentPage === page
+                    ? "bg-gradient-to-r from-[#434672] to-[#755a5a] text-white"
+                    : "text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] hover:bg-[#282e38]"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+          >
+            Next →
+          </button>
+        </div>
       </div>
     </div>
   );

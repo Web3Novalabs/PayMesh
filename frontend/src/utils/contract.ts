@@ -80,6 +80,15 @@ export function epocTime(time: string) {
   return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 }
 
+export function getTimeFromEpoch(time: string) {
+  const epochSeconds = time.replace("n", "");
+  const date = new Date(+epochSeconds * 1000);
+  return `${date.getHours().toString().padStart(2, "0")}:${date
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}`;
+}
+
 // get balance of an address
 export const useGetBalance = (userAddress: string) => {
   const { data: balance } = useBalance({

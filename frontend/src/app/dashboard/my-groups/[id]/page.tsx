@@ -31,6 +31,7 @@ import {
   useGetGroupsUsage,
   useGroupAddressHasSharesIn,
   useGroupMember,
+  useAddressCreatedGroups,
 } from "@/hooks/useContractInteraction";
 import WalletConnect from "@/app/components/WalletConnect";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
@@ -77,9 +78,12 @@ const GroupDetailsPage = () => {
     setUsage(equate);
   }, [usage, usageCount]);
   const { transaction } = useGroupAddressHasSharesIn(address || "");
+  const { transaction: createdGroups } = useAddressCreatedGroups();
 
-  // Get the current group data based on the URL ID
-  const currentGroup = transaction?.find((group) => group.id === params.id);
+  // Get the current group data based on the URL ID from both sources
+  const currentGroup =
+    transaction?.find((group) => group.id === params.id) ||
+    createdGroups?.find((group) => group.id === params.id);
 
   // Force refresh when params.id changes
   useEffect(() => {

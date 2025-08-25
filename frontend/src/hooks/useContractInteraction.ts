@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   CreateGroupData,
   epocTime,
+  getTimeFromEpoch,
   ONE_STK,
   PAYMESH_ADDRESS,
 } from "../utils/contract";
@@ -122,6 +123,7 @@ export function useGetAllGroups() {
   interface GroupData {
     creator: string;
     date: string;
+    rawTime: string;
     name: string;
     id: string;
     usage_limit_reached: boolean;
@@ -148,6 +150,7 @@ export function useGetAllGroups() {
       groupData.push({
         creator: `0x0${data.creator.toString(16)}`,
         date: data.date ? epocTime(data.date.toString()) : "",
+        rawTime: data.date ? getTimeFromEpoch(data.date.toString()) : "",
         name: data.name,
         id: data.id.toString(),
         usage_limit_reached: data.usage_limit_reached,
@@ -266,6 +269,7 @@ export function useGroupAddressHasSharesIn(address: string) {
 export interface GroupData {
   creator: string;
   date: string;
+  rawTime?: string;
   name: string;
   id: string;
   usage_limit_reached: boolean;
@@ -302,6 +306,7 @@ export function useAddressCreatedGroups() {
       groupData.push({
         creator: `0x0${data.creator.toString(16)}`,
         date: data.date ? epocTime(data.date.toString()) : "",
+        rawTime: data.date ? getTimeFromEpoch(data.date.toString()) : "",
         name: data.name,
         id: data.id.toString(),
         usage_limit_reached: data.usage_limit_reached,

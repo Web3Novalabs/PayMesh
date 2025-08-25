@@ -8,8 +8,8 @@ import argent from "../../../public/Argent.svg";
 import flow1 from "../../../public/Group (1).svg";
 import flow2 from "../../../public/Group (2).svg";
 import flow3 from "../../../public/Group 3.svg";
-import paymesh_landing_bg from "../../../public/bg_Landing.png";
-import Link from "next/link";
+// import paymesh_landing_bg from "../../../public/bg_Landing.png";
+import paymesh_landing_bg_svg from "../../../public/Stars.svg";
 import NavBarLandingPage from "../components/NavBarLandingPage";
 
 const PaymeshFlow = [
@@ -36,7 +36,7 @@ const LandingPage = () => {
       <div
         className="bg-cover bg-center bg-no-repeat w-full h-full absolute top-0 left-0 -z-10"
         style={{
-          backgroundImage: `url(${paymesh_landing_bg.src})`,
+          backgroundImage: `url(${paymesh_landing_bg_svg.src})`,
         }}
       />
 
