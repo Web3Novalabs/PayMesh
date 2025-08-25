@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import {
+  GroupData,
   useAddressCreatedGroups,
   useContractFetch,
   useGetAllGroups,
@@ -32,6 +33,7 @@ import {
 } from "@/hooks/useContractInteraction";
 import { useTransactionReceipt } from "@starknet-react/core";
 import WalletConnect from "@/app/components/WalletConnect";
+import { compareAddresses } from "@/utils/contract";
 // import { SWIFTSWAP_ABI } from "@/abi/swiftswap_abi";
 
 // Separate component for individual group cards
@@ -43,19 +45,20 @@ const GroupCard = ({
   address: string;
 }) => {
   const groupMember = useGroupMember(group.id);
-
+  const role = compareAddresses(group.creator,address)
+  console.log("man-3", role);
   return (
     <div className="bg-[#2A2D35] rounded-sm border-none text-sm p-6 hover:border-gray-800 transition-colors">
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-xl font-semibold text-white">{group.name}</h3>
         <span
           className={`px-3 py-1 text-sm rounded-sm font-medium ${
-            group.creator === address
+             role
               ? "bg-[#10273E] text-[#0073E6]"
               : "bg-[#103E3A] text-[#00E69D]"
           }`}
         >
-          {group.creator === address ? "Creator" : "Member"}
+          {role ? "Creator" : "Member"}
         </span>
       </div>
       <div className="flex justify-between items-center">
@@ -98,7 +101,28 @@ const MyGroupsPage = () => {
   const { account, address } = useAccount();
 
   const { transaction } = useGroupAddressHasSharesIn(address || "");
- const {transaction:addressCreatedGroup} = useAddressCreatedGroups();
+  const { transaction: createdGroup } = useAddressCreatedGroups();
+
+  // Combine and deduplicate based on id
+  const [myGroup, setMyGroup] = useState<GroupData[]>([]);
+
+  useEffect(() => {
+    const combinedData = [...(transaction || []), ...(createdGroup || [])];
+
+    // Remove duplicates based on id, keeping the first occurrence
+    // console.log("man-",combinedData)
+    const uniqueData = combinedData.filter(
+      (item, index, array) =>
+        array.findIndex((obj) => obj.id === item.id) === index
+    );
+  //   console.log("man-1", address)
+  //   uniqueData.forEach(data => {
+  //   console.log("man-",data.creator)
+  // });
+    setMyGroup(uniqueData);
+  }, [transaction, createdGroup]);
+
+  // console.log("created-group", createdGroup, transaction);
   // // const transaction = useGetAllGroups();
 
   // console.log(
@@ -223,7 +247,7 @@ const MyGroupsPage = () => {
               <p className="text-gray-300">
                 Groups Created -{" "}
                 <b className="text-white">
-                  {transaction?.filter((group) => group.creator === address)
+                  {myGroup?.filter((group) => group.creator === address)
                     .length || 0}
                 </b>{" "}
               </p>
@@ -235,7 +259,7 @@ const MyGroupsPage = () => {
       <div
         className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-12 gap-6 ${sofiaSans.className}`}
       >
-        {transaction?.map((group) => (
+        {myGroup?.map((group) => (
           <GroupCard key={group.id} group={group} address={address || ""} />
         ))}
       </div>

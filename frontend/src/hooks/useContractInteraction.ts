@@ -273,6 +273,18 @@ export function useAddressCreatedGroups() {
     usage_limit_reached: boolean;
     groupAddress: string;
   }
+export interface GroupData {
+  creator: string;
+  date: string;
+  name: string;
+  id: string;
+  usage_limit_reached: boolean;
+  groupAddress: string;
+}
+
+export function useAddressCreatedGroups() {
+  const {address} = useAccount()
+
 
   interface ContractGroupData {
     creator: { toString: (radix: number) => string };
