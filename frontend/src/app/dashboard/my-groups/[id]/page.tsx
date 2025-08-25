@@ -41,6 +41,7 @@ import {
   strkTokenAddress,
 } from "@/utils/contract";
 import { cairo, CallData, PaymasterDetails } from "starknet";
+import { useGetBalance } from "@/utils/contract";
 
 const GroupDetailsPage = () => {
   const params = useParams();
@@ -128,13 +129,17 @@ const GroupDetailsPage = () => {
     }
   };
 
-  const { data: balance } = useBalance({
-    token:
-      "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as `0x${string}`,
-    address: currentGroup?.groupAddress
-      ? (currentGroup.groupAddress as `0x${string}`)
-      : ("0x0" as `0x${string}`),
-  });
+  //   const { data: balance } = useBalance({
+  //     token:
+  //       "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as `0x${string}`,
+  //     address: currentGroup?.groupAddress
+  //       ? (currentGroup.groupAddress as `0x${string}`)
+  //       : ("0x0" as `0x${string}`),
+  //   });
+
+  const balance = useGetBalance(currentGroup?.groupAddress || "0x0");
+
+  console.log("balance", balance);
 
   const handleBackToGroups = () => {
     router.push("/dashboard/my-groups");
@@ -393,7 +398,7 @@ const GroupDetailsPage = () => {
 
             <div className="flex items-center gap-2">
               <button className="border-gradient-flow cursor-not-allowed text-white px-4 py-2 rounded-sm transition-colors">
-                Edit Group
+                Top Up
               </button>
               {/*  @ts-expect-error array need to be empty */}
               {balance?.formatted != 0 && (
@@ -406,14 +411,17 @@ const GroupDetailsPage = () => {
                   >
                     {isSubmitting ? "spliting...." : "Split Funds"}
                   </button>
-                  <div className="border-gradient-flow space-x-2.5 text-white px-4 py-2 rounded-sm transition-colors">
-                    <span className="text-[#8398AD]">Balance:</span>
-                    <span className="text-[#E2E2E2]">
-                      {balance?.formatted} STRK
-                    </span>
-                  </div>
                 </>
               )}
+              <div className="border-gradient-flow space-x-2.5 text-white px-4 py-2 rounded-sm transition-colors">
+                <span className="text-[#8398AD]">Balance:</span>
+                <span className="text-[#E2E2E2]">
+                  {balance?.formatted
+                    ? parseFloat(balance.formatted).toFixed(2)
+                    : "0.00"}{" "}
+                  {balance?.symbol}
+                </span>
+              </div>
             </div>
           </div>
           {currentGroup?.groupAddress && (

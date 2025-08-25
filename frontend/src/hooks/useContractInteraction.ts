@@ -1,6 +1,11 @@
 import { useAccount, useContract, useReadContract } from "@starknet-react/core";
 import { useEffect, useState } from "react";
-import { CreateGroupData, epocTime, ONE_STK, PAYMESH_ADDRESS } from "../utils/contract";
+import {
+  CreateGroupData,
+  epocTime,
+  ONE_STK,
+  PAYMESH_ADDRESS,
+} from "../utils/contract";
 import { Abi } from "starknet";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 
@@ -121,7 +126,7 @@ export function useGetAllGroups() {
     id: string;
     usage_limit_reached: boolean;
     groupAddress: string;
-    amount:number
+    amount: number;
   }
 
   const [transaction, setTransaction] = useState<GroupData[] | undefined>(
@@ -147,7 +152,7 @@ export function useGetAllGroups() {
         id: data.id.toString(),
         usage_limit_reached: data.usage_limit_reached,
         groupAddress: `0x0${data["group_address"].toString(16)}`,
-        amount: +data.total_amount.toString()/ONE_STK,
+        amount: +data.total_amount.toString() / ONE_STK,
       });
     });
     setTransaction(groupData);
@@ -259,7 +264,7 @@ export function useGroupAddressHasSharesIn(address: string) {
 }
 
 export function useAddressCreatedGroups() {
-  const {address} = useAccount()
+  const { address } = useAccount();
   interface GroupData {
     creator: string;
     date: string;
@@ -308,11 +313,8 @@ export function useAddressCreatedGroups() {
   return { transaction };
 }
 
-export function useGetGroupsUsage(id:number| undefined) {
-
-  const [transaction, setTransaction] = useState<undefined|string>(
-    undefined
-  );
+export function useGetGroupsUsage(id: number | undefined) {
+  const [transaction, setTransaction] = useState<undefined | string>(undefined);
   const { readData: usage } = useContractFetch(
     PAYMESH_ABI,
     "get_group_usage_paid_history",
@@ -329,11 +331,12 @@ export function useGetGroupsUsage(id:number| undefined) {
   useEffect(() => {
     if (!usage && !usageCount) return;
     const m = +usageCount.toString();
-    const count = +usage[0].toString()
-    const cal = count - m
+    const count = +usage[0].toString();
+    console.log("count", count);
+    const cal = count - m;
     const equate = cal ? `${count}/${cal}` : `${count}/${count}`;
     setTransaction(equate);
-  }, [usage,usageCount]);
+  }, [usage, usageCount]);
 
   return transaction;
 }
