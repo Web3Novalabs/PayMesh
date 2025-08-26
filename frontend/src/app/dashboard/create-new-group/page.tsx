@@ -37,8 +37,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import group4icon from "../../../../public/UsersFour.svg";
 import QRcode from "../components/QRcode";
 import Loading from "../components/Loading";
-import { SWIFTPAY_CONTRACT_ADDRESS } from "@/constants/abi";
-import { Trash, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useContractFetch } from "@/hooks/useContractInteraction";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import WalletConnect from "@/app/components/WalletConnect";
@@ -104,7 +103,6 @@ const CreateNewGroup = () => {
   });
 
   useEffect(() => {
-    console.log(data, error);
     let m;
     if (!data || hasProcessedTransaction) return;
     if (
@@ -126,7 +124,6 @@ const CreateNewGroup = () => {
     } else {
       m = undefined;
     }
-    console.log(m);
   }, [data, error, hasProcessedTransaction]);
 
   const { readData: usageFee } = useContractFetch(
@@ -139,11 +136,10 @@ const CreateNewGroup = () => {
     if (!usageFee) return;
 
     const fee = BigInt(usageFee);
-    console.log(fee);
     setCreationFee(Number(fee) / ONE_STK);
   }, [usageFee]);
 
-  console.log(creationFee, "feeeee");
+
   // Reset success state when component unmounts or when navigating away
   useEffect(() => {
     return () => {
@@ -188,10 +184,10 @@ const CreateNewGroup = () => {
 
       // Call balanceOf function
       const result = await strkContract.balanceOf(groupAddr);
-      console.log("result in full_______", result);
+
       const balanceValue = result.balance;
 
-      console.log("balanceValue______", balanceValue);
+
 
       const balanceInStrk =
         parseFloat(balanceValue.toString()) / Math.pow(10, 18);
@@ -440,7 +436,6 @@ const CreateNewGroup = () => {
   const fee = creationFee
     ? Number(creationFee * Number(formData.usage)).toFixed(2)
     : "";
-  console.log(fee, "rr");
   const isWalletConnected = !!address;
 
   if (!isWalletConnected) {

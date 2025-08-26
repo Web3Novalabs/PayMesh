@@ -43,6 +43,7 @@ import {
 } from "@/utils/contract";
 import { cairo, CallData, PaymasterDetails } from "starknet";
 import { useGetBalance } from "@/utils/contract";
+import toast from "react-hot-toast";
 
 const GroupDetailsPage = () => {
   const params = useParams();
@@ -54,6 +55,7 @@ const GroupDetailsPage = () => {
   const groupMember = useGroupMember(params.id as string);
   const { address, account } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTopUp, setIsTopUp] = useState(false);
 
   const [usage, setUsage] = useState<undefined | string>(undefined);
   const { readData: groupUsage } = useContractFetch(
@@ -68,12 +70,12 @@ const GroupDetailsPage = () => {
     // @ts-expect-error  parmas can be undefined
     [+params.id]
   );
-  //get_group_balance
 
   useEffect(() => {
     if (!groupUsage && !usageCount) return;
     const m = +usageCount?.toString();
     const count = +groupUsage?.toString();
+    console.log(count)
     const equate = `${count}/${m}`;
     setUsage(equate);
   }, [usage, usageCount]);
@@ -88,14 +90,10 @@ const GroupDetailsPage = () => {
   // Force refresh when params.id changes
   useEffect(() => {
     if (params.id && transaction) {
-      console.log("Group ID changed, refreshing data for:", params.id);
+      // console.log("Group ID changed, refreshing data for:", params.id);
     }
   }, [params.id, transaction]);
 
-  console.log("URL params ID:", params.id);
-  console.log("Transaction data:", transaction);
-  console.log("Current group found:", currentGroup);
-  console.log("Group member data:", groupMember);
 
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -133,17 +131,10 @@ const GroupDetailsPage = () => {
     }
   };
 
-  //   const { data: balance } = useBalance({
-  //     token:
-  //       "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as `0x${string}`,
-  //     address: currentGroup?.groupAddress
-  //       ? (currentGroup.groupAddress as `0x${string}`)
-  //       : ("0x0" as `0x${string}`),
-  //   });
 
   const balance = useGetBalance(currentGroup?.groupAddress || "0x0");
+  const userBalance = useGetBalance(address || "0x0");
 
-  console.log("balance", balance);
 
   const handleBackToGroups = () => {
     router.push("/dashboard/my-groups");
@@ -207,11 +198,76 @@ const GroupDetailsPage = () => {
 
         // setResultHash(result.transaction_hash);
         console.log(status);
+        toast.success("split succesfull");
+      }
+    } catch (error) {
+      toast.error("Failed to slipt top up subscription. and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  const handleToUp = async () => {
+    if (!balance?.formatted && !params.id) {
+      return;
+    }
+    if (userBalance?.formatted && +userBalance.formatted < 1) {
+     console.log(userBalance)
+      toast.error(`Insufficient balance, Top Up!`);
+      return;
+    }
+    try {
+      setIsTopUp(true);
+
+      if (
+        account != undefined &&
+        balance?.formatted &&
+        currentGroup?.groupAddress
+      ) {
+        const swiftpayCall = {
+          contractAddress: PAYMESH_ADDRESS,
+          entrypoint: "top_subscription",
+          calldata: CallData.compile({
+            // @ts-expect-error parrams is valid
+            group_id: cairo.uint256(+params?.id),
+            new_planned_usage_count: cairo.uint256(1),
+          }),
+        };
+
+        const approveCall = {
+          contractAddress: strkTokenAddress,
+          entrypoint: "approve",
+          calldata: [
+            PAYMESH_ADDRESS,
+            cairo.uint256(ONE_STK),
+          ],
+        };
+
+        const multicallData = [approveCall, swiftpayCall];
+        // const result = await account.execute(multicallData);
+
+        const feeDetails: PaymasterDetails = {
+          feeMode: {
+            mode: "sponsored",
+          },
+        };
+
+        const feeEstimation = await account?.estimatePaymasterTransactionFee(
+          [...multicallData],
+          feeDetails
+        );
+
+       await account?.executePaymasterTransaction(
+          [...multicallData],
+          feeDetails,
+          feeEstimation?.suggested_max_fee_in_gas_token
+        );
+        toast.success("Top Up Successful!");
       }
     } catch (error) {
       console.error("Error paying group:", error);
+           toast.error("Failed to top up subscription. Please try again.");
     } finally {
-      setIsSubmitting(false);
+      setIsTopUp(false);
     }
   };
   if (isLoading) {
@@ -401,8 +457,8 @@ const GroupDetailsPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button className="border-gradient-flow cursor-not-allowed text-white px-4 py-2 rounded-sm transition-colors">
-                Top Up
+              <button onClick={handleToUp}  className="border-gradient-flow text-white px-4 py-2 rounded-sm transition-colors">
+                {isTopUp ? "loading..." : "  Top Up"}
               </button>
               {/*  @ts-expect-error array need to be empty */}
               {balance?.formatted != 0 && (
