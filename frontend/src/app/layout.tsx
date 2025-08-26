@@ -55,23 +55,23 @@ export const metadata: Metadata = {
 
   icons: {
     icon: [
-      { url: "../../Logo (1).svg" },
+      { url: "/Group 1.svg" },
       {
-        url: "../../public/Logo (1).svg",
+        url: "/Group 1.svg",
         sizes: "192x192",
-        type: "image/jpeg",
+        type: "image/svg+xml",
       },
       {
-        url: "../../public/Logo (1).svg",
+        url: "/Group 1.svg",
         sizes: "512x512",
-        type: "image/jpeg",
+        type: "image/svg+xml",
       },
     ],
     apple: [
       {
-        url: "../../public/Logo (1).svg",
+        url: "/Group 1.svg",
         sizes: "180x180",
-        type: "image/jpeg",
+        type: "image/svg+xml",
       },
     ],
   },

@@ -30,9 +30,12 @@ const LandingPage = () => {
         </h1>
 
         <div className="flex items-center justify-center gap-4">
-          <div className="border-gradient-links !p-2.5 rounded-sm">
+          <Link
+            href="https://x.com/paymesh_" target="_blank"
+            className="border-gradient-links !p-2.5 rounded-sm"
+          >
             <Image src={XLogo} alt="waitlist" className="cursor-pointer" />
-          </div>
+          </Link>
           <div className="border-gradient-links !p-2.5 rounded-sm">
             <Image src={githubLogo} alt="waitlist" className="cursor-pointer" />
           </div>
