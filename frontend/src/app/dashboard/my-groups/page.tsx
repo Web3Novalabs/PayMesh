@@ -7,7 +7,7 @@ import {
   LucideUsers,
   Loader2,
 } from "lucide-react";
-import React, { useMemo, useEffect, useState } from "react";
+import React, {useEffect, useState } from "react";
 import { Sofia_Sans } from "next/font/google";
 import { useAccount } from "@starknet-react/core";
 import Link from "next/link";
@@ -24,12 +24,9 @@ import {
 import {
   GroupData,
   useAddressCreatedGroups,
-  useContractFetch,
-  useGetAllGroups,
   useGroupAddressHasSharesIn,
   useGroupMember,
 } from "@/hooks/useContractInteraction";
-import { useTransactionReceipt } from "@starknet-react/core";
 import WalletConnect from "@/app/components/WalletConnect";
 import { compareAddresses } from "@/utils/contract";
 // import { SWIFTSWAP_ABI } from "@/abi/swiftswap_abi";
@@ -44,7 +41,6 @@ const GroupCard = ({
 }) => {
   const groupMember = useGroupMember(group.id);
   const role = compareAddresses(group.creator, address);
-  console.log("man-3", role);
   return (
     <div className="bg-[#2A2D35] rounded-sm border-none text-sm p-6 hover:border-gray-800 transition-colors">
       <div className="flex justify-between items-start mb-4">
@@ -98,10 +94,6 @@ const MyGroupsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
-  console.log(
-    "allGroups?.length_______X_X__X_X_X_X_X_X_X_X_X__X_X_X_X__X_X_X",
-    transaction
-  );
 
   const { transaction: createdGroup } = useAddressCreatedGroups();
 
@@ -117,10 +109,7 @@ const MyGroupsPage = () => {
       (item, index, array) =>
         array.findIndex((obj) => obj.id === item.id) === index
     );
-    //   console.log("man-1", address)
-    //   uniqueData.forEach(data => {
-    //   console.log("man-",data.creator)
-    // });
+
     setMyGroup(uniqueData);
   }, [transaction, createdGroup]);
 
@@ -137,15 +126,6 @@ const MyGroupsPage = () => {
   const totalPages = Math.ceil((filteredGroups?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-
-  // console.log("created-group", createdGroup, transaction);
-  // // const transaction = useGetAllGroups();
-
-  // console.log(
-  //   "groupLists xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-  //   transaction
-  // );
-  // console.log("address xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", addressCreatedGroup);
 
   // Check if wallet is connected
   const isWalletConnected = !!address;
@@ -247,7 +227,7 @@ const MyGroupsPage = () => {
             ) : (
               <p className="text-gray-300">
                 Total Groups -{" "}
-                <b className="text-white">{transaction?.length || 0}</b>{" "}
+                <b className="text-white">{myGroup?.length || 0}</b>{" "}
               </p>
             )}
           </div>
@@ -265,8 +245,9 @@ const MyGroupsPage = () => {
               <p className="text-gray-300">
                 Groups Created -{" "}
                 <b className="text-white">
-                  {myGroup?.filter((group) => group.creator === address)
-                    .length || 0}
+                  {myGroup?.filter((group) =>
+                    compareAddresses(group.creator, address)
+                  ).length || 0}
                 </b>{" "}
               </p>
             )}

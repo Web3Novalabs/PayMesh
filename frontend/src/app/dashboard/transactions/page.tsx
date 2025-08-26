@@ -27,25 +27,12 @@ const TransactionsPage = () => {
   // });
 
   const transaction = useGetAllGroups();
-  console.log(transaction);
-  console.log(
-    "transaction?.length_______X_X__X_X_X_X_X_X_X_X_X__X_X_X_X__X_X_X",
-    transaction?.length
-  );
+
 
   // Calculate pagination
   const totalPages = Math.ceil((transaction?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-
-  console.log("Pagination Debug:", {
-    totalItems: transaction?.length || 0,
-    totalPages,
-    currentPage,
-    startIndex,
-    endIndex,
-    itemsPerPage,
-  });
 
   const { address } = useAccount();
   const isWalletConnected = !!address;
