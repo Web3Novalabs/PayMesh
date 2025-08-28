@@ -5,6 +5,7 @@ use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTr
 use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
 use starknet::{ClassHash, ContractAddress};
 const ADMIN_CONST: felt252 = 123;
+const SECOND_ADMIN_CONST: felt252 = 123;
 const CREATOR_CONST: felt252 = 456;
 const USER1_CONST: felt252 = 101112;
 const USER2_CONST: felt252 = 131415;
@@ -18,6 +19,10 @@ const EMERGENCY_WITHDRAW_CONST: felt252 = 13141325;
 
 pub fn ADMIN_ADDR() -> ContractAddress {
     ADMIN_CONST.try_into().unwrap()
+}
+
+pub fn SECOND_ADMIN_ADDR() -> ContractAddress {
+    SECOND_ADMIN_CONST.try_into().unwrap()
 }
 
 pub fn CREATOR_ADDR() -> ContractAddress {

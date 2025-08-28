@@ -5,6 +5,9 @@ use contract::base::errors::{
 };
 use contract::base::types::GroupMember;
 use contract::interfaces::iautoshare::{IAutoShareDispatcher, IAutoShareDispatcherTrait};
+use openzeppelin::access::accesscontrol::interface::{
+    IAccessControlDispatcher, IAccessControlDispatcherTrait,
+};
 use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 use snforge_std::{
     ContractClassTrait, DeclareResultTrait, declare, start_cheat_caller_address,
@@ -12,8 +15,8 @@ use snforge_std::{
 };
 use starknet::{ClassHash, ContractAddress, get_caller_address};
 use crate::test_util::{
-    ADMIN_ADDR, CREATOR_ADDR, EMERGENCY_WITHDRAW_ADDR, ONE_STRK, TOKEN_ADDR, USER1_ADDR, USER2_ADDR,
-    USER3_ADDR, deploy_autoshare_contract, group_member_two,
+    ADMIN_ADDR, CREATOR_ADDR, EMERGENCY_WITHDRAW_ADDR, ONE_STRK, SECOND_ADMIN_ADDR, TOKEN_ADDR,
+    USER1_ADDR, USER2_ADDR, USER3_ADDR, deploy_autoshare_contract, group_member_two,
 };
 
 // =========== create group ============
@@ -471,7 +474,7 @@ fn test_pay_logic() {
 
     // pay the group
     start_cheat_caller_address(contract_address.contract_address, USER1_ADDR());
-    contract_address.pay(group_address);
+    contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     let user1_balance_after = erc20_dispatcher.balance_of(USER1_ADDR().into());
@@ -926,7 +929,7 @@ fn test_get_group_balance_after_pay_to_group_members() {
 
     // pay to group members
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    contract_address.pay(group_address);
+    contract_address.paymesh(group_address);
     print!("pay to group members completed ______________");
     stop_cheat_caller_address(contract_address.contract_address);
 
@@ -1041,7 +1044,7 @@ fn test_new_impl_fee_collection() {
 
     // test pay logic
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    contract_address.pay(group_address);
+    contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     let group_balance_after_pay = contract_address.get_group_balance(group_address);
@@ -1146,15 +1149,25 @@ fn test_new_impl_pay_logic_should_panic_if_usage_limit_reached() {
 
     // pay to group members
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    contract_address.pay(group_address);
+    contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
     stop_cheat_caller_address(erc20_dispatcher.contract_address);
 
-    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    contract_address.pay(group_address);
+    // tess admin here
+    let access_control = IAccessControlDispatcher {
+        contract_address: contract_address.contract_address,
+    };
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    access_control.grant_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    let role_status: bool = access_control.has_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    assert(role_status, 'role not given');
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(contract_address.contract_address, SECOND_ADMIN_ADDR());
+    contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 }
 
@@ -1184,7 +1197,7 @@ fn test_new_impl_pay_logic_should_panic_not_admin() {
 
     // pay to group members
     start_cheat_caller_address(contract_address.contract_address, USER3_ADDR());
-    contract_address.pay(group_address);
+    contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 }
 
@@ -1214,7 +1227,7 @@ fn test_new_impl_pay_logic_should_panic_no_payment_made() {
 
     // pay to group members
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
-    contract_address.pay(group_address);
+    contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 }
 
@@ -1252,7 +1265,7 @@ fn test_top_subscription_function() {
     stop_cheat_caller_address(erc20_dispatcher.contract_address);
 
     start_cheat_caller_address(contract_address.contract_address, USER1_ADDR());
-    contract_address.pay(group_address);
+    contract_address.paymesh(group_address);
     let mut group = contract_address.get_group(1);
     assert(group.total_amount == 1_000_000_000_000_000_000_000, 'incorrect amount');
     stop_cheat_caller_address(contract_address.contract_address);
@@ -1287,7 +1300,7 @@ fn test_top_subscription_function() {
     stop_cheat_caller_address(erc20_dispatcher.contract_address);
 
     start_cheat_caller_address(contract_address.contract_address, USER1_ADDR());
-    contract_address.pay(group_address);
+    contract_address.paymesh(group_address);
     group = contract_address.get_group(1);
     assert(
         group.total_amount == 1_000_000_000_000_000_000_000 + 1_000_000_000_000_000_000_000,
@@ -1295,5 +1308,159 @@ fn test_top_subscription_function() {
     );
     stop_cheat_caller_address(contract_address.contract_address);
 
+    stop_cheat_caller_address(contract_address.contract_address);
+}
+
+const ADMIN_ROLE: felt252 = selector!("ADMIN");
+const OVERALL_ADMIN_ROLE: felt252 = selector!("OVERALL_ADMIN_ROLE");
+
+// test admin impl
+#[test]
+fn test_admin_role_impl() {
+    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let access_control = IAccessControlDispatcher {
+        contract_address: contract_address.contract_address,
+    };
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    let overall_admin_role = access_control.get_role_admin(ADMIN_ROLE);
+    assert(overall_admin_role == OVERALL_ADMIN_ROLE, 'incorrect role amdin');
+    access_control.grant_role(ADMIN_ROLE, USER1_ADDR());
+    let role_status: bool = access_control.has_role(ADMIN_ROLE, USER1_ADDR());
+    assert(role_status, 'role not given');
+    println!("role status {role_status}");
+    stop_cheat_caller_address(contract_address.contract_address);
+}
+
+
+#[test]
+fn test_admin_calling_pay_function() {
+    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+
+    // Create a group
+    let mut members = ArrayTrait::new();
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, 2_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // token balance before of creator
+    let creator_balance_before = erc20_dispatcher.balance_of(CREATOR_ADDR());
+    assert(
+        creator_balance_before == 900_000_000_000_000_000_000_000_000_000_000,
+        'Creator balance incorrect',
+    );
+    // get contract balance before
+    let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'Contract balance incorrect');
+
+    // create group
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 60 });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 });
+    contract_address.create_group("TestGroup", members, 2);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // send 1000 strk to the group
+    let group_address = contract_address.get_group_address(1);
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // pay to group members
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    contract_address.paymesh(group_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // tess admin here
+    let access_control = IAccessControlDispatcher {
+        contract_address: contract_address.contract_address,
+    };
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    access_control.grant_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    let role_status: bool = access_control.has_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    assert(role_status, 'role not given');
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(contract_address.contract_address, SECOND_ADMIN_ADDR());
+    contract_address.paymesh(group_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+}
+
+
+#[test]
+#[should_panic(expected: 'caller is missing role')]
+fn test_admin_calling_pay_function_should_panic_if_removed() {
+    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+
+    // Create a group
+    let mut members = ArrayTrait::new();
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, 3_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // token balance before of creator
+    let creator_balance_before = erc20_dispatcher.balance_of(CREATOR_ADDR());
+    assert(
+        creator_balance_before == 900_000_000_000_000_000_000_000_000_000_000,
+        'Creator balance incorrect',
+    );
+    // get contract balance before
+    let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'Contract balance incorrect');
+
+    // create group
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 60 });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 });
+    contract_address.create_group("TestGroup", members, 2);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // send 1000 strk to the group
+    let group_address = contract_address.get_group_address(1);
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // pay to group members
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    contract_address.paymesh(group_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // tess admin here
+    let access_control = IAccessControlDispatcher {
+        contract_address: contract_address.contract_address,
+    };
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    access_control.grant_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    let role_status: bool = access_control.has_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    assert(role_status, 'role not given');
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(contract_address.contract_address, SECOND_ADMIN_ADDR());
+    contract_address.paymesh(group_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    contract_address.top_subscription(1, 1);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // remove the admin before you call the paymesh function
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    access_control.revoke_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(contract_address.contract_address, SECOND_ADMIN_ADDR());
+    contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 }

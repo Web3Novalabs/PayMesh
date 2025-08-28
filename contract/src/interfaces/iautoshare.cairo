@@ -43,7 +43,7 @@ pub trait IAutoShare<TContractState> {
     /// @dev Can only be called by admin when contract is not paused.
     fn upgrade(ref self: TContractState, new_class_hash: ClassHash);
 
-    fn pay(ref self: TContractState, group_address: ContractAddress);
+    fn paymesh(ref self: TContractState, group_address: ContractAddress);
     fn get_group_balance(self: @TContractState, group_address: ContractAddress) -> u256;
 
     fn request_group_update(

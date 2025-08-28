@@ -122,7 +122,7 @@ fn test_all_contract_flow_success() {
 
     // pay the group a member , admin or creator can pay a group
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
-    contract_address.pay(group2_address);
+    contract_address.paymesh(group2_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     //user2 and user1 balance after pay in group 2
@@ -132,7 +132,7 @@ fn test_all_contract_flow_success() {
     assert(user2_group2_amount == 800_000_000_000_000_000_000, 'balance not up to date');
 
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
-    contract_address.pay(group1_address);
+    contract_address.paymesh(group1_address);
     stop_cheat_caller_address(contract_address.contract_address);
     // group balance after pay
     let group1_balance_after_pay = erc20_dispatcher.balance_of(group1_address);
@@ -191,7 +191,7 @@ fn test_all_contract_flow_success() {
     let user2 = erc20_dispatcher.balance_of(USER2_ADDR());
 
     start_cheat_caller_address(contract_address.contract_address, USER1_ADDR());
-    contract_address.pay(group1_address);
+    contract_address.paymesh(group1_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     // get group balance

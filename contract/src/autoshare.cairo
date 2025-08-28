@@ -12,6 +12,7 @@ pub mod AutoShare {
     use openzeppelin::upgrades::UpgradeableComponent;
 
     const ADMIN_ROLE: felt252 = selector!("ADMIN");
+    const OVERALL_ADMIN_ROLE: felt252 = selector!("OVERALL_ADMIN_ROLE");
     use starknet::storage::{
         Map, MutableVecTrait, StorageMapReadAccess, StorageMapWriteAccess, StoragePathEntry,
         StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait,
@@ -132,7 +133,9 @@ pub mod AutoShare {
         // initialize owner of contract
         self.ownable.initializer(owner);
         self.accesscontrol.initializer();
+        self.accesscontrol.set_role_admin(ADMIN_ROLE, OVERALL_ADMIN_ROLE);
         self.accesscontrol._grant_role(ADMIN_ROLE, owner);
+        self.accesscontrol._grant_role(OVERALL_ADMIN_ROLE, owner);
 
         self.group_count.write(0);
         self.update_request_count.write(0);
@@ -434,7 +437,7 @@ pub mod AutoShare {
             starknet::syscalls::replace_class_syscall(new_class_hash).unwrap();
         }
 
-        fn pay(ref self: ContractState, group_address: ContractAddress) {
+        fn paymesh(ref self: ContractState, group_address: ContractAddress) {
             let group_id: u256 = self._get_group_id(group_address);
             let mut group: Group = self.get_group(group_id);
             let caller = get_caller_address();
