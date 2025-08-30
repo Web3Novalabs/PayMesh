@@ -1,6 +1,7 @@
 use contract::autoshare_child::{IAutoshareChildDispatcher, IAutoshareChildDispatcherTrait};
 use contract::base::types::GroupMember;
 use contract::interfaces::iautoshare::{IAutoShareDispatcher, IAutoShareDispatcherTrait};
+use contract::interfaces::icrowdfund::{ICrowdFundDispatcher, ICrowdFundDispatcherTrait};
 use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
 use starknet::{ClassHash, ContractAddress};
@@ -86,6 +87,27 @@ pub fn deploy_autoshare_contract() -> (IAutoShareDispatcher, IERC20Dispatcher) {
     let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
 
     let AutoShare = IAutoShareDispatcher { contract_address };
+    (AutoShare, erc20_dispatcher)
+}
+
+// deploy the autoshare contract
+pub fn deploy_crowdfund_contract() -> (ICrowdFundDispatcher, IERC20Dispatcher) {
+    let erc20_class = declare("STARKTOKEN").unwrap().contract_class();
+    let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+    let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+    let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
+    let child_contract: ClassHash = *declare("CrowdFundChild").unwrap().contract_class().class_hash;
+    let contract = declare("CrowdFund").unwrap().contract_class();
+    let constructor_calldata = array![
+        ADMIN_ADDR().into(),
+        erc20_address.into(),
+        EMERGENCY_WITHDRAW_ADDR().into(),
+        child_contract.into(),
+    ];
+    let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
+
+    let AutoShare = ICrowdFundDispatcher { contract_address };
     (AutoShare, erc20_dispatcher)
 }
 
