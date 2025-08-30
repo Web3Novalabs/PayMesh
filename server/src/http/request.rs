@@ -2,12 +2,17 @@ use axum::{
     Json,
     extract::{Query, State},
     http::StatusCode,
+    response::IntoResponse,
 };
+use sqlx::types::BigDecimal;
 #[derive(Serialize)]
 pub struct Response {
     pub message: String,
 }
-use crate::util::connector::{contract_address_felt, is_valid_address, signer_account};
+use crate::{
+    AppState,
+    util::connector::{contract_address_felt, is_valid_address, signer_account},
+};
 use serde::Serialize;
 use starknet::{
     accounts::Account,
@@ -17,6 +22,11 @@ use starknet::{
     },
     macros::selector,
 };
+
+struct PaymeshGroup {
+    pub group_address: String,
+    pub usage_remaining: BigDecimal,
+}
 
 pub async fn new() -> (StatusCode, Json<&'static str>) {
     (StatusCode::OK, Json("PAYMESH IS ACTIVE"))
@@ -62,4 +72,30 @@ pub async fn pay(
             return Err((StatusCode::BAD_GATEWAY, Json(message)));
         }
     }
+}
+
+#[derive(Debug, Serialize)]
+pub struct SuccessResponse {
+    pub success: bool,
+}
+
+pub async fn create_group(
+    State(state): State<AppState>,
+    Json(payload): Json<PaymeshGroup>,
+) -> Result<(StatusCode, Json<String>), (StatusCode, Json<Response>)> {
+    let query = "INSERT INTO paymesh_group (group_address, usage_remaining) VALUES ($1, $2)";
+
+    if let Err(e) = sqlx::query(query)
+        .bind(payload.group_address)
+        .bind(payload.usage_remaining)
+        .execute(&state.pool)
+        .await
+    {
+        let message = Response {
+            message: format!("DB error: {}", e),
+        };
+        return Err((StatusCode::INTERNAL_SERVER_ERROR, Json(message)));
+    }
+
+    Ok((StatusCode::OK, Json("j".to_owned())))
 }
