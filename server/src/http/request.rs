@@ -13,7 +13,7 @@ use crate::{
     AppState,
     util::connector::{contract_address_felt, is_valid_address, signer_account},
 };
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use starknet::{
     accounts::Account,
     core::{
@@ -23,9 +23,10 @@ use starknet::{
     macros::selector,
 };
 
-struct PaymeshGroup {
+#[derive(Debug, Deserialize)]
+pub struct PaymeshGroup {
     pub group_address: String,
-    pub usage_remaining: BigDecimal,
+    pub usage_remaining: String,
 }
 
 pub async fn new() -> (StatusCode, Json<&'static str>) {
@@ -78,6 +79,7 @@ pub async fn pay(
 pub struct SuccessResponse {
     pub success: bool,
 }
+
 
 pub async fn create_group(
     State(state): State<AppState>,
