@@ -86,10 +86,16 @@ pub async fn create_group(
     Json(payload): Json<PaymeshGroup>,
 ) -> Result<(StatusCode, Json<String>), (StatusCode, Json<Response>)> {
     let query = "INSERT INTO paymesh_group (group_address, usage_remaining) VALUES ($1, $2)";
+    let usage_remaining: BigDecimal = payload.usage_remaining.parse().map_err(|_| {
+        let message = Response {
+            message: "Invalid usage_remaining".to_string(),
+        };
+        (StatusCode::BAD_REQUEST, Json(message))
+    })?;
 
     if let Err(e) = sqlx::query(query)
         .bind(payload.group_address)
-        .bind(payload.usage_remaining)
+        .bind(usage_remaining)
         .execute(&state.pool)
         .await
     {

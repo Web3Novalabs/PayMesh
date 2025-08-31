@@ -27,7 +27,7 @@ async fn main() {
     // Read (development) Environment Variables.
     dotenvy::dotenv().ok();
     let db_connection_str = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://postgres:password@localhost".to_string());
+        .unwrap_or_else(|_| "postgres://macbookpro:12345678@localhost:5432/paymesh".to_string());
 
     let pool = PgPoolOptions::new()
         .max_connections(5)
