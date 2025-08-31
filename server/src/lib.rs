@@ -33,7 +33,7 @@ use crate::routes::{group, health, pay_group};
 pub fn router(state: AppState) -> Router {
     Router::new()
         .route("/health", get(health::health_check))
-        .route("/group", post(group::create_group))
+        .route("/group", get(group::get_group).post(group::create_group))
         .route("/pay_group", post(pay_group::pay_group))
         .with_state(state)
 }
