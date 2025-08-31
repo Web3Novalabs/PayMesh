@@ -17,7 +17,10 @@ pub mod util {
     pub mod connector;
 }
 
-use axum::{routing::{get, post}, Router};
+use axum::{
+    Router,
+    routing::{get, post},
+};
 use sqlx::PgPool;
 
 #[derive(Clone)]
