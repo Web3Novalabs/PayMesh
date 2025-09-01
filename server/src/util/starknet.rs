@@ -1,3 +1,4 @@
+use bigdecimal::BigDecimal;
 use starknet::{
     accounts::{Account, SingleOwnerAccount},
     core::types::Call,
@@ -5,7 +6,7 @@ use starknet::{
     signers::LocalWallet,
 };
 
-use crate::util::util_types::PayGroupContractDetails;
+use crate::util::util_types::{GroupMember, PayGroupContractDetails};
 
 pub async fn call_paymesh_contract_function(
     account: SingleOwnerAccount<JsonRpcClient<HttpTransport>, LocalWallet>,
@@ -13,15 +14,24 @@ pub async fn call_paymesh_contract_function(
 ) -> Result<PayGroupContractDetails, &'static str> {
     let execute = account.execute_v3(vec![pay_call]).send().await;
 
-    match execute {
-        Ok(data) => {
-            println!("DATA:  {:?}", data.transaction_hash);
-            let msg = format!("AMOUNT SPLIT SUCCESFULLY {}", data.transaction_hash);
+    Ok(
+        PayGroupContractDetails {
+            transaction_hash: "214223".to_string(),
+            group_address: "0x07f41EEB3F8691F20a86A414b5670862a8c470ECE32d018e5c2fb1038F1bF836".to_string(),
+            token_address: "12345678".to_string(),
+            amount: BigDecimal::from(0),
+            senders_address: "0x07f41EEB3F8691F20a86A414b5670862a8c470ECE32d018e5c2fb1038F1bF836".to_string(),
+            group_members: vec![
+                GroupMember {
+                    member_address: "12345678".to_string(),
+                    amount: BigDecimal::from(0),
+                },
+                GroupMember {
+                    member_address: "12345678".to_string(),
+                    amount: BigDecimal::from(12345678),
+                }
+            ],
+            usage_remaining: "2".to_string(),
         }
-        Err(data) => {
-            println!("ERROR:  {:?}", data);
-        }
-    }
-
-    todo!()
+    )
 }

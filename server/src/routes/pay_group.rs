@@ -9,10 +9,16 @@ use crate::{
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bigdecimal::BigDecimal;
+use serde::Serialize;
 use starknet::core::{
     types::{Call, Felt},
     utils::get_selector_from_name,
 };
+
+#[derive(Debug, Clone, Serialize, Default)]
+struct Amount {
+    amount: BigDecimal
+}
 
 pub async fn pay_group(
     State(state): State<AppState>,
@@ -22,6 +28,7 @@ pub async fn pay_group(
     let contract_address = contract_address_felt();
     let group_address = payload.group_address;
 
+    tracing::info!("calling the pay group function");
     is_valid_address(&group_address).map_err(|_| ApiError::BadRequest("INVALID GROUP ADDRESS"))?;
 
     let record = sqlx::query_as!(
@@ -33,6 +40,8 @@ pub async fn pay_group(
     .await
     .map_err(|_| ApiError::Internal("Database Error Occured"))?
     .ok_or(ApiError::NotFound("Group Not Found"))?;
+    
+    tracing::info!("calling the pay group function 2");
 
     if record.usage_remaining <= BigDecimal::from(0) {
         return Err(ApiError::BadRequest("USAGE COUNT FOR GROUP EXHAUSTED, TOP UP GROUP!"));
@@ -56,6 +65,7 @@ pub async fn pay_group(
         .map_err(|_| ApiError::Internal("Failed to parse usage remaining"))?;
 
     let token_address = paid_group_details.token_address.clone();
+    tracing::info!("calling the pay group function 3");
 
     let rows_affected = sqlx::query!(
         r#"
@@ -70,12 +80,15 @@ pub async fn pay_group(
     .await
     .map_err(|_| ApiError::Internal("Database Error Occured"))?
     .rows_affected();
+    tracing::info!("calling the pay group function 4");
 
     if rows_affected != 1 {
         return Err(ApiError::BadRequest("Failed to update group usage"));
     }
+    tracing::info!("calling the pay group function 5");
 
-    let previous_amount: BigDecimal = sqlx::query_scalar!(
+    let previous_amount: Amount = sqlx::query_as!(
+        Amount,
         r#"
         SELECT amount FROM group_token_amounts WHERE group_address = $1 AND token_address = $2
         "#,
@@ -85,12 +98,13 @@ pub async fn pay_group(
     .fetch_optional(&state.db)
     .await
     .map_err(|_| ApiError::Internal("Database Error Occured"))?
-    .ok_or(ApiError::NotFound("Group Token Amount Not Found"))?;
+    .unwrap_or_default();
+    tracing::info!("calling the pay group function 6");
 
-    let new_amount = previous_amount + BigDecimal::from_str(&paid_group_details.amount)
-        .map_err(|_| ApiError::BadRequest("Failed to parse amount"))?;
+    let new_amount = previous_amount.amount + paid_group_details.amount.clone();
 
     let insert_group_payments_query = "UPDATE group_token_amounts SET amount = $1 WHERE group_address = $2 AND token_address = $3";
+    tracing::info!("calling the pay group function 7");
 
     sqlx::query(insert_group_payments_query)
         .bind(new_amount)
@@ -99,20 +113,25 @@ pub async fn pay_group(
         .execute(&state.db)
         .await
         .map_err(|_| ApiError::Internal("Database Error Occured"))?;
+    tracing::info!("calling the pay group function 8");
 
     // insert into the group payments table
     let insert_group_payments_query = "INSERT INTO group_payments (transaction_hash, group_address, sender_address, token_address, amount) VALUES ($1, $2, $3, $4, $5)";
+    tracing::info!("calling the pay group function 89");
 
     sqlx::query(insert_group_payments_query)
-        .bind(paid_group_details.transaction_hash)
+        .bind(payload.txn)
         .bind(group_address)
         .bind(paid_group_details.senders_address)
         .bind(token_address)
         .bind(paid_group_details.amount)
         .execute(&state.db)
         .await
-        .map_err(|_| ApiError::Internal("Database Error Occured"))?;
-
+        .map_err(|e| {
+            tracing::error!("Failed to execute query: {}", e);
+            ApiError::Internal("Database issues")
+        })?;
+    tracing::info!("calling the pay group function 10");
     // store every users data 
     for member in paid_group_details.group_members {
         let insert_member_payment_query = "INSERT INTO payment_distributions (member_address, group_address, token_address, token_amount) VALUES ($1, $2, $3, $4)";
@@ -124,7 +143,10 @@ pub async fn pay_group(
             .bind(member.amount)
             .execute(&state.db)
             .await
-            .map_err(|_| ApiError::Internal("Database Error Occured"))?;
+            .map_err(|e| { 
+                tracing::error!("this is it {}", e.to_string());
+                ApiError::Internal("Database Error Occured")
+            })?;
     }
     Ok((StatusCode::OK, Json("TOKEN SPLIT SUCCESSFULLY")))
 }

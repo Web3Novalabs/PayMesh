@@ -18,6 +18,7 @@ pub struct GroupPaymentMembers {
 #[derive(Debug, Deserialize)]
 pub struct PayGroupRequest {
     pub group_address: String,
+    pub txn: String
 }
 
 #[derive(Debug, Deserialize)]

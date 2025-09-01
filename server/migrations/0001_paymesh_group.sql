@@ -44,8 +44,7 @@ CREATE INDEX idx_group_token_amounts_group ON group_token_amounts (group_address
 -- Example: Alice sends payment to group → insert payment record with tx hash
 -- main payments table when a group is created and money is sent to the group
 CREATE TABLE group_payments (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    transaction_hash VARCHAR(66) NOT NULL UNIQUE,
+    transaction_hash VARCHAR(66) PRIMARY KEY,
     group_address VARCHAR(66) NOT NULL,
     sender_address VARCHAR(66) NOT NULL 
         CHECK (sender_address ~ '^0x[a-fA-F0-9]{64}$'),
@@ -95,7 +94,8 @@ CREATE INDEX idx_group_members_member ON group_payment_members (member_address);
 -- When inserted: When you distribute a payment
 -- Example: Alice's payment gets split → Bob gets 0.45 ETH, Carol gets 1.05 ETH
 CREATE TABLE payment_distributions (
-    payment_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    transaction_hash VARCHAR(66),
     member_address VARCHAR(66) NOT NULL,
     group_address VARCHAR(66) NOT NULL,
     token_address VARCHAR(66) NOT NULL,
@@ -103,8 +103,8 @@ CREATE TABLE payment_distributions (
     sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     CONSTRAINT fk_payment_distribution 
-        FOREIGN KEY (payment_id) 
-        REFERENCES group_payments (id) 
+        FOREIGN KEY (transaction_hash) 
+        REFERENCES group_payments (transaction_hash) 
         ON DELETE CASCADE
 );
 
