@@ -15,6 +15,8 @@ pub mod routes {
 
 pub mod util {
     pub mod connector;
+    pub mod starknet;
+    pub mod util_types;
 }
 
 use axum::{

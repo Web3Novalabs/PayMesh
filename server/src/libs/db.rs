@@ -27,7 +27,7 @@ impl Db {
         sqlx::migrate!("./migrations")
             .run(&self.pool)
             .await
-            .map_err(|_| anyhow::anyhow!("could not run migrations"))?;
+            .map_err(|e| anyhow::anyhow!("could not run migrations {} ", e))?;
         Ok(())
     }
 
