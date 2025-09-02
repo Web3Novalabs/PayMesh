@@ -125,7 +125,8 @@ pub async fn pay_group(
     tracing::info!("calling the pay group function 10");
     // store every users data
     for member in paid_group_details.group_members {
-        sqlx::query!(r#"INSERT INTO distributions_history (group_address, tx_hash, member_address, token_address, token_amount) VALUES ($1, $2, $3, $4, $5)"#, paid_group_details.group_address.clone(), payload.txn, member.member_address, paid_group_details.token_address.clone(), member.amount)
+        sqlx::query!(r#"INSERT INTO distributions_history (group_address, tx_hash, member_address, token_address, token_amount) VALUES ($1, $2, $3, $4, $5)"#, 
+        paid_group_details.group_address.clone(), payload.txn, member.member_address, paid_group_details.token_address.clone(), member.amount)
             .execute(&mut *tx)
             .await
             .map_err(|e| {
