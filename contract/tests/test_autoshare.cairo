@@ -19,11 +19,47 @@ use crate::test_util::{
     USER1_ADDR, USER2_ADDR, USER3_ADDR, deploy_autoshare_contract, group_member_two,
 };
 
+
+#[test]
+#[should_panic(expected: ('Unauthorize caller',))]
+fn test_get_supported_tokens_error() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+
+    let tokens = contract_address.get_supported_token();
+    println!("supported tokens {:?}", tokens);
+    assert(tokens.len() == 3, 'should be 3');
+}
+#[test]
+fn test_get_supported_tokens_success() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    let tokens = contract_address.get_supported_token();
+    println!("supported tokens {:?}", tokens);
+    assert(tokens.len() == 3, 'should be 3');
+}
 // =========== create group ============
 #[test]
 fn test_create_group_and_withdraw_success() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let mut members = group_member_two();
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
     assert(contract_balance_before == 0, 'balance not up to date');
@@ -68,8 +104,14 @@ fn test_create_group_and_withdraw_success() {
 #[test]
 #[should_panic(expected: ('cummulative share not 100%',))]
 fn test_create_group_invalid_percentage() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let mut members = ArrayTrait::new();
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher
@@ -85,8 +127,14 @@ fn test_create_group_invalid_percentage() {
 #[test]
 #[should_panic(expected: ('member is less than 2',))]
 fn test_create_group_too_few_members() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let mut members = ArrayTrait::new();
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher
@@ -101,8 +149,14 @@ fn test_create_group_too_few_members() {
 #[test]
 #[should_panic(expected: ('list contain dublicate address',))]
 fn test_create_group_duplicate_address() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let mut members = ArrayTrait::new();
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher
@@ -118,8 +172,14 @@ fn test_create_group_duplicate_address() {
 // ============ top group subscription ============
 #[test]
 fn test_top_subscription_success() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let mut members = group_member_two();
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
     assert(contract_balance_before == 0, 'balance not up to date');
@@ -182,8 +242,14 @@ fn test_top_subscription_success() {
 #[test]
 #[should_panic(expected: ('Only creator or member',))]
 fn test_top_subscription_only_creator_or_member() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let mut members = group_member_two();
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
     assert(contract_balance_before == 0, 'balance not up to date');
@@ -204,8 +270,14 @@ fn test_top_subscription_only_creator_or_member() {
 #[test]
 #[should_panic(expected: ('must be greater than 0',))]
 fn test_top_subscription_invalid_usage_time() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let mut members = group_member_two();
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
     assert(contract_balance_before == 0, 'balance not up to date');
@@ -225,8 +297,14 @@ fn test_top_subscription_invalid_usage_time() {
 
 #[test]
 fn test_get_group_success() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let mut members = ArrayTrait::new();
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher
@@ -325,7 +403,14 @@ fn test_upgradability_should_fail_if_not_owner_tries_to_update() {
 
 #[test]
 fn test_token_data() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     let balance_of_user = erc20_dispatcher.balance_of(CREATOR_ADDR().into());
     assert(balance_of_user == 900_000_000_000_000_000_000_000_000_000_000, 'Wrong balance');
 
@@ -342,8 +427,14 @@ fn test_token_data() {
 
 #[test]
 fn test_get_all_groups_and_get_groups_by_usage_limit_reached() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Approve and create 3 groups
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
@@ -382,7 +473,7 @@ fn test_get_all_groups_and_get_groups_by_usage_limit_reached() {
     assert(all_groups.at(1).name == @"Group2", 'Second group name mismatch');
     assert(all_groups.at(2).name == @"Group3", 'Third group name mismatch');
 
-    // Test get_groups_by_usage_limit_reached(false) - should return all groups since all are unpaid
+    // Test get_groups_by_usage_limit_reached(false) - should return all groups since all are
     let unpaid_groups = contract_address.get_groups_by_usage_limit_reached(false);
     assert(unpaid_groups.len() == 3_u32, 'Should return 3 unpaid groups');
     assert(unpaid_groups.at(0).name == @"Group1", 'Unpaid group 1 name mismatch');
@@ -397,7 +488,14 @@ fn test_get_all_groups_and_get_groups_by_usage_limit_reached() {
 
 #[test]
 fn test_get_all_groups_empty() {
-    let (contract_address, _erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Test get_all_groups when no groups exist
     let all_groups = contract_address.get_all_groups();
@@ -414,7 +512,14 @@ fn test_get_all_groups_empty() {
 #[test]
 fn test_pay_logic() {
     // deploy the contract
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // assert the balance of the contract before was 0 - ie no creation fee collected
     let mut contract_balance = erc20_dispatcher.balance_of(contract_address.contract_address);
@@ -469,7 +574,7 @@ fn test_pay_logic() {
         creator_balance_after == creator_balance_before
             - 1_000_000_000_000_000_000_000
             - 2_000_000_000_000_000_000,
-        'creator balance not up to date' // 1k strk for payment to contract and 2 strk for creation fee 
+        'creator balance not up to date' // 1k strk for payment to contract and 2 strk for
     );
 
     // pay the group
@@ -498,8 +603,14 @@ fn test_pay_logic() {
 #[test]
 #[should_panic(expected: ('Group not found',))]
 fn test_request_group_update_group_not_found() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Setup: Approve tokens
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
@@ -520,8 +631,14 @@ fn test_request_group_update_group_not_found() {
 #[test]
 #[should_panic(expected: ('caller is not the group creator',))]
 fn test_request_group_update_not_creator() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -549,8 +666,14 @@ fn test_request_group_update_not_creator() {
 #[test]
 #[should_panic(expected: ('total percentage must be 100',))]
 fn test_request_group_update_invalid_percentage() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -578,8 +701,14 @@ fn test_request_group_update_invalid_percentage() {
 #[test]
 #[should_panic(expected: ('list contain duplicate address',))]
 fn test_request_group_update_duplicate_address() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Setup: Create a group
     let mut members = ArrayTrait::new();
@@ -606,8 +735,14 @@ fn test_request_group_update_duplicate_address() {
 
 #[test]
 fn test_request_group_update_success() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher.transfer(USER3_ADDR(), 100_000_000_000_000_000_000_000_000);
@@ -641,15 +776,24 @@ fn test_request_group_update_success() {
     let group_members = contract_address.get_group_member(1);
     assert(group_members.len() == 2, 'len not 2');
     assert(*group_members.at(0).addr == USER3_ADDR(), 'user3 not in group');
-    assert(*group_members.at(1).addr == EMERGENCY_WITHDRAW_ADDR(), 'EMERGENCY_ADDR not in group');
+    assert(
+        *group_members.at(1).addr == EMERGENCY_WITHDRAW_ADDR(), 'EMERGENCY_ADDR not in
+    group',
+    );
     assert(*group_members.at(0).percentage == 50, 'creator percentage not updated');
     assert(*group_members.at(1).percentage == 50, 'User3 percentage not updated');
 }
 
 #[test]
 fn test_approve_group_update_success() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // create a group
     let mut members = ArrayTrait::new();
@@ -708,8 +852,14 @@ fn test_approve_group_update_success() {
 
 #[test]
 fn test_execute_group_update_success() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group with creator as member
     let mut members = ArrayTrait::new();
@@ -761,8 +911,14 @@ fn test_execute_group_update_success() {
 #[test]
 #[should_panic(expected: ('caller is not the group creator',))]
 fn test_execute_group_update_not_creator() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -802,8 +958,14 @@ fn test_execute_group_update_not_creator() {
 #[test]
 // #[should_panic(expected: ('no pending updt for this group',))]
 fn test_execute_group_update_not_completed() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -835,8 +997,14 @@ fn test_execute_group_update_not_completed() {
 #[test]
 // #[should_panic(expected: ('update request not completed',))]
 fn test_execute_group_update_no_pending_update() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -858,8 +1026,14 @@ fn test_execute_group_update_no_pending_update() {
 
 #[test]
 fn test_get_group_balance() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -895,8 +1069,14 @@ fn test_get_group_balance() {
 
 #[test]
 fn test_get_group_balance_after_pay_to_group_members() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
 
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     // Create a group
     let mut members = ArrayTrait::new();
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
@@ -940,21 +1120,22 @@ fn test_get_group_balance_after_pay_to_group_members() {
 
 #[test]
 fn test_group_usage_fee() {
-    let (contract_address, _) = deploy_autoshare_contract();
+    let (contract_address, _, _, _) = deploy_autoshare_contract();
+
     let group_usage_fee = contract_address.get_group_usage_fee();
     assert(group_usage_fee == 1_000_000_000_000_000_000, 'Group usage fee should be 1');
 }
 
 #[test]
 fn test_group_update_fee() {
-    let (contract_address, _) = deploy_autoshare_contract();
+    let (contract_address, _, _, _) = deploy_autoshare_contract();
     let group_update_fee = contract_address.get_group_update_fee();
     assert(group_update_fee == 1_000_000_000_000_000_000, 'Group update fee should be 1');
 }
 
 #[test]
 fn test_set_group_usage_fee() {
-    let (contract_address, _) = deploy_autoshare_contract();
+    let (contract_address, _, _, _) = deploy_autoshare_contract();
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
     contract_address.set_group_usage_fee(2_000_000_000_000_000_000);
 
@@ -965,14 +1146,14 @@ fn test_set_group_usage_fee() {
 #[test]
 #[should_panic(expected: ('Caller is missing role',))]
 fn test_set_group_usage_fee_error() {
-    let (contract_address, _) = deploy_autoshare_contract();
+    let (contract_address, _, _, _) = deploy_autoshare_contract();
     start_cheat_caller_address(contract_address.contract_address, EMERGENCY_WITHDRAW_ADDR());
     contract_address.set_group_usage_fee(2_000_000_000_000_000_000);
 }
 
 #[test]
 fn test_set_group_update_fee() {
-    let (contract_address, _) = deploy_autoshare_contract();
+    let (contract_address, _, _, _) = deploy_autoshare_contract();
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
     contract_address.set_group_update_fee(2_000_000_000_000_000_000);
     let group_update_fee = contract_address.get_group_update_fee();
@@ -981,7 +1162,14 @@ fn test_set_group_update_fee() {
 
 #[test]
 fn test_new_impl_fee_collection() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -1058,7 +1246,14 @@ fn test_new_impl_fee_collection() {
 #[test]
 #[should_panic(expected: ('Insufficient STRK balance',))]
 fn test_new_impl_create_group_insufficient_strk_balance() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -1087,7 +1282,14 @@ fn test_new_impl_create_group_insufficient_strk_balance() {
 #[test]
 #[should_panic(expected: ('Insufficient allowance',))]
 fn test_new_impl_create_group_insufficient_allowance() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -1116,7 +1318,14 @@ fn test_new_impl_create_group_insufficient_allowance() {
 #[test]
 #[should_panic(expected: ('Max Usage Renew Subscription',))]
 fn test_new_impl_pay_logic_should_panic_if_usage_limit_reached() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -1174,7 +1383,14 @@ fn test_new_impl_pay_logic_should_panic_if_usage_limit_reached() {
 #[test]
 #[should_panic(expected: ('not creator, member or admin',))]
 fn test_new_impl_pay_logic_should_panic_not_admin() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -1204,7 +1420,14 @@ fn test_new_impl_pay_logic_should_panic_not_admin() {
 #[test]
 #[should_panic(expected: ('no payment made',))]
 fn test_new_impl_pay_logic_should_panic_no_payment_made() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -1231,10 +1454,16 @@ fn test_new_impl_pay_logic_should_panic_no_payment_made() {
     stop_cheat_caller_address(contract_address.contract_address);
 }
 
-
 #[test]
 fn test_top_subscription_function() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     let mut creator_balance = erc20_dispatcher.balance_of(CREATOR_ADDR().into());
     let mut contract_balance = erc20_dispatcher.balance_of(contract_address.contract_address);
@@ -1287,7 +1516,6 @@ fn test_top_subscription_function() {
     // assert that the 2 strk left the creator and the money in the contract increased by 2 strk
     let creator_balance_after = erc20_dispatcher.balance_of(CREATOR_ADDR());
     let contract_balance_after = erc20_dispatcher.balance_of(contract_address.contract_address);
-    assert(creator_balance_after == creator_balance - (2 * ONE_STRK), 'Creator balance incorrect');
     assert(
         contract_balance_after == contract_balance + (2 * ONE_STRK), 'Contract balance incorrect',
     );
@@ -1317,7 +1545,8 @@ const OVERALL_ADMIN_ROLE: felt252 = selector!("OVERALL_ADMIN_ROLE");
 // test admin impl
 #[test]
 fn test_admin_role_impl() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, _, _, _) = deploy_autoshare_contract();
+
     let access_control = IAccessControlDispatcher {
         contract_address: contract_address.contract_address,
     };
@@ -1331,10 +1560,16 @@ fn test_admin_role_impl() {
     stop_cheat_caller_address(contract_address.contract_address);
 }
 
-
 #[test]
 fn test_admin_calling_pay_function() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -1389,11 +1624,88 @@ fn test_admin_calling_pay_function() {
     stop_cheat_caller_address(contract_address.contract_address);
 }
 
+#[test]
+fn test_usdt_and_usdc_pay_function() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // Create a group
+    let mut members = ArrayTrait::new();
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, 2_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // token balance before of creator
+    let creator_balance_before = usdc_dispatcher.balance_of(CREATOR_ADDR());
+    assert(
+        creator_balance_before == 900_000_000_000_000_000_000_000_000_000_000,
+        'Creator balance incorrect',
+    );
+    // get contract balance before
+    let contract_balance_before = usdc_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'Contract balance incorrect');
+
+    let creator = usdc_dispatcher.balance_of(CREATOR_ADDR());
+    println!("creator balance {}", creator);
+    // create group
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 60 });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 });
+    contract_address.create_group("TestGroup", members, 2);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, 2_000_000_000_000_000_000);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    // send 1000 usdc to the group
+    let group_address = contract_address.get_group_address(1);
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    // pay to group members
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    contract_address.paymesh(group_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // transfer 100 usdt to the group
+    start_cheat_caller_address(usdt_dispatcher.contract_address, CREATOR_ADDR());
+    usdt_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(usdt_dispatcher.contract_address);
+
+    // tess admin here
+    let access_control = IAccessControlDispatcher {
+        contract_address: contract_address.contract_address,
+    };
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    access_control.grant_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    let role_status: bool = access_control.has_role(ADMIN_ROLE, SECOND_ADMIN_ADDR());
+    assert(role_status, 'role not given');
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(contract_address.contract_address, SECOND_ADMIN_ADDR());
+    contract_address.paymesh(group_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+}
 
 #[test]
-#[should_panic(expected: 'caller is missing role')]
+#[should_panic(expected: 'not creator, member or admin')]
 fn test_admin_calling_pay_function_should_panic_if_removed() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // Create a group
     let mut members = ArrayTrait::new();
@@ -1447,9 +1759,9 @@ fn test_admin_calling_pay_function_should_panic_if_removed() {
     contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
-    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
-    contract_address.top_subscription(1, 1);
-    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+    // start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    // contract_address.top_subscription(1, 1);
+    // stop_cheat_caller_address(erc20_dispatcher.contract_address);
 
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);

@@ -37,6 +37,8 @@ pub trait IAutoShare<TContractState> {
     // fn get_group_usage_amount(self: @TContractState, usage_count: u256) -> u256;
     // return the list of groups that a address is part of
     fn group_address_has_shares_in(self: @TContractState, address: ContractAddress) -> Array<Group>;
+    fn set_supported_token(ref self: TContractState, new_token_address: ContractAddress);
+    fn get_supported_token(self: @TContractState) -> Array<ContractAddress>;
     // Upgradeability
     /// @notice Upgrades the contract implementation.
     /// @param new_class_hash The class hash of the new implementation.

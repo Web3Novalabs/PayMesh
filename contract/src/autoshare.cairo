@@ -33,7 +33,7 @@ pub mod AutoShare {
     };
     use crate::base::events::{
         GroupCreated, GroupPaid, GroupUpdateApproved, GroupUpdateRequested, GroupUpdated,
-        SubscriptionTopped,
+        MemberShare, SubscriptionTopped,
     };
     use crate::base::types::{Group, GroupMember, GroupUpdateRequest};
     use crate::interfaces::iautoshare::IAutoShare;
@@ -79,6 +79,8 @@ pub mod AutoShare {
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         token_address: ContractAddress,
+        supported_tokens: Map<u256, ContractAddress>, // id -> token address
+        token_count: u256,
         // Group update storage
         update_request_count: u256,
         update_requests: Map<u256, GroupUpdateRequest>, // group_id -> update_request
@@ -428,6 +430,24 @@ pub mod AutoShare {
             let group_address: ContractAddress = self.group_addresses.read(group_id);
             group_address
         }
+        fn set_supported_token(ref self: ContractState, new_token_address: ContractAddress) {
+            let caller = get_caller_address();
+            let caller = self.accesscontrol.has_role(ADMIN_ROLE, caller);
+            assert(caller, 'Unauthorize caller');
+            let id = self.token_count.read() + 1;
+            self.token_count.write(id);
+            self.supported_tokens.write(id, new_token_address);
+        }
+
+        fn get_supported_token(self: @ContractState) -> Array<ContractAddress> {
+            let mut token: Array<ContractAddress> = ArrayTrait::new();
+            let len = self.token_count.read();
+            for i in 1..=len {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                token.append(token_address);
+            }
+            token
+        }
 
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
@@ -457,17 +477,47 @@ pub mod AutoShare {
             let group_address = self.get_group_address(group_id);
             let amount = self._check_token_balance_of_child(group_address);
 
-            assert(amount > 0, 'no payment made');
-            let mut members_arr: Array<GroupMember> = ArrayTrait::new();
-            for member in 0..group_members_vec.len() {
-                let member: GroupMember = group_members_vec.at(member).read();
-                let members_money: u256 = amount * member.percentage.try_into().unwrap() / 100;
-
-                // now transfer from group address to member address
-                members_arr.append(member);
-                let token = IERC20Dispatcher { contract_address: self.token_address.read() };
-                token.transfer_from(group_address, member.addr, members_money);
+            let len = self.token_count.read();
+            let mut pay_happen = false;
+            for i in 1..=len {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                let balance = self
+                    ._check_token_balance_of_group_by_tokens(group_address, token_address);
+                if balance > 0 {
+                    let mut members_arr: Array<MemberShare> = ArrayTrait::new();
+                    for member in 0..group_members_vec.len() {
+                        let member: GroupMember = group_members_vec.at(member).read();
+                        let members_money: u256 = amount
+                            * member.percentage.try_into().unwrap()
+                            / 100;
+                        let member_share: MemberShare = MemberShare {
+                            addr: member.addr, share: members_money,
+                        };
+                        // now transfer from group address to member address
+                        members_arr.append(member_share);
+                        let token = IERC20Dispatcher { contract_address: token_address };
+                        token.transfer_from(group_address, member.addr, members_money);
+                    }
+                    pay_happen = true;
+                    self
+                        .emit(
+                            Event::GroupPaid(
+                                GroupPaid {
+                                    group_id: group_id,
+                                    amount: amount,
+                                    paid_by: get_caller_address(),
+                                    paid_at: get_block_timestamp(),
+                                    members: members_arr,
+                                    usage_count: usage_count,
+                                    token_address,
+                                },
+                            ),
+                        );
+                }
             }
+
+            assert(pay_happen, 'no payment made');
+
             usage_count -= 1;
             if usage_count == 0 {
                 group.usage_limit_reached = true;
@@ -476,19 +526,6 @@ pub mod AutoShare {
             self.groups.write(group_id, group);
             // once paid, we decrement the planned usage count
             self.usage_count.write(group_id, usage_count);
-            self
-                .emit(
-                    Event::GroupPaid(
-                        GroupPaid {
-                            group_id: group_id,
-                            amount: amount,
-                            paid_by: get_caller_address(),
-                            paid_at: get_block_timestamp(),
-                            members: members_arr,
-                            usage_count: usage_count,
-                        },
-                    ),
-                );
         }
 
         fn request_group_update(
@@ -666,6 +703,14 @@ pub mod AutoShare {
             self: @ContractState, group_address: ContractAddress,
         ) -> u256 {
             let token = IERC20Dispatcher { contract_address: self.token_address.read() };
+            let balance = token.balance_of(group_address);
+            balance
+        }
+
+        fn _check_token_balance_of_group_by_tokens(
+            self: @ContractState, group_address: ContractAddress, token_address: ContractAddress,
+        ) -> u256 {
+            let token = IERC20Dispatcher { contract_address: token_address };
             let balance = token.balance_of(group_address);
             balance
         }
