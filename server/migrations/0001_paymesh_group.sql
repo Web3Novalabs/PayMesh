@@ -1,116 +1,104 @@
---paymesh_group
--- What: Core group information
--- When inserted: When someone creates a new payment group
--- Example: User creates "Team Dev Fund" → insert group record
-CREATE TABLE paymesh_group (
-    group_address VARCHAR(66) PRIMARY KEY 
-        CHECK (group_address ~ '^0x[a-fA-F0-9]{64}$'),
+-- groups - inserted when a group is created
+CREATE TABLE groups (
+    group_address VARCHAR(66) PRIMARY KEY,
     group_name VARCHAR(100) NOT NULL,
-    creator_address VARCHAR(66) NOT NULL 
-        CHECK (creator_address ~ '^0x[a-fA-F0-9]{64}$'),
+    created_by VARCHAR(66) NOT NULL,
     usage_remaining NUMERIC(20,0) NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_paymesh_group_creator ON paymesh_group (creator_address);
-CREATE INDEX idx_paymesh_group_created_at ON paymesh_group (created_at);
+CREATE INDEX idx_groups_created_by ON groups (created_by);
+CREATE INDEX idx_groups_created_at ON groups (created_at);
 
--- group_token_amounts
--- What: The actual token amounts for each payment
--- When inserted: Immediately after inserting into group_payments
--- Example: Alice's payment contained 1.5 ETH + 1000 USDC → insert 2 rows here
-CREATE TABLE group_token_amounts (
+
+-- payments - inserted when a payment is made
+CREATE TABLE payments (
+    tx_hash VARCHAR(66) PRIMARY KEY,
+    group_address VARCHAR(66) NOT NULL,
+    sender_address VARCHAR(66) NOT NULL,
+    token_address VARCHAR(66) NOT NULL,
+    amount NUMERIC(36,18) NOT NULL,
+    paid_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_group_payment
+        FOREIGN KEY (group_address)
+        REFERENCES groups (group_address)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_group_payments_group ON payments (group_address);
+CREATE INDEX idx_group_payments_sender ON payments (sender_address);
+
+CREATE INDEX idx_group_payments_paid_at ON payments (paid_at);
+
+-- group_token_history - inserted when a payment made to keep track of how much was paid and in which token
+CREATE TABLE group_token_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     group_address VARCHAR(66) NOT NULL,
     token_symbol VARCHAR(10) NOT NULL, 
     token_address VARCHAR(66), 
     amount NUMERIC(36,18) NOT NULL DEFAULT 0, 
-    last_updated TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
     CONSTRAINT fk_group_balance 
         FOREIGN KEY (group_address) 
-        REFERENCES paymesh_group (group_address) 
+        REFERENCES groups (group_address) 
         ON DELETE CASCADE,
     
-    CONSTRAINT unique_group_token UNIQUE (group_address, token_symbol)
+    CONSTRAINT unique_group_token UNIQUE (group_address, token_address, token_symbol)
 );
 
-CREATE INDEX idx_group_token_amounts_group ON group_token_amounts (group_address);
-
--- group_payments
--- What: Records of incoming payments (without amounts)
--- When inserted: When someone sends money to a group
--- Example: Alice sends payment to group → insert payment record with tx hash
--- main payments table when a group is created and money is sent to the group
-CREATE TABLE group_payments (
-    transaction_hash VARCHAR(66) PRIMARY KEY,
-    group_address VARCHAR(66) NOT NULL,
-    sender_address VARCHAR(66) NOT NULL 
-        CHECK (sender_address ~ '^0x[a-fA-F0-9]{64}$'),
-    token_address VARCHAR(66) NOT NULL,
-    amount NUMERIC(36,18) NOT NULL,
-    paid_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    
-    CONSTRAINT fk_group_payment 
-        FOREIGN KEY (group_address) 
-        REFERENCES paymesh_group (group_address) 
-        ON DELETE CASCADE
-);
-
-CREATE INDEX idx_group_payments_group ON group_payments (group_address);
-CREATE INDEX idx_group_payments_sender ON group_payments (sender_address);
-
-CREATE INDEX idx_group_payments_paid_at ON group_payments (paid_at);
+CREATE INDEX idx_group_token_history_group ON group_token_history (group_address);
 
 
--- group_payment_members
--- What: Who's in each group and their split percentages
--- When inserted: When adding members to a group
--- Example: Add Bob (30%), Carol (70%) to "Team Dev Fund"
-CREATE TABLE group_payment_members (
+
+-- group_members - inserted when adding members to a group
+CREATE TABLE group_members (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     group_address VARCHAR(66) NOT NULL,
-    member_address VARCHAR(66) NOT NULL 
-        CHECK (member_address ~ '^0x[a-fA-F0-9]{64}$'),
-    member_percentage NUMERIC(5,2) NOT NULL 
-        CHECK (member_percentage > 0 AND member_percentage <= 100),
+    member_address VARCHAR(66) NOT NULL,
+    member_percentage NUMERIC(5,2) NOT NULL,
     is_active BOOLEAN NOT NULL DEFAULT true,
     added_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     
     CONSTRAINT fk_group_member 
         FOREIGN KEY (group_address) 
-        REFERENCES paymesh_group (group_address) 
+        REFERENCES groups (group_address) 
         ON DELETE CASCADE,
     
     CONSTRAINT unique_group_member UNIQUE (group_address, member_address)
 );
 
-CREATE INDEX idx_group_members_group ON group_payment_members (group_address);
-CREATE INDEX idx_group_members_member ON group_payment_members (member_address);
+CREATE INDEX idx_group_members_group ON group_members (group_address);
+CREATE INDEX idx_group_members_member ON group_members (member_address);
 
--- payment_distributions
--- What: Individual payouts to each member
--- When inserted: When you distribute a payment
--- Example: Alice's payment gets split → Bob gets 0.45 ETH, Carol gets 1.05 ETH
-CREATE TABLE payment_distributions (
+-- distributions_history - inserted when a payment is distributed to members
+CREATE TABLE distributions_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    transaction_hash VARCHAR(66),
-    member_address VARCHAR(66) NOT NULL,
     group_address VARCHAR(66) NOT NULL,
+    tx_hash VARCHAR(66) NOT NULL, 
+    member_address VARCHAR(66) NOT NULL,
     token_address VARCHAR(66) NOT NULL,
     token_amount NUMERIC(36,18) NOT NULL,
     sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_payment_distribution
+        FOREIGN KEY (tx_hash)
+        REFERENCES payments (tx_hash)
+        ON DELETE SET NULL,
+
+    CONSTRAINT fk_group_distribution
+        FOREIGN KEY (group_address)
+        REFERENCES groups (group_address)
+        ON DELETE SET NULL
+
     
-    CONSTRAINT fk_payment_distribution 
-        FOREIGN KEY (transaction_hash) 
-        REFERENCES group_payments (transaction_hash) 
-        ON DELETE CASCADE
 );
 
-CREATE INDEX idx_payment_distributions_payment ON payment_distributions (payment_id);
-CREATE INDEX idx_payment_distributions_member ON payment_distributions (member_address);
-CREATE INDEX idx_payment_distributions_group ON payment_distributions (group_address);
+CREATE INDEX idx_distributions_history_payment ON distributions_history (tx_hash);
+CREATE INDEX idx_distributions_history_member ON distributions_history (member_address);
+CREATE INDEX idx_distributions_history_group ON distributions_history (group_address);
 
 
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -121,17 +109,22 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_paymesh_group_updated_at 
-    BEFORE UPDATE ON paymesh_group 
+CREATE TRIGGER update_group_updated_at 
+    BEFORE UPDATE ON groups 
+    FOR EACH ROW 
+    EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_group_token_history_updated_at 
+    BEFORE UPDATE ON group_token_history 
     FOR EACH ROW 
     EXECUTE FUNCTION update_updated_at_column();
 
 
 
-CREATE OR REPLACE FUNCTION initialize_group_tokens()
+CREATE OR REPLACE FUNCTION initialize_group_tokens_history()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO group_token_amounts (
+    INSERT INTO group_token_history (
         group_address, 
         token_symbol, 
         token_address, 
@@ -148,7 +141,7 @@ END;
 $$ language 'plpgsql';
 
 CREATE TRIGGER create_group_token_records
-    AFTER INSERT ON paymesh_group
+    AFTER INSERT ON groups
     FOR EACH ROW
-    EXECUTE FUNCTION initialize_group_tokens();
+    EXECUTE FUNCTION initialize_group_tokens_history();
 
