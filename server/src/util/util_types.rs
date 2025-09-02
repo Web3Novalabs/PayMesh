@@ -1,0 +1,19 @@
+use bigdecimal::BigDecimal;
+use serde::Serialize;
+
+#[derive(Debug, Serialize)]
+pub struct PayGroupContractDetails {
+    pub transaction_hash: String,
+    pub group_address: String,
+    pub token_address: String,
+    pub amount: BigDecimal,
+    pub senders_address: String,
+    pub group_members: Vec<GroupMember>,
+    pub usage_remaining: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct GroupMember {
+    pub member_address: String,
+    pub amount: BigDecimal,
+}
