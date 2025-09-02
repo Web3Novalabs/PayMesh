@@ -43,7 +43,7 @@ pub struct GroupUpdated {
 #[derive(Serde, Drop, starknet::Event)]
 pub struct GroupPaid {
     #[key]
-    pub group_id: u256,
+    pub group_address: ContractAddress,
     pub amount: u256,
     pub paid_by: ContractAddress,
     pub paid_at: u64,

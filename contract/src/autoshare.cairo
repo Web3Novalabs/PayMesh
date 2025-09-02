@@ -503,12 +503,12 @@ pub mod AutoShare {
                         .emit(
                             Event::GroupPaid(
                                 GroupPaid {
-                                    group_id: group_id,
+                                    group_address,
                                     amount: amount,
                                     paid_by: get_caller_address(),
                                     paid_at: get_block_timestamp(),
                                     members: members_arr,
-                                    usage_count: usage_count,
+                                    usage_count: usage_count-1,
                                     token_address,
                                 },
                             ),
