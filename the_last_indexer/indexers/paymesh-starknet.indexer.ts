@@ -19,11 +19,11 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
-    startingBlock: BigInt("1853550"),
+    startingBlock: BigInt("1843327"),
     filter: {
       events: [
         {
-          address: "0x07c23be2c3882e9f05ff720c4160c001f9b95bdf57a69220c3e2979cb9e00929",
+          address: "0x03b7c46011eb99746b120bb4391ff91cdebf84b242aa83adcde7c19fbf7a46a8",
           keys: [GROUP_CREATED_SELECTOR],
         },
         {
@@ -45,7 +45,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         
         if (eventKey === GROUP_CREATED_SELECTOR) {
           const groupAddress = event.keys[1];
-          group_addresses.add(groupAddress);
+          // group_addresses.add(groupAddress);
           logger.info(`✅ GroupCreated: ${groupAddress} | Total groups: ${group_addresses.size}`);
         } 
         else if (eventKey === TRANSFER_SELECTOR) {

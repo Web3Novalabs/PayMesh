@@ -5,7 +5,7 @@ import { Contract, Account, cairo, uint256, RpcProvider } from "starknet";
 // export const OLD_CONTRACT_ADDRESS =
 //   "0x057500f7e000dafe7350eee771b791a4d885db920539e741f96410e42809a68d";
 export const PAYMESH_ADDRESS =
-  "0x07c23be2c3882e9f05ff720c4160c001f9b95bdf57a69220c3e2979cb9e00929";
+  "0x03b7c46011eb99746b120bb4391ff91cdebf84b242aa83adcde7c19fbf7a46a8";
 // "0x03eb5cc3d473d59331c48096cafa360d52b49fcd6a08b14a6811223c773a2d73";
 // // export const CONTRACT_ADDRESS =
 // //   "0x0319c0feb56d2352681e58efc8aefa12efe0389b020efdcf7b822971a999f8c2";
