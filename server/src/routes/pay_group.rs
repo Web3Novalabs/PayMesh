@@ -21,6 +21,11 @@ pub async fn pay_group(
     let group_address = payload.group_address;
     let from_address = payload.from_address;
     let tx_hash = payload.tx_hash;
+    let token_amount = BigDecimal::from_str(&payload.token_amount).map_err(|e| {
+        tracing::error!("Failed to parse token amount: {}", e);
+        ApiError::BadRequest("Invalid token amount")
+    })?;
+    let token_address = payload.token_address;
 
     // Get the users usage remaining
     let record = sqlx::query_as!(
@@ -56,8 +61,8 @@ pub async fn pay_group(
 
     // insert the tx hash into group tx hashes table
 
-    sqlx::query!(r#"INSERT INTO group_tx_hashes (group_address, from_address, tx_hash) VALUES ($1, $2, $3)"#, 
-    group_address, from_address, tx_hash)
+    sqlx::query!(r#"INSERT INTO group_tx_hashes (group_address, from_address, tx_hash, token_amount, token_address) VALUES ($1, $2, $3, $4, $5)"#, 
+    group_address, from_address, tx_hash, token_amount, token_address)
         .execute(&state.db)
         .await
         .map_err(|e| {
@@ -145,9 +150,13 @@ pub async fn store_payment_distribution_history(
         })?;
 
     for member in group_members {
-        let member_amount: BigDecimal = member.member_amount.into();
-        sqlx::query!(r#"INSERT INTO distributions_history (group_address, tx_hash, member_address, token_address, token_amount) VALUES ($1, $2, $3, $4, $5)"#, 
-        group_address, tx_hash, member.member_address, token_address, member_amount)
+        let member_amount: BigDecimal = BigDecimal::from_str(&member.member_amount).map_err(|e| {
+            tracing::error!("Failed to parse token amount: {}", e);
+            ApiError::BadRequest("Invalid token amount")
+        })?;
+        
+        sqlx::query!(r#"INSERT INTO distributions_history (group_address, tx_hash, member_address, token_address, token_amount) VALUES ($1, $2, $3, $4, $5)"#,
+            group_address, tx_hash, member.member_address, token_address, member_amount)
             .execute(&mut *tx)
             .await
             .map_err(|e| {

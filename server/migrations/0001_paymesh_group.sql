@@ -9,7 +9,7 @@ CREATE TABLE groups (
 );
 
 CREATE INDEX idx_groups_created_by ON groups (created_by);
-CREATE INDEX idx_groups_created_at ON groups (created_at);
+CREATE INDEX idx_groupsx_created_at ON groups (created_at);
 
 -- group_tx_hashes - inserted when a payment is made
 CREATE TABLE group_tx_hashes (
@@ -17,6 +17,8 @@ CREATE TABLE group_tx_hashes (
     group_address VARCHAR(66) NOT NULL,
     from_address VARCHAR(66) NOT NULL,
     tx_hash VARCHAR(66) UNIQUE NOT NULL,
+    token_amount NUMERIC(70,0) NOT NULL,
+    token_address VARCHAR(66) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_group_tx_hash
@@ -33,7 +35,7 @@ CREATE TABLE payments (
     tx_hash VARCHAR(66) PRIMARY KEY,
     group_address VARCHAR(66) NOT NULL,
     token_address VARCHAR(66) NOT NULL,
-    amount NUMERIC(36,18) NOT NULL,
+    amount NUMERIC(70,0) NOT NULL,
     paid_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_group_payment
@@ -52,7 +54,7 @@ CREATE TABLE group_token_history (
     group_address VARCHAR(66) NOT NULL,
     token_symbol VARCHAR(10) NOT NULL, 
     token_address VARCHAR(66), 
-    amount NUMERIC(36,18) NOT NULL DEFAULT 0, 
+    amount NUMERIC(70,0) NOT NULL DEFAULT 0, 
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_group_balance 
@@ -94,7 +96,7 @@ CREATE TABLE distributions_history (
     tx_hash VARCHAR(66) NOT NULL, 
     member_address VARCHAR(66) NOT NULL,
     token_address VARCHAR(66) NOT NULL,
-    token_amount NUMERIC(36,18) NOT NULL,
+    token_amount NUMERIC(70,0) NOT NULL,
     sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT fk_payment_distribution

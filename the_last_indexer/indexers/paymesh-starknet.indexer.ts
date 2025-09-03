@@ -4,7 +4,7 @@ import { logger, useLogger } from "apibara/plugins";
 import { StarknetStream, getSelector, FieldElement, decodeEvent } from "@apibara/starknet";
 import type { ApibaraRuntimeConfig } from "apibara/types";
 import { myAbi } from "../abi";
-import { b, m } from "node_modules/@apibara/protocol/dist/shared/protocol.8fb09325";
+import { strk_abi } from "../strk_abi";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const { startingBlock, streamUrl } = runtimeConfig["paymeshStarknet"];
@@ -16,7 +16,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
-    startingBlock: BigInt("1863815"),
+    startingBlock: BigInt("1866196"),
     filter: {
       events: [
         {
@@ -53,21 +53,37 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           create_group(group_address, creator, name, usage_count, members);
         } 
         else if (eventKey === TRANSFER_SELECTOR) {
+          const { args } = decodeEvent({ strict: true, event, abi: strk_abi, eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer" });
+
+          const safeArgs = JSON.stringify(args, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v
+          );
+
+          let tx_hash = event.transactionHash;
+
+          let token_address = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+
+          pay(args.to, args.from, tx_hash, String(args.value), token_address);
         }
       }
     },
   });
 }
 
-const pay = (address: string, tx_hash: string) => {
-  console.log(`Processing payment for: ${address}, tx: ${tx_hash}`);
+const pay = (address: string, from_address: string, tx_hash: string, amount: string, token_address: string) => {
+  
+  let body = JSON.stringify({
+      "group_address": address,
+      "from_address": from_address,
+      "tx_hash": tx_hash,
+      "token_amount": amount,
+      "token_address": token_address
+    });
+
   fetch("http://localhost:8080/pay_group", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      "group_address": address,
-      "txn": tx_hash
-    }),
+    body: body
   }).catch((err) => {
     console.error(`Payment error for ${address}:`, err);
   });

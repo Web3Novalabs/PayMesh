@@ -57,15 +57,16 @@ pub struct CallContractRequest {
     #[validate(custom(function = "validate_address"))]
     pub from_address: String,
     #[validate(custom(function = "validate_address"))]
-    pub tx_hash: String
+    pub tx_hash: String,
+    pub token_amount: String,
+    pub token_address: String
 }
 
 #[derive(Debug, Deserialize, Validate)]
 pub struct PayGroupMembersRequest {
     #[validate(custom(function = "validate_address"))]
     pub member_address: String,
-    #[validate(range(min = 1, max = 100))]
-    pub member_amount: u32,
+    pub member_amount: String,
 }
 
 #[derive(Debug, Serialize)]
