@@ -224,17 +224,21 @@ pub mod CrowdFund {
             }
             pools
         }
+
         fn get_pool(self: @ContractState, pool_id: u256) -> Pool {
             let pool: Pool = self.pools.read(pool_id);
             pool
         }
+
         fn get_donor_count(self: @ContractState, pool_id: u256) -> u256 {
             let donor = self.pool_donors_count.read(pool_id);
             donor
         }
+
         fn get_pool_balance(self: @ContractState, pool_address: ContractAddress) -> u256 {
             self._check_token_balance_of_child(pool_address)
         }
+
         fn get_pool_target(self: @ContractState, pool_id: u256) -> u256 {
             let pool = self.pools.read(pool_id);
             pool.target
@@ -273,18 +277,22 @@ pub mod CrowdFund {
 
             starknet::syscalls::replace_class_syscall(new_class_hash).unwrap();
         }
+
         fn is_pool_completed(self: @ContractState, pool_id: u256) -> bool {
             self.is_pool_paid.read(pool_id)
         }
+
         fn set_platform_percentage(ref self: ContractState, value: u256) {
             let caller = get_caller_address();
             let is_admin = self.accesscontrol.has_role(ADMIN_ROLE, caller);
             assert(is_admin, 'caller not admin or EMG admin');
             self.platform_percentage.write(value);
         }
+
         fn get_platform_percentage(self: @ContractState) -> u256 {
             self.platform_percentage.read()
         }
+
         fn paymesh(ref self: ContractState, pool_address: ContractAddress) {
             let pool_id: u256 = self.pool_addresses_map.read(pool_address);
             assert(pool_id != 0, 'pool id is 0');
@@ -306,7 +314,14 @@ pub mod CrowdFund {
             let remaining_balance = self._check_token_balance_of_child(pool_address);
             println!("remaining fee befor {} after {}", current_balance, remaining_balance);
             token.transfer_from(pool_address, pool.beneficiary, remaining_balance);
-            pool.balance = current_balance;
+            
+            // check the contract balance after paymesh
+            let group_balance_after_paymesh = token.balance_of(pool_address);
+            assert(group_balance_after_paymesh == 0, 'balance shuld b 0 after paymesh');
+
+            // update the pool balance
+            pool.balance = group_balance_after_paymesh;
+
             pool.is_complete = true;
             self.pools.write(pool_id, pool);
             self.is_pool_paid.write(pool_id, true);
@@ -344,6 +359,7 @@ pub mod CrowdFund {
             // Transfer the pool creation fee from creator to the contract
             strk_token.transfer_from(creator, _contract_address, amount);
         }
+
         fn _check_token_balance_of_child(
             self: @ContractState, group_address: ContractAddress,
         ) -> u256 {
@@ -351,6 +367,7 @@ pub mod CrowdFund {
             let balance = token.balance_of(group_address);
             balance
         }
+
         fn _check_token_allowance(
             ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256,
         ) {

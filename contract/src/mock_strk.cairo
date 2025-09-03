@@ -41,8 +41,8 @@ pub mod STARKTOKEN {
     fn constructor(
         ref self: ContractState, recipient: ContractAddress, owner: ContractAddress, decimals: u8,
     ) {
-        let name: ByteArray = "STRK";
-        let symbol: ByteArray = "STRK";
+        let name: ByteArray = "VIbes Nation";
+        let symbol: ByteArray = "Vibes";
         // Initialize the ERC20 component
         self.erc20.initializer(name, symbol);
         self.ownable.initializer(owner);
