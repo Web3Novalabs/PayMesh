@@ -107,6 +107,7 @@ pub mod AutoShare {
     #[event]
     #[derive(Drop, starknet::Event)]
     pub enum Event {
+        // #[flat]
         GroupCreated: GroupCreated,
         GroupUpdateRequested: GroupUpdateRequested,
         GroupUpdateApproved: GroupUpdateApproved,
@@ -119,6 +120,7 @@ pub mod AutoShare {
         AccessControlEvent: AccessControlComponent::Event,
         #[flat]
         SRC5Event: SRC5Component::Event,
+        // #[flat]
         GroupPaid: GroupPaid,
         SubscriptionTopped: SubscriptionTopped,
     }
@@ -242,7 +244,7 @@ pub mod AutoShare {
                 id,
                 group.clone(),
                 self.emergency_withdraw_address.read(),
-                members,
+                members.clone(),
                 self.token_address.read(),
                 self.ownable.owner(),
             )
@@ -271,6 +273,7 @@ pub mod AutoShare {
                             creator: get_caller_address(),
                             name,
                             usage_count,
+                            members: members,
                         },
                     ),
                 );
@@ -490,7 +493,6 @@ pub mod AutoShare {
                         usage_count > 0 || !group.clone().usage_limit_reached,
                         'Max Usage Renew Subscription',
                     );
-                    println!("usage {}", usage_count);
                     let mut members_arr: Array<MemberShare> = ArrayTrait::new();
                     for member in 0..group_members_vec.len() {
                         let member: GroupMember = group_members_vec.at(member).read();
