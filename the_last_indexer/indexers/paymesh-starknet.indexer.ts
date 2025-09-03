@@ -4,6 +4,7 @@ import { logger, useLogger } from "apibara/plugins";
 import { StarknetStream, getSelector, FieldElement, decodeEvent } from "@apibara/starknet";
 import type { ApibaraRuntimeConfig } from "apibara/types";
 import { myAbi } from "../abi";
+import { b, m } from "node_modules/@apibara/protocol/dist/shared/protocol.8fb09325";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const { startingBlock, streamUrl } = runtimeConfig["paymeshStarknet"];
@@ -15,7 +16,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
-    startingBlock: BigInt("1862800"),
+    startingBlock: BigInt("1863815"),
     filter: {
       events: [
         {
@@ -73,40 +74,25 @@ const pay = (address: string, tx_hash: string) => {
 };
 
 const create_group = (address: string, creatorAddress: string, groupName: string, usageCount: number, members: Array<{ addr: string; percentage: number; }>) => {
-  console.log("Creating group");
-  fetch("http://localhost:8080/group", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  let members_decoupled = members.map(member => ({
+    addr: member.addr,
+    percentage: Number(member.percentage)
+  }));
+  let body = JSON.stringify({
     "group_address": address,
     "group_name": groupName,
     "created_by": creatorAddress,
-    "usage_remaining": usageCount,
+    "usage_remaining": Number(usageCount),
     "members": [
-        ...members
-    ]
-}),
-//     body: JSON.stringify({
-//     "group_address": address,
-//     "group_name": groupName,
-//     "created_by": creatorAddress,
-//     "usage_remaining": usageCount,
-//     "members": [
-//         ...members
-//     ]
-// }),
+        ...members_decoupled
+      ]
+    })
+    console.log(`Body: ${body}`);
+  fetch("http://localhost:8080/group", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body, 
   }).catch((err) => {
     console.error(`Create group error ${address}:`, err);
   });
 };
-// const create_group = (address: string) => {
-//   console.log("Creating group:", address);
-//   fetch("http://localhost:8080/health", {
-//     method: "GET",
-//     headers: { "Content-Type": "application/json" },
-//     // body: JSON.stringify(address),
-//   }).catch((err) => {
-//     console.error(`Create group error ${address}:`, err);
-//   });
-// };
-
