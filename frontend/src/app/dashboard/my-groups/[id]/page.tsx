@@ -75,7 +75,7 @@ const GroupDetailsPage = () => {
     if (!groupUsage && !usageCount) return;
     const m = +usageCount?.toString();
     const count = +groupUsage?.toString();
-    console.log(count)
+    console.log(count);
     const equate = `${count}/${m}`;
     setUsage(equate);
   }, [usage, usageCount]);
@@ -93,7 +93,6 @@ const GroupDetailsPage = () => {
       // console.log("Group ID changed, refreshing data for:", params.id);
     }
   }, [params.id, transaction]);
-
 
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -131,10 +130,8 @@ const GroupDetailsPage = () => {
     }
   };
 
-
   const balance = useGetBalance(currentGroup?.groupAddress || "0x0");
   const userBalance = useGetBalance(address || "0x0");
-
 
   const handleBackToGroups = () => {
     router.push("/dashboard/my-groups");
@@ -155,7 +152,7 @@ const GroupDetailsPage = () => {
       ) {
         const swiftpayCall = {
           contractAddress: PAYMESH_ADDRESS,
-          entrypoint: "pay",
+          entrypoint: "paymesh",
           calldata: CallData.compile({
             group_address: currentGroup?.groupAddress,
           }),
@@ -202,6 +199,7 @@ const GroupDetailsPage = () => {
       }
     } catch (error) {
       toast.error("Failed to slipt top up subscription. and try again.");
+      console.log(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -211,7 +209,7 @@ const GroupDetailsPage = () => {
       return;
     }
     if (userBalance?.formatted && +userBalance.formatted < 1) {
-     console.log(userBalance)
+      console.log(userBalance);
       toast.error(`Insufficient balance, Top Up!`);
       return;
     }
@@ -236,10 +234,7 @@ const GroupDetailsPage = () => {
         const approveCall = {
           contractAddress: strkTokenAddress,
           entrypoint: "approve",
-          calldata: [
-            PAYMESH_ADDRESS,
-            cairo.uint256(ONE_STK),
-          ],
+          calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK)],
         };
 
         const multicallData = [approveCall, swiftpayCall];
@@ -256,7 +251,7 @@ const GroupDetailsPage = () => {
           feeDetails
         );
 
-       await account?.executePaymasterTransaction(
+        await account?.executePaymasterTransaction(
           [...multicallData],
           feeDetails,
           feeEstimation?.suggested_max_fee_in_gas_token
@@ -265,7 +260,7 @@ const GroupDetailsPage = () => {
       }
     } catch (error) {
       console.error("Error paying group:", error);
-           toast.error("Failed to top up subscription. Please try again.");
+      toast.error("Failed to top up subscription. Please try again.");
     } finally {
       setIsTopUp(false);
     }
@@ -457,7 +452,10 @@ const GroupDetailsPage = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              <button onClick={handleToUp}  className="border-gradient-flow text-white px-4 py-2 rounded-sm transition-colors">
+              <button
+                onClick={handleToUp}
+                className="border-gradient-flow text-white px-4 py-2 rounded-sm transition-colors"
+              >
                 {isTopUp ? "loading..." : "  Top Up"}
               </button>
               {/*  @ts-expect-error array need to be empty */}
