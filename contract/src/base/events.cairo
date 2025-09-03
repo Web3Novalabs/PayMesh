@@ -9,6 +9,7 @@ pub struct GroupCreated {
     pub group_id: u256,
     pub creator: ContractAddress,
     pub name: ByteArray,
+    pub usage_count: u256,
 }
 
 // Event emitted when a group update is requested

@@ -270,6 +270,7 @@ pub mod AutoShare {
                             group_id: id,
                             creator: get_caller_address(),
                             name,
+                            usage_count,
                         },
                     ),
                 );
@@ -484,6 +485,12 @@ pub mod AutoShare {
                 let balance = self
                     ._check_token_balance_of_group_by_tokens(group_address, token_address);
                 if balance > 0 {
+                    let mut usage_count = self.usage_count.read(group_id);
+                    assert(
+                        usage_count > 0 || !group.clone().usage_limit_reached,
+                        'Max Usage Renew Subscription',
+                    );
+                    println!("usage {}", usage_count);
                     let mut members_arr: Array<MemberShare> = ArrayTrait::new();
                     for member in 0..group_members_vec.len() {
                         let member: GroupMember = group_members_vec.at(member).read();
@@ -499,6 +506,15 @@ pub mod AutoShare {
                         token.transfer_from(group_address, member.addr, members_money);
                     }
                     pay_happen = true;
+
+                    usage_count -= 1;
+                    if usage_count == 0 {
+                        group.usage_limit_reached = true;
+                    }
+                    group.total_amount += balance;
+                    self.groups.write(group_id, group.clone());
+                    // once paid, we decrement the planned usage count
+                    self.usage_count.write(group_id, usage_count);
                     self
                         .emit(
                             Event::GroupPaid(
@@ -508,7 +524,7 @@ pub mod AutoShare {
                                     paid_by: get_caller_address(),
                                     paid_at: get_block_timestamp(),
                                     members: members_arr,
-                                    usage_count: usage_count-1,
+                                    usage_count: usage_count,
                                     token_address,
                                 },
                             ),
@@ -517,15 +533,6 @@ pub mod AutoShare {
             }
 
             assert(pay_happen, 'no payment made');
-
-            usage_count -= 1;
-            if usage_count == 0 {
-                group.usage_limit_reached = true;
-            }
-            group.total_amount += amount;
-            self.groups.write(group_id, group);
-            // once paid, we decrement the planned usage count
-            self.usage_count.write(group_id, usage_count);
         }
 
         fn request_group_update(

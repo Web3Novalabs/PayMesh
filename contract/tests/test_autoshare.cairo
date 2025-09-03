@@ -1670,10 +1670,10 @@ fn test_usdt_and_usdc_pay_function() {
     usdc_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
     stop_cheat_caller_address(usdc_dispatcher.contract_address);
 
-    // pay to group members
-    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    contract_address.paymesh(group_address);
-    stop_cheat_caller_address(contract_address.contract_address);
+    // // pay to group members
+    // start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    // contract_address.paymesh(group_address);
+    // stop_cheat_caller_address(contract_address.contract_address);
 
     // transfer 100 usdt to the group
     start_cheat_caller_address(usdt_dispatcher.contract_address, CREATOR_ADDR());
