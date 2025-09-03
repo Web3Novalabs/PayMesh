@@ -1,34 +1,37 @@
-use bigdecimal::BigDecimal;
 use starknet::{
-    accounts::{Account, SingleOwnerAccount},
-    core::types::{Call, Felt},
-    providers::{JsonRpcClient, jsonrpc::HttpTransport},
-    signers::LocalWallet,
+    accounts::Account,
+    core::{
+        types::{Call, Felt},
+        utils::get_selector_from_name,
+    },
 };
 
-use crate::util::util_types::{GroupMember, PayGroupContractDetails};
+use crate::util::connector::{contract_address_felt, signer_account};
 
-pub async fn call_paymesh_contract_function(
-    group_address: Felt,
-) -> Result<PayGroupContractDetails, &'static str> {
-    Ok(PayGroupContractDetails {
-        transaction_hash: "214223".to_string(),
-        group_address: "0x04f41EEf3F8691F20a86A414b5670862a8c470ECE32d018e5c2fb1038F1bF836"
-            .to_string(),
-        token_address: "12345678".to_string(),
-        amount: BigDecimal::from(0),
-        senders_address: "0x07f41EEB3F8691F20a86A414b5670862a8c470ECE32d018e5c2fb1038F1bF836"
-            .to_string(),
-        group_members: vec![
-            GroupMember {
-                member_address: "12345678".to_string(),
-                amount: BigDecimal::from(0),
-            },
-            GroupMember {
-                member_address: "12345678".to_string(),
-                amount: BigDecimal::from(12345678),
-            },
-        ],
-        usage_remaining: "2".to_string(),
-    })
+pub async fn call_paymesh_contract_function(group_address: Felt) -> Result<(), String> {
+    let contract_address = contract_address_felt();
+    let account = signer_account();
+
+    let pay_call = Call {
+        to: contract_address,
+        selector: get_selector_from_name("paymesh").unwrap(),
+        calldata: vec![group_address],
+    };
+
+    let execute = account.execute_v3(vec![pay_call]).send().await;
+
+    match execute {
+        Ok(data) => {
+            tracing::info!(
+                "Transaction successful with hash: {}",
+                data.transaction_hash
+            );
+            Ok(())
+        }
+        Err(data) => {
+            let message = format!("Error calling paymesh contract function: {:?}", data);
+            tracing::error!(message);
+            return Err(message);
+        }
+    }
 }

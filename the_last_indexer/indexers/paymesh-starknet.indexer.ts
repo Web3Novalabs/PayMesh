@@ -1,8 +1,9 @@
 import { defineIndexer } from "apibara/indexer";
-import { useLogger } from "apibara/plugins";
+import { logger, useLogger } from "apibara/plugins";
 
-import { StarknetStream, getSelector, FieldElement } from "@apibara/starknet";
+import { StarknetStream, getSelector, FieldElement, decodeEvent } from "@apibara/starknet";
 import type { ApibaraRuntimeConfig } from "apibara/types";
+import { myAbi } from "../abi";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const { startingBlock, streamUrl } = runtimeConfig["paymeshStarknet"];
@@ -11,19 +12,14 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const TRANSFER_SELECTOR = getSelector("Transfer");
   const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
 
-  const group_addresses = new Set<FieldElement>();
-  
-  let lastPaymentTime = 0;
-  const MIN_PAYMENT_INTERVAL = 100;
-
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
-    startingBlock: BigInt("1843327"),
+    startingBlock: BigInt("1862800"),
     filter: {
       events: [
         {
-          address: "0x03b7c46011eb99746b120bb4391ff91cdebf84b242aa83adcde7c19fbf7a46a8",
+          address: "0x05104372b1060b8efb78788ad23a702a347869044485b336d6ad15afa2632f15",
           keys: [GROUP_CREATED_SELECTOR],
         },
         {
@@ -36,43 +32,81 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
     async transform({ block }) {
       const logger = useLogger();
       const { events: blockEvents, header } = block;
-      if (!header) return;
+      logger.info(`Processing block ${header.blockNumber}`);
 
-      logger.info(`Processing mainnet block: ${header.blockNumber}`);
-      
       for (const event of blockEvents) {
         const eventKey = event.keys[0];
         
         if (eventKey === GROUP_CREATED_SELECTOR) {
-          const groupAddress = event.keys[1];
-          // group_addresses.add(groupAddress);
-          logger.info(`✅ GroupCreated: ${groupAddress} | Total groups: ${group_addresses.size}`);
+
+          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupCreated" });
+          
+          const safeArgs = JSON.stringify(args, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v
+          );
+
+          logger.info(`\n💡 Group created event`);
+
+          const {group_address, _, creator, name, usage_count, members} = JSON.parse(safeArgs);
+                    
+          create_group(group_address, creator, name, usage_count, members);
         } 
         else if (eventKey === TRANSFER_SELECTOR) {
-          const [, to] = event.data;
-          if (group_addresses.has(to)) {
-            logger.info(`💰 Transfer to group: ${to}`);
-            
-            const now = Date.now();
-            if (now - lastPaymentTime >= MIN_PAYMENT_INTERVAL) {
-              pay(String(to));
-              lastPaymentTime = now;
-            } else {
-              logger.info(`⏳ Rate limiting payment to ${to}`);
-            }
-          }
         }
       }
     },
   });
 }
 
-const pay = (address: string) => {
-  fetch(`${process.env.API}/pay_member`, {
+const pay = (address: string, tx_hash: string) => {
+  console.log(`Processing payment for: ${address}, tx: ${tx_hash}`);
+  fetch("http://localhost:8080/pay_group", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(address),
+    body: JSON.stringify({
+      "group_address": address,
+      "txn": tx_hash
+    }),
   }).catch((err) => {
     console.error(`Payment error for ${address}:`, err);
   });
 };
+
+const create_group = (address: string, creatorAddress: string, groupName: string, usageCount: number, members: Array<{ addr: string; percentage: number; }>) => {
+  console.log("Creating group");
+  fetch("http://localhost:8080/group", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+    "group_address": address,
+    "group_name": groupName,
+    "created_by": creatorAddress,
+    "usage_remaining": usageCount,
+    "members": [
+        ...members
+    ]
+}),
+//     body: JSON.stringify({
+//     "group_address": address,
+//     "group_name": groupName,
+//     "created_by": creatorAddress,
+//     "usage_remaining": usageCount,
+//     "members": [
+//         ...members
+//     ]
+// }),
+  }).catch((err) => {
+    console.error(`Create group error ${address}:`, err);
+  });
+};
+// const create_group = (address: string) => {
+//   console.log("Creating group:", address);
+//   fetch("http://localhost:8080/health", {
+//     method: "GET",
+//     headers: { "Content-Type": "application/json" },
+//     // body: JSON.stringify(address),
+//   }).catch((err) => {
+//     console.error(`Create group error ${address}:`, err);
+//   });
+// };
+

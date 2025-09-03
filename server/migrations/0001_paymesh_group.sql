@@ -11,12 +11,27 @@ CREATE TABLE groups (
 CREATE INDEX idx_groups_created_by ON groups (created_by);
 CREATE INDEX idx_groups_created_at ON groups (created_at);
 
+-- group_tx_hashes - inserted when a payment is made
+CREATE TABLE group_tx_hashes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    group_address VARCHAR(66) NOT NULL,
+    from_address VARCHAR(66) NOT NULL,
+    tx_hash VARCHAR(66) UNIQUE NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    CONSTRAINT fk_group_tx_hash
+        FOREIGN KEY (group_address)
+        REFERENCES groups (group_address)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX idx_group_tx_hashes_group ON group_tx_hashes (group_address);
+CREATE INDEX idx_group_tx_hashes_tx ON group_tx_hashes (tx_hash);
 
 -- payments - inserted when a payment is made
 CREATE TABLE payments (
     tx_hash VARCHAR(66) PRIMARY KEY,
     group_address VARCHAR(66) NOT NULL,
-    sender_address VARCHAR(66) NOT NULL,
     token_address VARCHAR(66) NOT NULL,
     amount NUMERIC(36,18) NOT NULL,
     paid_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -28,7 +43,6 @@ CREATE TABLE payments (
 );
 
 CREATE INDEX idx_group_payments_group ON payments (group_address);
-CREATE INDEX idx_group_payments_sender ON payments (sender_address);
 
 CREATE INDEX idx_group_payments_paid_at ON payments (paid_at);
 

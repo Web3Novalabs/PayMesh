@@ -19,6 +19,8 @@ pub async fn create_group(
     let group_address = &payload.group_address;
     let created_by = &payload.created_by;
 
+    tracing::info!("Creating group: {}", group_address);
+    
     let mut tx = state
         .db
         .begin()
@@ -37,11 +39,11 @@ pub async fn create_group(
     .map_err(|e| map_sqlx_error(&e))?;
 
     for group_member in payload.members {
-        let member_percentage: BigDecimal = group_member.member_percentage.into();
+        let member_percentage: BigDecimal = group_member.percentage.into();
         sqlx::query!(
             r#"INSERT INTO group_members (group_address, member_address, member_percentage) VALUES ($1, $2, $3)"#,
             group_address,
-            group_member.member_address,
+            group_member.addr,
             member_percentage
         )
         .execute(&mut *tx)
@@ -52,6 +54,8 @@ pub async fn create_group(
     tx.commit()
         .await
         .map_err(|e| ApiError::Internal("Failed to commit transaction"))?;
+
+    tracing::info!("Group created: {}", group_address);
 
     Ok((StatusCode::OK, Json("Group created".to_owned())))
 }

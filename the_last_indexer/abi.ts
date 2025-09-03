@@ -1,6 +1,6 @@
-import { Abi } from "starknet";
+import type { Abi } from "@apibara/starknet";
 
-export const PAYMESH_ABI: Abi =[
+export const myAbi =[
   {
     "type": "impl",
     "name": "autoshare",
@@ -1048,4 +1048,4 @@ export const PAYMESH_ABI: Abi =[
       }
     ]
   }
-]
+] as const satisfies Abi;

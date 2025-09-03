@@ -16,9 +16,9 @@ pub struct GroupRequest {
 #[derive(Debug, Deserialize, Validate)]
 pub struct GroupMembersRequest {
     #[validate(custom(function = "validate_address"))]
-    pub member_address: String,
+    pub addr: String,
     #[validate(range(min = 1, max = 100))]
-    pub member_percentage: u8,
+    pub percentage: u8,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -37,10 +37,35 @@ pub struct GetGroupDetailsResponse {
     pub members: Vec<GroupMemberResponse>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct PayGroupRequest {
+    #[validate(custom(function = "validate_address"))]
     pub group_address: String,
-    pub txn: String,
+    #[validate(custom(function = "validate_address"))]
+    pub token_address: String,
+    #[validate(custom(function = "validate_address"))]
+    pub tx_hash: String,
+    pub usage_remaining: u32,
+    pub token_amount: String,
+    pub members: Vec<PayGroupMembersRequest>,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct CallContractRequest {
+    #[validate(custom(function = "validate_address"))]
+    pub group_address: String,
+    #[validate(custom(function = "validate_address"))]
+    pub from_address: String,
+    #[validate(custom(function = "validate_address"))]
+    pub tx_hash: String
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct PayGroupMembersRequest {
+    #[validate(custom(function = "validate_address"))]
+    pub member_address: String,
+    #[validate(range(min = 1, max = 100))]
+    pub member_amount: u32,
 }
 
 #[derive(Debug, Serialize)]

@@ -37,5 +37,6 @@ pub fn router(state: AppState) -> Router {
         .route("/health", get(health::health_check))
         .route("/group", get(group::get_group).post(group::create_group))
         .route("/pay_group", post(pay_group::pay_group))
+        .route("/store_payment_distribution_history", post(pay_group::store_payment_distribution_history))
         .with_state(state)
 }

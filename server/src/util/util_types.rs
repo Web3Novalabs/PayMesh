@@ -12,6 +12,28 @@ pub struct PayGroupContractDetails {
     pub usage_remaining: String,
 }
 
+impl PayGroupContractDetails {
+    pub fn new(
+        transaction_hash: String,
+        group_address: String,
+        token_address: String,
+        amount: BigDecimal,
+        senders_address: String,
+        group_members: Vec<GroupMember>,
+        usage_remaining: String,
+    ) -> Self {
+        Self {
+            transaction_hash,
+            group_address,
+            token_address,
+            amount,
+            senders_address,
+            group_members,
+            usage_remaining,
+        }
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct GroupMember {
     pub member_address: String,

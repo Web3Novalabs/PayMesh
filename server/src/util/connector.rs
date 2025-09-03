@@ -47,7 +47,7 @@ pub fn signer_account() -> SingleOwnerAccount<JsonRpcClient<HttpTransport>, Loca
         provider,
         signer,
         address,
-        chain_id::MAINNET,
+        chain_id::SEPOLIA,
         ExecutionEncoding::New,
     )
 }
