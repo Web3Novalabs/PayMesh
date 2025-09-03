@@ -87,7 +87,6 @@ const create_group = (address: string, creatorAddress: string, groupName: string
         ...members_decoupled
       ]
     })
-    console.log(`Body: ${body}`);
   fetch("http://localhost:8080/group", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
