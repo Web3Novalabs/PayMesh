@@ -68,9 +68,31 @@ pub fn EMERGENCY_WITHDRAW_ADDR() -> ContractAddress {
 
 pub const ONE_STRK: u256 = 1_000_000_000_000_000_000;
 
+// pub fn deploy_autoshare_contract() -> (IAutoShareDispatcher, IERC20Dispatcher) {
+//     let erc20_class = declare("STARKTOKEN").unwrap().contract_class();
+//     let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+//     let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+//     let erc20_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
+//     let child_contract: ClassHash =
+//     *declare("AutoshareChild").unwrap().contract_class().class_hash;
+//     let contract = declare("AutoShare").unwrap().contract_class();
+//     let constructor_calldata = array![
+//         ADMIN_ADDR().into(),
+//         erc20_address.into(),
+//         EMERGENCY_WITHDRAW_ADDR().into(),
+//         child_contract.into(),
+//     ];
+//     let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
+
+//     let AutoShare = IAutoShareDispatcher { contract_address };
+//     (AutoShare, erc20_dispatcher)
+// }
 
 // deploy the autoshare contract
-pub fn deploy_autoshare_contract() -> (IAutoShareDispatcher, IERC20Dispatcher) {
+pub fn deploy_autoshare_contract() -> (
+    IAutoShareDispatcher, IERC20Dispatcher, IERC20Dispatcher, IERC20Dispatcher,
+) {
     let erc20_class = declare("STARKTOKEN").unwrap().contract_class();
     let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
     let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
@@ -84,10 +106,40 @@ pub fn deploy_autoshare_contract() -> (IAutoShareDispatcher, IERC20Dispatcher) {
         EMERGENCY_WITHDRAW_ADDR().into(),
         child_contract.into(),
     ];
+
+    let erc20_class = declare("USDTTOKEN").unwrap().contract_class();
+    let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+    let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+    let usdc_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
+    let erc20_class = declare("USDCTOKEN").unwrap().contract_class();
+    let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+    let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+    let usdt_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
     let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
 
     let AutoShare = IAutoShareDispatcher { contract_address };
-    (AutoShare, erc20_dispatcher)
+    (AutoShare, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher)
+}
+
+pub fn deploy_tokens() -> (IERC20Dispatcher, IERC20Dispatcher, IERC20Dispatcher) {
+    let erc20_class = declare("STARKTOKEN").unwrap().contract_class();
+    let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+    let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+    let strk_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
+    let erc20_class = declare("USDTTOKEN").unwrap().contract_class();
+    let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+    let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+    let usdc_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
+    let erc20_class = declare("USDCTOKEN").unwrap().contract_class();
+    let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+    let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+    let usdt_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
+    (strk_dispatcher, usdc_dispatcher, usdt_dispatcher)
 }
 
 // deploy the autoshare contract

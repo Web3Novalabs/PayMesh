@@ -15,3 +15,5 @@ pub mod crowd_fund;
 pub mod crowd_fund_child;
 
 pub mod mock_strk;
+pub mod mock_usdc;
+pub mod mock_usdt;
