@@ -31,8 +31,20 @@ fn test_get_supported_tokens_error() {
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
 
     let tokens = contract_address.get_supported_token();
-    println!("supported tokens {:?}", tokens);
     assert(tokens.len() == 3, 'should be 3');
+}
+#[test]
+#[should_panic(expected: ('token added already',))]
+fn test_add_same_token_error() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 }
 #[test]
 fn test_get_supported_tokens_success() {
@@ -46,7 +58,6 @@ fn test_get_supported_tokens_success() {
     stop_cheat_caller_address(contract_address.contract_address);
 
     let tokens = contract_address.get_supported_token();
-    println!("supported tokens {:?}", tokens);
     assert(tokens.len() == 3, 'should be 3');
 }
 // =========== create group ============
@@ -1659,9 +1670,24 @@ fn test_usdt_and_usdc_pay_function() {
     members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 });
     contract_address.create_group("TestGroup", members, 2);
     stop_cheat_caller_address(contract_address.contract_address);
+    let group_address = contract_address.get_group_address(1);
 
+    let allowance = usdc_dispatcher.allowance(group_address, contract_address.contract_address);
+    println!("child contrac allowance usdc {}", allowance);
+    let allowance = usdt_dispatcher.allowance(group_address, contract_address.contract_address);
+    println!("child contrac allowance usdt {}", allowance);
+    let allowance = erc20_dispatcher.allowance(group_address, contract_address.contract_address);
+    println!("child contrac allowance strk {}", allowance);
+    let user_2_usdc = usdc_dispatcher.balance_of(USER2_ADDR());
+    println!("user 2 usdc balance {}", user_2_usdc);
+    let allowance = usdc_dispatcher.allowance(CREATOR_ADDR(), contract_address.contract_address);
+    println!("contract allowance before {}", allowance);
     start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
-    usdc_dispatcher.approve(contract_address.contract_address, 2_000_000_000_000_000_000);
+    usdc_dispatcher.approve(contract_address.contract_address, 5_000_000_000_000_000_000);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    start_cheat_caller_address(usdt_dispatcher.contract_address, CREATOR_ADDR());
+    usdt_dispatcher.approve(contract_address.contract_address, 5_000_000_000_000_000_000);
     stop_cheat_caller_address(usdc_dispatcher.contract_address);
 
     // send 1000 usdc to the group
@@ -1669,12 +1695,15 @@ fn test_usdt_and_usdc_pay_function() {
     start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
     usdc_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
     stop_cheat_caller_address(usdc_dispatcher.contract_address);
-
+    let allowance = usdc_dispatcher.allowance(CREATOR_ADDR(), contract_address.contract_address);
+    println!("contract allowance after{}", allowance);
     // // pay to group members
-    // start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    // contract_address.paymesh(group_address);
-    // stop_cheat_caller_address(contract_address.contract_address);
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    contract_address.paymesh(group_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
+    let user_2_usdc = usdc_dispatcher.balance_of(USER2_ADDR());
+    println!("user 2 usdc balance after {}", user_2_usdc);
     // transfer 100 usdt to the group
     start_cheat_caller_address(usdt_dispatcher.contract_address, CREATOR_ADDR());
     usdt_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);

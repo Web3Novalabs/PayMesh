@@ -247,6 +247,7 @@ pub mod AutoShare {
                 members.clone(),
                 self.token_address.read(),
                 self.ownable.owner(),
+                get_caller_address(),
             )
                 .serialize(ref constructor_calldata);
 
@@ -257,10 +258,20 @@ pub mod AutoShare {
             self.group_addresses.write(id, contract_address_for_group);
             self.group_addresses_map.write(contract_address_for_group, id);
             self.groups_created_by_address.entry(caller).push(id);
+
+            let len = self.token_count.read();
             let child_contract = IAutoshareChildDispatcher {
                 contract_address: contract_address_for_group,
             };
             child_contract.set_and_approve_main_contract(get_contract_address());
+            for i in 1..=len {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                let child_contract = IAutoshareChildDispatcher {
+                    contract_address: contract_address_for_group,
+                };
+                child_contract.set_supported_token(token_address);
+            }
+
             self.usage_count.write(id, usage_count);
             self.group_usage_paid_history.entry(id).push(usage_count);
             self.group_usage_paid.entry(id).write(usage_count);
@@ -434,13 +445,29 @@ pub mod AutoShare {
             let group_address: ContractAddress = self.group_addresses.read(group_id);
             group_address
         }
+
         fn set_supported_token(ref self: ContractState, new_token_address: ContractAddress) {
             let caller = get_caller_address();
             let caller = self.accesscontrol.has_role(ADMIN_ROLE, caller);
             assert(caller, 'Unauthorize caller');
+            let len = self.token_count.read();
+            if len > 0 {
+                for i in 1..=len {
+                    let token_address: ContractAddress = self.supported_tokens.read(i);
+                    let token_check = new_token_address == token_address;
+                    assert(!token_check, 'token added already')
+                }
+            }
+
             let id = self.token_count.read() + 1;
             self.token_count.write(id);
             self.supported_tokens.write(id, new_token_address);
+            let len = self.group_count.read();
+            for i in 1..=len {
+                let group_address = self.group_addresses.read(i);
+                let child_contract = IAutoshareChildDispatcher { contract_address: group_address };
+                child_contract.set_supported_token(new_token_address);
+            }
         }
 
         fn get_supported_token(self: @ContractState) -> Array<ContractAddress> {
@@ -459,6 +486,12 @@ pub mod AutoShare {
             assert(new_class_hash.is_non_zero(), 'Class hash cannot be zero');
 
             starknet::syscalls::replace_class_syscall(new_class_hash).unwrap();
+        }
+        fn upgrade_child(ref self: ContractState, new_class_hash: ClassHash) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+
+            assert(new_class_hash.is_non_zero(), 'Class hash cannot be zero');
+            self.child_contract_class_hash.write(new_class_hash)
         }
 
         fn paymesh(ref self: ContractState, group_address: ContractAddress) {
@@ -479,7 +512,7 @@ pub mod AutoShare {
             // removed the logic where caller is the creator
             let group_members_vec = self.group_members.entry(group_id);
             let group_address = self.get_group_address(group_id);
-            let amount = self._check_token_balance_of_child(group_address);
+            // let amount = self._check_token_balance_of_child(group_address);
 
             let len = self.token_count.read();
             let mut pay_happen = false;
@@ -496,7 +529,7 @@ pub mod AutoShare {
                     let mut members_arr: Array<MemberShare> = ArrayTrait::new();
                     for member in 0..group_members_vec.len() {
                         let member: GroupMember = group_members_vec.at(member).read();
-                        let members_money: u256 = amount
+                        let members_money: u256 = balance
                             * member.percentage.try_into().unwrap()
                             / 100;
                         let member_share: MemberShare = MemberShare {
@@ -522,7 +555,7 @@ pub mod AutoShare {
                             Event::GroupPaid(
                                 GroupPaid {
                                     group_address,
-                                    amount: amount,
+                                    amount: balance,
                                     paid_by: get_caller_address(),
                                     paid_at: get_block_timestamp(),
                                     members: members_arr,
