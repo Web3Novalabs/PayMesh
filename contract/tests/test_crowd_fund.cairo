@@ -222,3 +222,100 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
     assert(get_pool.pool_address == pool_address, 'wrong pool address final');
     assert(get_pool.creator == CREATOR_ADDR(), 'wrong pool creator final');
 }
+
+#[test]
+fn test_paymesh_donate() {
+    let (contract_address, erc20_dispatcher) = deploy_crowdfund_contract();
+
+    // check contract balance
+    let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'contract balance should be 0');
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    erc20_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 20);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // create a pool with target amount of 10 STRK
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let pool_address = contract_address
+        .create_pool("Crowd Fund Pool3", ONE_STRK * 10, USER1_ADDR());
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // donate
+    start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 20);
+
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
+    contract_address.paymesh_donate(pool_address, ONE_STRK * 10);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // check pool balance after donation
+    let get_pool = contract_address.get_pool(1);
+    assert(get_pool.balance == ONE_STRK * 10, 'wrong pool balance after');
+    assert(get_pool.donors == 1, 'wrong pool donors after');
+    assert(get_pool.creator == CREATOR_ADDR(), 'wrong pool creator after');
+    assert(get_pool.beneficiary == USER1_ADDR(), 'wrong pool beneficiary after');
+    assert(get_pool.name == "Crowd Fund Pool3", 'wrong pool name after');
+    assert(get_pool.id == 1, 'wrong pool id after');
+    assert(get_pool.pool_address == pool_address, 'wrong pool address after');
+    assert(get_pool.creator == CREATOR_ADDR(), 'wrong pool creator after');
+
+    // check beneficiary balance after donation
+    let beneficiary_balance_after = erc20_dispatcher.balance_of(contract_address.contract_address);
+    assert(beneficiary_balance_after == ONE_STRK, 'wrong beneficiary balance after');
+}
+
+#[test]
+fn test_get_all_pools() {
+    let (contract_address, erc20_dispatcher) = deploy_crowdfund_contract();
+
+    // check contract balance
+    let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'contract balance should be 0');
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    erc20_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // create a pool with target amount of 10 STRK
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let pool_address0 = contract_address
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // create another pool with target amount of 10 STRK
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let pool_address1 = contract_address
+        .create_pool("Crowd Fund Pool5", ONE_STRK * 10, USER1_ADDR());
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // the names of the pools
+    let pool4_name: ByteArray = "Crowd Fund Pool4";
+    let pool5_name: ByteArray = "Crowd Fund Pool5";
+
+    // check all pools
+    let all_pools = contract_address.get_all_pools();
+    assert(all_pools.len() == 2, 'wrong all pools');
+    assert(*all_pools[0].pool_address == pool_address0, 'wrong pool address 0');
+    assert(*all_pools[1].pool_address == pool_address1, 'wrong pool address 1');
+    assert(all_pools[0].name == @pool4_name, 'wrong pool name 0');
+    assert(all_pools[1].name == @pool5_name, 'wrong pool name 1');
+    assert(*all_pools[0].target == ONE_STRK * 10, 'wrong pool target 0');
+    assert(*all_pools[1].target == ONE_STRK * 10, 'wrong pool target 1');
+    assert(*all_pools[0].creator == CREATOR_ADDR(), 'wrong pool creator 0');
+    assert(*all_pools[1].creator == CREATOR_ADDR(), 'wrong pool creator 1');
+    assert(*all_pools[0].beneficiary == USER1_ADDR(), 'wrong pool beneficiary 0');
+    assert(*all_pools[1].beneficiary == USER1_ADDR(), 'wrong pool beneficiary 1');
+    assert(*all_pools[0].id == 1, 'wrong pool id 0');
+    assert(*all_pools[1].id == 2, 'wrong pool id 1');
+    assert(*all_pools[0].is_complete == false, 'wrong pool is complete 0');
+    assert(*all_pools[1].is_complete == false, 'wrong pool is complete 1');
+    assert(*all_pools[0].donors == 0, 'wrong pool donors 0  ');
+    assert(*all_pools[1].donors == 0, 'wrong pool donors 1');
+    assert(*all_pools[0].balance == 0, 'wrong pool balance 0');
+    assert(*all_pools[1].balance == 0, 'wrong pool balance 1');
+}

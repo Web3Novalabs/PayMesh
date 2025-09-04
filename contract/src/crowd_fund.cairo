@@ -314,7 +314,7 @@ pub mod CrowdFund {
             let remaining_balance = self._check_token_balance_of_child(pool_address);
             println!("remaining fee befor {} after {}", current_balance, remaining_balance);
             token.transfer_from(pool_address, pool.beneficiary, remaining_balance);
-            
+
             // check the contract balance after paymesh
             let group_balance_after_paymesh = token.balance_of(pool_address);
             assert(group_balance_after_paymesh == 0, 'balance shuld b 0 after paymesh');
