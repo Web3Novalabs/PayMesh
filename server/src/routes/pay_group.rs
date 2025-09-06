@@ -170,5 +170,7 @@ pub async fn store_payment_distribution_history(
         ApiError::Internal("Failed to commit transaction")
     })?;
 
-    Ok((StatusCode::OK, Json("TOKEN SPLIT SUCCESSFULLY")))
+    tracing::info!("HISTORY ADDED SUCCESSFULLY");
+
+    Ok((StatusCode::OK, Json("HISTORY ADDED SUCCESSFULLY")))
 }

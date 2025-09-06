@@ -12,19 +12,25 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
   const TRANSFER_SELECTOR = getSelector("Transfer");
   const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
+  const GROUP_PAID_SELECTOR = getSelector("GroupPaid");
+  const STRK_TOKEN_ADDRESS = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
-    startingBlock: BigInt("1866196"),
+    startingBlock: BigInt("1878442"),
     filter: {
       events: [
         {
-          address: "0x05104372b1060b8efb78788ad23a702a347869044485b336d6ad15afa2632f15",
+          address: "0x00de20d7d8828b1ad592c7734acb9e1f7444811075596167fe47b82a59765f49",
           keys: [GROUP_CREATED_SELECTOR],
         },
         {
-          address: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
+          address: "0x00de20d7d8828b1ad592c7734acb9e1f7444811075596167fe47b82a59765f49",
+          keys: [GROUP_PAID_SELECTOR],
+        },
+        {
+          address: STRK_TOKEN_ADDRESS,
           keys: [TRANSFER_SELECTOR]
         },
       ],
@@ -61,17 +67,53 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
           let tx_hash = event.transactionHash;
 
-          let token_address = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+          pay(args.to, args.from, tx_hash, String(args.value), STRK_TOKEN_ADDRESS);
+        }
+        else if (eventKey === GROUP_PAID_SELECTOR) {
+          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupPaid" });
+          
+          const safeArgs = JSON.stringify(args, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v
+          );
 
-          pay(args.to, args.from, tx_hash, String(args.value), token_address);
+          const {group_address, amount, paid_by, paid_at, members, usage_count, token_address} = JSON.parse(safeArgs);
+
+          let tx_hash = event.transactionHash;
+
+          store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
         }
       }
     },
   });
 }
 
+const store_distribution_history = (group_address: string, token_address: string, tx_hash: string, usage_remaining: number, 
+                              token_amount: string, members: Array<{ addr: string; share: string; }>) => {
+  console.log(`member array is:`, members);
+  let members_decoupled = members.map(member => ({
+    member_address: member.addr,
+    member_amount: member.share
+  }));
+  console.log("Members decoupled:", members_decoupled);
+  let body = JSON.stringify({
+      "group_address": group_address,
+      "token_address": token_address,
+      "tx_hash": tx_hash,
+      "usage_remaining": Number(usage_remaining),
+      "token_amount": token_amount,
+      "members": [
+          ...members_decoupled
+        ]
+    });
+    console.log("Storing distribution history:", body);
+  fetch("http://localhost:8080/store_payment_distribution_history", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body
+  });
+}
+
 const pay = (address: string, from_address: string, tx_hash: string, amount: string, token_address: string) => {
-  
   let body = JSON.stringify({
       "group_address": address,
       "from_address": from_address,
