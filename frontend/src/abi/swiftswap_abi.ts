@@ -382,6 +382,18 @@ export const PAYMESH_ABI: Abi =[
       },
       {
         "type": "function",
+        "name": "upgrade_child",
+        "inputs": [
+          {
+            "name": "new_class_hash",
+            "type": "core::starknet::class_hash::ClassHash"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
         "name": "paymesh",
         "inputs": [
           {

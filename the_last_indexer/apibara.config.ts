@@ -3,10 +3,9 @@ import { defineConfig } from "apibara/config";
 export default defineConfig({
   runtimeConfig: {
     paymeshStarknet: {
-      startingBlock: 1843298,
-      streamUrl: "https://sepolia.starknet.a5a.ch",
-      contractAddress:
-        "",
+      startingBlock: 2039546,
+      streamUrl: "https://mainnet.starknet.a5a.ch",
+      contractAddress: "0x01710ab6e17d6809cd9d5e9b22e6bb1d1d09ca40f50449ea7ac81d67bef80f31",
     },
   },
 });
