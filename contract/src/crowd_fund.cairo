@@ -75,6 +75,8 @@ pub mod CrowdFund {
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         token_address: ContractAddress,
+        supported_tokens: Map<u256, ContractAddress>, // id -> token address
+        token_count: u256,
         child_contract_class_hash: ClassHash,
         pool_addresses: Map<u256, ContractAddress>, // pool_id -> child_contract_address
         pool_addresses_map: Map<ContractAddress, u256>, // child_contract_address ->  pool_id

@@ -11,6 +11,8 @@ pub trait ICrowdFund<TContractState> {
     ) -> ContractAddress;
     // upgrade the contract
     fn upgrade(ref self: TContractState, new_class_hash: ClassHash);
+    // upgrade the child contract
+    // fn upgrade_child(ref self: TContractState, new_class_hash: ClassHash);
     // paymesh to a pool beneficiary
     fn paymesh(ref self: TContractState, pool_address: ContractAddress);
     // get all pools created
@@ -31,4 +33,8 @@ pub trait ICrowdFund<TContractState> {
     fn set_platform_percentage(ref self: TContractState, value: u256);
     // get the platform percentage
     fn get_platform_percentage(self: @TContractState) -> u256;
+    // set the supported token
+    // fn set_supported_token(ref self: TContractState, new_token_address: ContractAddress);
+    // get the supported token
+    // fn get_supported_token(self: @TContractState) -> Array<ContractAddress>;
 }
