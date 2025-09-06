@@ -482,11 +482,9 @@ pub mod AutoShare {
 
         fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
-
-            assert(new_class_hash.is_non_zero(), 'Class hash cannot be zero');
-
-            starknet::syscalls::replace_class_syscall(new_class_hash).unwrap();
+            self.upgradeable.upgrade(new_class_hash);
         }
+
         fn upgrade_child(ref self: ContractState, new_class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
 
