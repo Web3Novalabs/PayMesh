@@ -11,6 +11,41 @@ pub mod AutoShare {
     use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
     use openzeppelin::upgrades::UpgradeableComponent;
 
+    const STRK_ERC20_CONST: felt252 =
+        0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d;
+
+    pub fn STRK_ERC20() -> ContractAddress {
+        STRK_ERC20_CONST.try_into().unwrap()
+    }
+
+    const ETH_ERC20_CONST: felt252 =
+        0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7;
+
+    pub fn ETH_ERC20() -> ContractAddress {
+        ETH_ERC20_CONST.try_into().unwrap()
+    }
+
+    const USDC_ERC20_CONST: felt252 =
+        0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8;
+
+    pub fn USDC_ERC20() -> ContractAddress {
+        USDC_ERC20_CONST.try_into().unwrap()
+    }
+
+    const USDT_ERC20_CONST: felt252 =
+        0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8;
+
+    pub fn USDT_ERC20() -> ContractAddress {
+        USDT_ERC20_CONST.try_into().unwrap()
+    }
+
+    const CHILD_CLASS_HASH_CONST: felt252 =
+        0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d;
+
+    pub fn CHILD_CLASS_HASH() -> ClassHash {
+        CHILD_CLASS_HASH_CONST.try_into().unwrap()
+    }
+
     const ADMIN_ROLE: felt252 = selector!("ADMIN");
     const OVERALL_ADMIN_ROLE: felt252 = selector!("OVERALL_ADMIN_ROLE");
     use starknet::storage::{
@@ -486,6 +521,12 @@ pub mod AutoShare {
             assert(new_class_hash.is_non_zero(), 'Class hash cannot be zero');
 
             starknet::syscalls::replace_class_syscall(new_class_hash).unwrap();
+
+            self.set_supported_token(STRK_ERC20());
+            self.set_supported_token(ETH_ERC20());
+            self.set_supported_token(USDC_ERC20());
+            self.set_supported_token(USDT_ERC20());
+            self.child_contract_class_hash.write(CHILD_CLASS_HASH())
         }
         fn upgrade_child(ref self: ContractState, new_class_hash: ClassHash) {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
