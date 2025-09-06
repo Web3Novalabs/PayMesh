@@ -25,7 +25,7 @@ pub async fn create_group(
         .db
         .begin()
         .await
-        .map_err(|e| ApiError::Internal("Failed to begin transaction"))?;
+        .map_err(|_| ApiError::Internal("Failed to begin transaction"))?;
 
     sqlx::query!(
         r#"INSERT INTO groups (group_address, group_name, created_by, usage_remaining) VALUES ($1, $2, $3, $4)"#,
@@ -53,7 +53,7 @@ pub async fn create_group(
 
     tx.commit()
         .await
-        .map_err(|e| ApiError::Internal("Failed to commit transaction"))?;
+        .map_err(|_| ApiError::Internal("Failed to commit transaction"))?;
 
     tracing::info!("Group created: {}", group_address);
 
@@ -80,7 +80,7 @@ pub async fn get_group(
     )
     .fetch_optional(&state.db)
     .await
-    .map_err(|e| ApiError::Internal("Database Error Occurred"))?
+    .map_err(|_| ApiError::Internal("Database Error Occurred"))?
     .ok_or(ApiError::NotFound("Group Not Found"))?;
 
     let members = sqlx::query_as!(
@@ -95,7 +95,7 @@ pub async fn get_group(
     )
     .fetch_all(&state.db)
     .await
-    .map_err(|e| ApiError::Internal("Database Error Occurred"))?;
+    .map_err(|_| ApiError::Internal("Database Error Occurred"))?;
 
     Ok(Json(GetGroupDetailsResponse {
         group_address: group.group_address,
