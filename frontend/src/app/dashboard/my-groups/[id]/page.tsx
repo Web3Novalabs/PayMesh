@@ -16,6 +16,7 @@ import {
 import { Sofia_Sans } from "next/font/google";
 import { Group } from "@/types/group";
 import { GroupService } from "@/services/groupService";
+import { copyToClipboard } from "@/lib/utils";
 import {
   Select,
   SelectTrigger,
@@ -120,14 +121,11 @@ const GroupDetailsPage = () => {
     fetchGroupData();
   }, [params.id]);
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
+  const handleCopyToClipboard = async (text: string) => {
+    await copyToClipboard(text, () => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy: ", err);
-    }
+    });
   };
 
   const balance = useGetBalance(currentGroup?.groupAddress || "0x0");
@@ -198,7 +196,7 @@ const GroupDetailsPage = () => {
         toast.success("split succesfull");
       }
     } catch (error) {
-      toast.error("Failed to slipt top up subscription. and try again.");
+      toast.error("Failed to split funds, top up subscription. and try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -264,12 +262,16 @@ const GroupDetailsPage = () => {
       setIsTopUp(false);
     }
   };
+
   if (isLoading) {
     return (
-      <div className="min-h-screen text-white p-6 flex items-center justify-center">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading group details...</p>
+          <div className="w-16 h-16 border-4 border-[#434672] border-t-[#755A5A] rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-bold text-[#E2E2E2] mb-2">
+            Loading Group Details
+          </h2>
+          <p className="text-[#8398AD]">Fetching your group information...</p>
         </div>
       </div>
     );
@@ -453,7 +455,7 @@ const GroupDetailsPage = () => {
             <div className="flex items-center gap-2">
               <button
                 onClick={handleToUp}
-                className="border-gradient-flow text-white px-4 py-2 rounded-sm transition-colors"
+                className="border-gradient-flow cursor-pointer text-white px-4 py-2 rounded-sm transition-colors"
               >
                 {isTopUp ? "loading..." : "  Top Up"}
               </button>
@@ -486,9 +488,23 @@ const GroupDetailsPage = () => {
               <h3 className=" border-r border-[#FFFFFF0D] pr-2 mr-2">
                 Group address
               </h3>
-              <span className="text-[#E2E2E2] break-all text-sm">
-                {currentGroup?.groupAddress}
-              </span>
+              <div className="flex items-center space-x-1 gap-2">
+                <span className="text-[#E2E2E2] break-all text-sm">
+                  {currentGroup?.groupAddress}
+                </span>
+                <button
+                  onClick={() =>
+                    handleCopyToClipboard(currentGroup?.groupAddress)
+                  }
+                  className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  {copySuccess ? (
+                    <Check className="w-4 h-4" />
+                  ) : (
+                    <Copy className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
             </div>
           )}
           <div className="p-4">
@@ -522,7 +538,7 @@ const GroupDetailsPage = () => {
                         {member.addr}
                       </span>
                       {/* <button
-                        onClick={() => copyToClipboard(member.addr)}
+                        onClick={() => handleCopyToClipboard(member.addr)}
                         className="text-gray-400 hover:text-white transition-colors"
                       >
                         {copySuccess ? (
@@ -561,7 +577,7 @@ const GroupDetailsPage = () => {
                       {member.addr.slice(0, 12)}...{member.addr.slice(-8)}
                     </span>
                     <button
-                      onClick={() => copyToClipboard(member.addr)}
+                      onClick={() => handleCopyToClipboard(member.addr)}
                       className="text-gray-400 hover:text-white transition-colors"
                     >
                       {copySuccess ? (
