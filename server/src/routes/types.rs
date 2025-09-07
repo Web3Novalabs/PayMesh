@@ -64,6 +64,13 @@ pub struct CallContractRequest {
 }
 
 #[derive(Debug, Deserialize, Validate)]
+pub struct SubscriptionToppedReq {
+    #[validate(custom(function = "validate_address"))]
+    pub group_address: String,
+    pub usage_count: u32,
+}
+
+#[derive(Debug, Deserialize, Validate)]
 pub struct PayGroupMembersRequest {
     #[validate(custom(function = "validate_address"))]
     pub member_address: String,

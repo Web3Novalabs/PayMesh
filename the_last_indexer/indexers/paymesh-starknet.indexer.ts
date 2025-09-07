@@ -94,6 +94,19 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
           store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
         }
+        else if (eventKey === SUBSCRIPTION_TOPPED_SELECTOR) {
+          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::SubscriptionTopped" });
+
+          const safeArgs = JSON.stringify(args, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v
+          );
+
+          const {group_address, usage_count} = JSON.parse(safeArgs);
+
+          logger.info(`\n💡 Group top up subsribed ${group_address}`);
+
+          subsciption_topped(group_address, Number(usage_count));
+        }
       }
     },
   });
@@ -137,6 +150,22 @@ const pay = (address: string, from_address: string, tx_hash: string, amount: str
     body: body
   }).catch((err) => {
     console.error(`Payment error for ${address}:`, err);
+  });
+};
+
+const subsciption_topped = (group_address: string, usage_count: number) => {
+  let body = JSON.stringify({
+      "group_address": group_address,
+      "usage_count": usage_count,
+    });
+  console.log(`subscription topped data ${body}`)
+
+  fetch(`${process.env.API_URL}/subscription_topped`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body
+  }).catch((err) => {
+    console.error(`Subscription top up error for ${group_address}:`, err);
   });
 };
 
