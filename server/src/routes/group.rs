@@ -6,8 +6,9 @@ use crate::{
     AppState,
     libs::error::{ApiError, map_sqlx_error},
     routes::types::{
-        GetGroupDetailsRequest, GetGroupDetailsResponse, GroupMemberResponse, GroupRequest,
-        GroupsResponse,GroupFullDetailResponse, GroupTokenTransfer,GroupMemberWithAddress,GroupsMetricsResponse,PaymentsTotalsResponse,
+        GetGroupDetailsRequest, GetGroupDetailsResponse, GroupFullDetailResponse,
+        GroupMemberResponse, GroupMemberWithAddress, GroupRequest, GroupTokenTransfer,
+        GroupsMetricsResponse, GroupsResponse, PaymentsTotalsResponse,
     },
     util::connector::is_valid_address,
 };
@@ -21,7 +22,7 @@ pub async fn create_group(
     let created_by = &payload.created_by;
 
     tracing::info!("Creating group: {}", group_address);
-    
+
     let mut tx = state
         .db
         .begin()
@@ -109,12 +110,10 @@ pub async fn get_group(
     }))
 }
 
-
 // Get all groups metrics with token shares
 pub async fn get_groups_metrics(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<GroupsMetricsResponse>>, ApiError> {
-    
     let metrics = sqlx::query!(
         r#"
         SELECT 
@@ -150,13 +149,11 @@ pub async fn get_groups_metrics(
     Ok(Json(response))
 }
 
-
 // Get all groups with full details including token transfer amount
 // for admin usage
 pub async fn get_groups(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<GroupFullDetailResponse>>, ApiError> {
-    
     // Get all groups
     let groups = sqlx::query_as!(
         GroupsResponse,
@@ -241,10 +238,10 @@ pub async fn get_groups(
         let group_tokens = tokens_by_group
             .entry(token_transfer.group_address.clone())
             .or_insert_with(HashMap::new);
-        
+
         group_tokens.insert(
             token_transfer.token_symbol.to_uppercase(),
-            token_transfer.amount.to_string()
+            token_transfer.amount.to_string(),
         );
     }
 
@@ -253,7 +250,7 @@ pub async fn get_groups(
 
     for group in groups {
         let group_address = group.group_address.clone();
-        
+
         // get members for this group
         let members = members_by_group
             .get(&group_address)
@@ -292,11 +289,9 @@ pub async fn get_groups(
     Ok(Json(response))
 }
 
-
 pub async fn get_payments_totals(
     State(state): State<AppState>,
 ) -> Result<Json<PaymentsTotalsResponse>, ApiError> {
-    
     let totals = sqlx::query!(
         r#"
         SELECT 
@@ -319,10 +314,22 @@ pub async fn get_payments_totals(
     let response = PaymentsTotalsResponse {
         total_groups: totals.total_groups.unwrap_or(0),
         total_payments: totals.total_payments.unwrap_or(0),
-        total_usdc_paid: totals.total_usdc_paid.unwrap_or(BigDecimal::from(0)).to_string(),
-        total_usdt_paid: totals.total_usdt_paid.unwrap_or(BigDecimal::from(0)).to_string(),
-        total_eth_paid: totals.total_eth_paid.unwrap_or(BigDecimal::from(0)).to_string(),
-        total_strk_paid: totals.total_strk_paid.unwrap_or(BigDecimal::from(0)).to_string(),
+        total_usdc_paid: totals
+            .total_usdc_paid
+            .unwrap_or(BigDecimal::from(0))
+            .to_string(),
+        total_usdt_paid: totals
+            .total_usdt_paid
+            .unwrap_or(BigDecimal::from(0))
+            .to_string(),
+        total_eth_paid: totals
+            .total_eth_paid
+            .unwrap_or(BigDecimal::from(0))
+            .to_string(),
+        total_strk_paid: totals
+            .total_strk_paid
+            .unwrap_or(BigDecimal::from(0))
+            .to_string(),
     };
 
     Ok(Json(response))

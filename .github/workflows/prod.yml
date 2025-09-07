@@ -92,20 +92,12 @@ jobs:
           DATABASE_URL_USER=${{ secrets.DATABASE_URL_USER }}
           DATABASE_URL_PASSWORD=${{ secrets.DATABASE_URL_PASSWORD }}
           DATABASE_URL_DB=${{ secrets.DATABASE_URL_DB }}
+          DNA_TOKEN=${{ secrets.DNA_TOKEN }}
+          API_URL=${{ secrets.API_URL }}
           EOL
 
           docker compose --env-file .env down
           docker compose --env-file .env pull
           docker compose --env-file .env up -d
 
-    - name: Deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ vars.DROPLET_IP }}
-        username: root
-        password: ${{ secrets.DROPLET_PASSWORD }}
-        script: |
-          cd ~
-          docker compose down
-          docker compose pull
-          docker compose up -d
+          # deploy the indexer also 

@@ -1,5 +1,5 @@
-use sqlx::{Row, FromRow};
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use validator::{Validate, ValidationError};
 
 #[derive(Debug, Deserialize, Validate)]
@@ -60,7 +60,7 @@ pub struct CallContractRequest {
     #[validate(custom(function = "validate_address"))]
     pub tx_hash: String,
     pub token_amount: String,
-    pub token_address: String
+    pub token_address: String,
 }
 
 #[derive(Debug, Deserialize, Validate)]
@@ -82,20 +82,20 @@ pub struct GroupsResponse {
 
 #[derive(Debug, Serialize)]
 pub struct GroupFullDetailResponse {
-    pub group_data:GetGroupDetailsResponse,
-    pub share_usdc:Option<String>,
-    pub share_usdt:Option<String>,
-    pub share_eth:Option<String>,
-    pub share_strk:Option<String>,
+    pub group_data: GetGroupDetailsResponse,
+    pub share_usdc: Option<String>,
+    pub share_usdt: Option<String>,
+    pub share_eth: Option<String>,
+    pub share_strk: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
 pub struct GroupsMetricsResponse {
-    pub group_address:String,
-    pub share_usdc:Option<String>,
-    pub share_usdt:Option<String>,
-    pub share_eth:Option<String>,
-    pub share_strk:Option<String>,
+    pub group_address: String,
+    pub share_usdc: Option<String>,
+    pub share_usdt: Option<String>,
+    pub share_eth: Option<String>,
+    pub share_strk: Option<String>,
 }
 #[derive(Debug, FromRow)]
 pub struct GroupTokenTransfer {
@@ -121,7 +121,7 @@ pub struct PaymentsTotalsResponse {
     pub total_eth_paid: String,
     pub total_strk_paid: String,
 }
-#[derive(Debug, Serialize,Clone)]
+#[derive(Debug, Serialize, Clone)]
 pub struct GroupMemberResponse {
     pub member_address: String,
     pub member_percentage: bigdecimal::BigDecimal,
