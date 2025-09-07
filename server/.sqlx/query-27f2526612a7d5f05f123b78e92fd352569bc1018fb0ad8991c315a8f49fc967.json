@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT member_address, member_percentage, is_active, added_at::text as \"added_at!\"\n        FROM group_members \n        WHERE group_address = $1 AND is_active = true\n        ORDER BY member_percentage DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "member_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "member_percentage",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 2,
+        "name": "is_active",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 3,
+        "name": "added_at!",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "27f2526612a7d5f05f123b78e92fd352569bc1018fb0ad8991c315a8f49fc967"
+}
