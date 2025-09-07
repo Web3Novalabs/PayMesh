@@ -1,9 +1,6 @@
-import { Contract, Account, cairo, uint256, RpcProvider } from "starknet";
-// import { useBalance } from "@starknet-react/core";
+import { useBalance } from "@starknet-react/core";
+import { uint256, RpcProvider } from "starknet";
 
-// // Contract configuration
-// export const OLD_CONTRACT_ADDRESS =
-//   "0x057500f7e000dafe7350eee771b791a4d885db920539e741f96410e42809a68d";
 export const PAYMESH_ADDRESS =
   "0x01710ab6e17d6809cd9d5e9b22e6bb1d1d09ca40f50449ea7ac81d67bef80f31";
 // "0x03eb5cc3d473d59331c48096cafa360d52b49fcd6a08b14a6811223c773a2d73";
@@ -71,96 +68,52 @@ export const formatGroupMembers = (members: GroupMember[]) => {
 
 export function epocTime(time: string) {
   const epochSeconds = time.replace("n", "");
-  console.log("Input time:", time, "Processed:", epochSeconds);
 
   const date = new Date(+epochSeconds * 1000); // multiply by 1000 to convert to milliseconds
-  console.log("Calculated date:", date);
 
   return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 }
 
-// // Contract interaction functions
-// export const createContractInstance = (account: Account): Contract => {
-//   return new Contract(PAYMESH_ABI, PAYMESH_ADDRESS, account);
-// };
+export function getTimeFromEpoch(time: string) {
+  const epochSeconds = time.replace("n", "");
+  const date = new Date(+epochSeconds * 1000);
+  return `${date.getHours().toString().padStart(2, "0")}:${date
+    .getMinutes()
+    .toString()
+    .padStart(2, "0")}:${date.getSeconds().toString().padStart(2, "0")}`;
+}
 
-// export const createGroup = async (
-//   account: Account,
-//   groupData: CreateGroupData
-// ): Promise<{ transaction_hash: string }> => {
-//   try {
-//     const contract = createContractInstance(account);
+// get balance of an address
+export const useGetBalance = (userAddress: string) => {
+  const { data: balance } = useBalance({
+    token:
+      "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as `0x${string}`,
+    address: userAddress
+      ? (userAddress as `0x${string}`)
+      : ("0x0" as `0x${string}`),
+  });
 
-//     // Format the data
-//     const formattedName = formatByteArray(groupData.name);
-//     const formattedAmount = formatU256(groupData.amount);
-//     const formattedMembers = formatGroupMembers(groupData.members);
+  return balance;
+};
 
-//     console.log("Creating group with data:", {
-//       name: formattedName,
-//       amount: formattedAmount,
-//       members: formattedMembers,
-//       tokenAddress: groupData.tokenAddress,
-//     });
+const normalizeAddress = (address: string): string => {
+  // Remove 0x prefix if present
+  if (address.length === 66) {
+    // console.log("man-2",address.slice(2))
+    return `${address.slice(2)}`;
+  }
+  const cleanAddress = address.startsWith("0x") ? address.slice(2) : address;
 
-//     // Call the contract
-//     const result = await contract.create_group(
-//       formattedName,
-//       formattedAmount,
-//       formattedMembers,
-//       groupData.tokenAddress
-//     );
+  // Pad with zeros to make it 64 characters (standard length)
+  const paddedAddress = cleanAddress.padStart(64, "0");
+  // console.log("man-",paddedAddress);
+  // Add back 0x prefix
+  return `${paddedAddress}`;
+};
 
-//     console.log("Transaction result:", result);
-//     return result;
-//   } catch (error) {
-//     console.error("Error creating group:", error);
-//     throw error;
-//   }
-// };
+export const compareAddresses = (addr1: string, addr2: string): boolean => {
+  const normalized1 = normalizeAddress(addr1.toLowerCase());
+  const normalized2 = normalizeAddress(addr2.toLowerCase());
 
-// export const getGroup = async (
-//   account: Account,
-//   groupId: string
-// ): Promise<object> => {
-//   try {
-//     const contract = createContractInstance(account);
-//     const formattedGroupId = formatU256(groupId);
-
-//     const result = await contract.get_group(formattedGroupId);
-//     console.log("Group data:", result);
-//     return result;
-//   } catch (error) {
-//     console.error("Error getting group:", error);
-//     throw error;
-//   }
-// };
-
-// // Hook for contract interactions
-// export const useContract = (account: Account | null) => {
-//   const createGroupWithContract = async (groupData: CreateGroupData) => {
-//     if (!account) {
-//       throw new Error("No account connected");
-//     }
-//     return await createGroup(account, groupData);
-//   };
-
-//   const getGroupWithContract = async (groupId: string) => {
-//     if (!account) {
-//       throw new Error("No account connected");
-//     }
-//     return await getGroup(account, groupId);
-//   };
-
-//   return {
-//     createGroup: createGroupWithContract,
-//     getGroup: getGroupWithContract,
-//   };
-// };
-
-// Balance hook for contract interactions
-// export const { data: balance } = useBalance({
-//   token:
-//     "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d" as `0x${string}`,
-//   address: "0x0" as `0x${string}`,
-// });
+  return normalized1 === normalized2;
+};
