@@ -1,3 +1,4 @@
+use sqlx::{Row, FromRow};
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationError};
 
@@ -80,6 +81,46 @@ pub struct GroupsResponse {
 }
 
 #[derive(Debug, Serialize)]
+pub struct GroupFullDetailResponse {
+    pub group_data:GetGroupDetailsResponse,
+    pub share_usdc:Option<String>,
+    pub share_usdt:Option<String>,
+    pub share_eth:Option<String>,
+    pub share_strk:Option<String>,
+}
+
+pub struct GroupsMetricsResponse {
+    pub group_address:String,
+    pub share_usdc:Option<String>,
+    pub share_usdt:Option<String>,
+    pub share_eth:Option<String>,
+    pub share_strk:Option<String>,
+}
+#[derive(Debug, FromRow)]
+pub struct GroupTokenTransfer {
+    pub group_address: String,
+    pub token_symbol: String,
+    pub amount: bigdecimal::BigDecimal,
+}
+#[derive(Debug, FromRow)]
+pub struct GroupMemberWithAddress {
+    pub group_address: String,
+    pub member_address: String,
+    pub member_percentage: bigdecimal::BigDecimal,
+    pub is_active: bool,
+    pub added_at: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct PaymentsTotalsResponse {
+    pub total_groups: i64,
+    pub total_payments: i64,
+    pub total_usdc_paid: String,
+    pub total_usdt_paid: String,
+    pub total_eth_paid: String,
+    pub total_strk_paid: String,
+}
+#[derive(Debug, Serialize,Clone)]
 pub struct GroupMemberResponse {
     pub member_address: String,
     pub member_percentage: bigdecimal::BigDecimal,
