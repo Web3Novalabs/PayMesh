@@ -118,7 +118,7 @@ const store_distribution_history = (group_address: string, token_address: string
         ]
     });
     console.log("Storing distribution history:", body);
-  fetch("http://localhost:8080/store_payment_distribution_history", {
+  fetch(`${process.env.API_URL}/store_payment_distribution_history`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body
@@ -134,7 +134,7 @@ const pay = (address: string, from_address: string, tx_hash: string, amount: str
       "token_address": token_address
     });
 
-  fetch("http://localhost:8080/pay_group", {
+  fetch(`${process.env.API_URL}/pay_group`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body
@@ -157,7 +157,7 @@ const create_group = (address: string, creatorAddress: string, groupName: string
         ...members_decoupled
       ]
     })
-  fetch("http://localhost:8080/group", {
+  fetch(`${process.env.API_URL}/group`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body, 
