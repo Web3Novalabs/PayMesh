@@ -1,13 +1,15 @@
-use std::{ str::FromStr};
+use std::str::FromStr;
 
 use crate::{
-    libs::error::ApiError, routes::types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest}, util::starknet::call_paymesh_contract_function, AppState
+    AppState,
+    libs::error::ApiError,
+    routes::types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest},
+    util::starknet::call_paymesh_contract_function,
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bigdecimal::BigDecimal;
 use serde::Serialize;
 use starknet::core::types::Felt;
-
 
 #[derive(Debug, Clone, Serialize, Default)]
 struct Amount {
@@ -73,8 +75,6 @@ pub async fn pay_group(
     Ok((StatusCode::OK, Json("TOKEN SPLIT SUCCESSFULLY")))
 }
 
-
-
 pub async fn store_payment_distribution_history(
     State(state): State<AppState>,
     Json(payload): Json<PayGroupRequest>,
@@ -106,9 +106,10 @@ pub async fn store_payment_distribution_history(
     )
     .execute(&mut *tx)
     .await
-    .map_err(|e|{ 
+    .map_err(|e| {
         tracing::error!("Failed to update group usage {}", e.to_string());
-        ApiError::Internal("Database Error Occured")})?
+        ApiError::Internal("Database Error Occured")
+    })?
     .rows_affected();
     tracing::info!("calling the pay group function 4");
 
@@ -126,9 +127,10 @@ pub async fn store_payment_distribution_history(
     )
     .fetch_optional(&mut *tx)
     .await
-    .map_err(|e|{ 
+    .map_err(|e| {
         tracing::error!("Failed to fetch previous amount, {}", e.to_string());
-        ApiError::Internal("Database Error Occured")})?
+        ApiError::Internal("Database Error Occured")
+    })?
     .unwrap_or_default();
 
     let new_amount = previous_amount.amount + token_amount.clone();
@@ -150,11 +152,12 @@ pub async fn store_payment_distribution_history(
         })?;
 
     for member in group_members {
-        let member_amount: BigDecimal = BigDecimal::from_str(&member.member_amount).map_err(|e| {
-            tracing::error!("Failed to parse token amount: {}", e);
-            ApiError::BadRequest("Invalid token amount")
-        })?;
-        
+        let member_amount: BigDecimal =
+            BigDecimal::from_str(&member.member_amount).map_err(|e| {
+                tracing::error!("Failed to parse token amount: {}", e);
+                ApiError::BadRequest("Invalid token amount")
+            })?;
+
         sqlx::query!(r#"INSERT INTO distributions_history (group_address, tx_hash, member_address, token_address, token_amount) VALUES ($1, $2, $3, $4, $5)"#,
             group_address, tx_hash, member.member_address, token_address, member_amount)
             .execute(&mut *tx)
