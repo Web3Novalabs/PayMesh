@@ -56,6 +56,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         const eventKey = event.keys[0];
         
         if (eventKey === GROUP_CREATED_SELECTOR) {
+          logger.info(`\n💡 Group created event`);
 
           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupCreated" });
           
@@ -63,13 +64,15 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
             typeof v === "bigint" ? v.toString() : v
           );
 
-          logger.info(`\n💡 Group created event`);
 
           const {group_address, _, creator, name, usage_count, members} = JSON.parse(safeArgs);
                     
           create_group(group_address, creator, name, usage_count, members);
         } 
         else if (eventKey === TRANSFER_SELECTOR) {
+
+          logger.info("Transfer Occurred")
+
           const { args } = decodeEvent({ strict: true, event, abi: strk_abi, eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer" });
 
           const safeArgs = JSON.stringify(args, (_, v) =>
@@ -81,6 +84,9 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           pay(args.to, args.from, tx_hash, String(args.value), event.address);
         }
         else if (eventKey === GROUP_PAID_SELECTOR) {
+          
+          logger.info("Group Paid Occurred")
+
           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupPaid" });
           
           const safeArgs = JSON.stringify(args, (_, v) =>
@@ -96,6 +102,9 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
         }
         else if (eventKey === SUBSCRIPTION_TOPPED_SELECTOR) {
+
+          logger.info(`\n💡 Group top up subsribed`);
+
           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::SubscriptionTopped" });
 
           const safeArgs = JSON.stringify(args, (_, v) =>
@@ -104,7 +113,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
           const {group_address, usage_count} = JSON.parse(safeArgs);
 
-          logger.info(`\n💡 Group top up subsribed ${group_address}`);
 
           subsciption_topped(group_address, Number(usage_count));
         }
