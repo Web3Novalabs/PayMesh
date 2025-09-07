@@ -39,7 +39,6 @@ pub struct AppState {
 use crate::routes::{group, health, pay_group, subscription_topped};
 
 pub fn router(state: AppState) -> Router {
-
     let cors = CorsLayer::new()
         .allow_origin(tower_http::cors::Any)
         .allow_methods([Method::GET, Method::POST])
@@ -47,9 +46,8 @@ pub fn router(state: AppState) -> Router {
             CONTENT_TYPE,
             AUTHORIZATION,
             HeaderName::from_static("x-requested-with"),
-        ])
-        .allow_credentials(true);
-    
+        ]);
+
     Router::new()
         .route("/health", get(health::health_check))
         .route("/group", get(group::get_group).post(group::create_group))
