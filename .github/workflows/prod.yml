@@ -88,6 +88,10 @@ jobs:
           PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
           PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
           CONTRACT_ADDRESS=${{ secrets.CONTRACT_ADDRESS }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DATABASE_URL_USER=${{ secrets.DATABASE_URL_USER }}
+          DATABASE_URL_PASSWORD=${{ secrets.DATABASE_URL_PASSWORD }}
+          DATABASE_URL_DB=${{ secrets.DATABASE_URL_DB }}
           EOL
 
           docker compose --env-file .env down

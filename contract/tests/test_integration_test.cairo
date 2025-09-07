@@ -10,9 +10,14 @@ use crate::test_util::{
 
 #[test]
 fn test_all_contract_flow_success() {
-    let (contract_address, erc20_dispatcher) = deploy_autoshare_contract();
-    let token = erc20_dispatcher.contract_address;
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
 
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
     // ten group member
     let members = group_member_ten();
     // two group member
@@ -37,7 +42,6 @@ fn test_all_contract_flow_success() {
 
     let contract_balance_after = erc20_dispatcher.balance_of(contract_address.contract_address);
     assert(contract_balance_after == ONE_STRK * 20, 'balance not upto 20 STK');
-
     // asset that the main contract has been set in the child contract
     let child_contract_instance = IAutoshareChildDispatcher { contract_address: group1_address };
     let main_contract_address = child_contract_instance.get_main_contract_address();
@@ -122,7 +126,7 @@ fn test_all_contract_flow_success() {
 
     // pay the group a member , admin or creator can pay a group
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
-    contract_address.pay(group2_address);
+    contract_address.paymesh(group2_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     //user2 and user1 balance after pay in group 2
@@ -132,7 +136,7 @@ fn test_all_contract_flow_success() {
     assert(user2_group2_amount == 800_000_000_000_000_000_000, 'balance not up to date');
 
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
-    contract_address.pay(group1_address);
+    contract_address.paymesh(group1_address);
     stop_cheat_caller_address(contract_address.contract_address);
     // group balance after pay
     let group1_balance_after_pay = erc20_dispatcher.balance_of(group1_address);
@@ -191,7 +195,7 @@ fn test_all_contract_flow_success() {
     let user2 = erc20_dispatcher.balance_of(USER2_ADDR());
 
     start_cheat_caller_address(contract_address.contract_address, USER1_ADDR());
-    contract_address.pay(group1_address);
+    contract_address.paymesh(group1_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     // get group balance
@@ -200,7 +204,8 @@ fn test_all_contract_flow_success() {
 
     //user2 and user1 balance after pay in group 1
     let user1_group1_amount = erc20_dispatcher.balance_of(USER1_ADDR());
-    assert(user1_group1_amount == user1 + 1_200_000_000_000_000_000_000, 'balance not up to date');
+    assert(user1_group1_amount == user1 + 1_200_000_000_000_000_000_000, 'balance not up to
+date');
     let user2_group1_amount = erc20_dispatcher.balance_of(USER2_ADDR());
     assert(user2_group1_amount == user2 + 800_000_000_000_000_000_000, 'balance not up to date');
     let usage1 = contract_address.get_group_usage_count(1);

@@ -1,8 +1,13 @@
 use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
-use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess, Vec};
-use starknet::{ContractAddress, get_block_timestamp, get_caller_address, get_contract_address};
+use starknet::storage::{
+    Map, StorageMapReadAccess, StorageMapWriteAccess, StoragePointerReadAccess,
+    StoragePointerWriteAccess, Vec,
+};
+use starknet::{
+    ContractAddress, contract_address_const, get_block_timestamp, get_caller_address,
+    get_contract_address,
+};
 use crate::base::types::{Group, GroupMember};
-
 #[starknet::interface]
 pub trait IAutoshareChild<TContractState> {
     fn get_details_of_child(
@@ -15,6 +20,7 @@ pub trait IAutoshareChild<TContractState> {
         ref self: TContractState, main_contract_address: ContractAddress,
     );
     fn get_main_contract_address(self: @TContractState) -> ContractAddress;
+    fn set_supported_token(ref self: TContractState, new_token_address: ContractAddress);
 }
 #[starknet::contract]
 pub mod AutoshareChild {
@@ -32,6 +38,9 @@ pub mod AutoshareChild {
         token_address: ContractAddress,
         admin: ContractAddress,
         main_contract_address: ContractAddress,
+        supported_tokens: Map<u256, ContractAddress>, // id -> token address
+        token_count: u256,
+        creator_address: ContractAddress,
     }
 
     #[constructor]
@@ -43,6 +52,7 @@ pub mod AutoshareChild {
         members: Array<GroupMember>,
         token_address: ContractAddress,
         admin: ContractAddress,
+        creator_address: ContractAddress,
     ) {
         self.id.write(group_id);
         self.group.write(group);
@@ -50,6 +60,7 @@ pub mod AutoshareChild {
         self.created_at.write(get_block_timestamp());
         self.token_address.write(token_address);
         self.admin.write(admin);
+        self.creator_address.write(creator_address);
 
         for i in 0..members.len() {
             let member: GroupMember = *members.at(i);
@@ -57,7 +68,8 @@ pub mod AutoshareChild {
         }
     }
 
-    const MAIN_AMOUNT: u256 = 900_000_000_000_000_000_000_000_000_000_000;
+    const MAIN_AMOUNT: u256 =
+        900_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000_000;
 
     #[abi(embed_v0)]
     impl AutoshareChildImpl of IAutoshareChild<ContractState> {
@@ -100,6 +112,18 @@ pub mod AutoshareChild {
         fn get_main_contract_address(self: @ContractState) -> ContractAddress {
             self.main_contract_address.read()
         }
+        fn set_supported_token(ref self: ContractState, new_token_address: ContractAddress) {
+            let caller = get_caller_address();
+            let is_authorized = caller == self.main_contract_address.read()
+                || caller == self.creator_address.read();
+            assert(is_authorized, 'Unauthorized caller');
+            assert(new_token_address != contract_address_const::<0>(), 'Invalid token address');
+
+            let id = self.token_count.read() + 1;
+            self.token_count.write(id);
+            self.supported_tokens.write(id, new_token_address);
+            self._approve_main_contract();
+        }
     }
 
     #[generate_trait]
@@ -124,8 +148,12 @@ pub mod AutoshareChild {
 
         fn _approve_main_contract(ref self: ContractState) {
             self.assert_main_contract_set();
-            let token = IERC20Dispatcher { contract_address: self.token_address.read() };
-            token.approve(self.main_contract_address.read(), MAIN_AMOUNT);
+            let supported_tokens_count = self.token_count.read();
+            for i in 1..=supported_tokens_count {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                let token = IERC20Dispatcher { contract_address: token_address };
+                token.approve(self.main_contract_address.read(), MAIN_AMOUNT);
+            }
         }
     }
 }

@@ -14,10 +14,12 @@ pub const ADDRESS_PREFIX: &str = "0x";
 pub const ADDRESS_LENGTH: usize = 66;
 
 /// Returns true if the wallet address is valid.
-pub fn is_valid_address(address: &str) -> bool {
-    address.starts_with(ADDRESS_PREFIX)
+pub fn is_valid_address(address: &str) -> Result<(), String> {
+    (address.starts_with(ADDRESS_PREFIX)
         && address.len() == ADDRESS_LENGTH
-        && address[2..].chars().all(|c| c.is_ascii_hexdigit())
+        && address[2..].chars().all(|c| c.is_ascii_hexdigit()))
+    .then_some(())
+    .ok_or("invalid address format".to_owned())
 }
 
 static RPC_URL: LazyLock<String> = LazyLock::new(|| var("RPC_URL").expect("RPC URL NOT PROVIDED"));

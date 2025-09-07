@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE group_token_history SET amount = $1 WHERE group_address = $2 AND token_address = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Numeric",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "86605a9183c7b1b9fb569b6f14dc1fa8a359611cfc5b434cabad8f369e1d6c35"
+}
