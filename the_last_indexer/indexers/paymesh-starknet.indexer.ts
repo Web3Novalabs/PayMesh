@@ -1,5 +1,5 @@
 import { defineIndexer } from "apibara/indexer";
-import { logger, useLogger } from "apibara/plugins";
+import { useLogger } from "apibara/plugins";
 
 import { StarknetStream, getSelector, FieldElement, decodeEvent } from "@apibara/starknet";
 import type { ApibaraRuntimeConfig } from "apibara/types";
@@ -8,7 +8,6 @@ import { strk_abi } from "../strk_abi";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const { startingBlock, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
-  const config = runtimeConfig.paymeshStarknet;
 
   const TRANSFER_SELECTOR = getSelector("Transfer");
   const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
