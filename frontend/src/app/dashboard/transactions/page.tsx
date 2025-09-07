@@ -12,11 +12,22 @@ import { useGetAllGroups } from "@/hooks/useContractInteraction";
 import WalletConnect from "@/app/components/WalletConnect";
 import { useAccount } from "@starknet-react/core";
 import { getTimeFromEpoch } from "@/utils/contract";
+import axios from "axios";
 
 const TransactionsPage = () => {
   const [filter, setFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  // const [transaction, setTransaction] = useState<TransactionData[] | undefined>(
+  //   undefined
+  // );
+
+  // useEffect(() => {
+  //   if (!transaction) return;
+
+  //   const res = await axios.get(``);
+  //   setTransaction(transaction);
+  // }, [transaction]);
 
   // Filter transactions based on selected filter
   // const filteredTransactions = transaction?.filter((transaction) => {
@@ -27,7 +38,6 @@ const TransactionsPage = () => {
   // });
 
   const transaction = useGetAllGroups();
-
 
   // Calculate pagination
   const totalPages = Math.ceil((transaction?.length || 0) / itemsPerPage);

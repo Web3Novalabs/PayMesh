@@ -51,3 +51,11 @@ export interface SplitFundsRequest {
   distributionType: "Equal" | "Custom" | "Percentage";
   percentages?: number[];
 }
+
+export interface TransactionData {
+  id: number;
+  groupAddress: string;
+  amount: string;
+  date: string;
+  rawTime: string;
+}
