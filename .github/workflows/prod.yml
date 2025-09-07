@@ -55,6 +55,13 @@ jobs:
           *.cache-from=type=gha
           *.cache-to=type=gha,mode=max
 
+    - name: Build and push indexer
+      uses: docker/build-push-action@v4
+      with:
+        context: ./the_last_indexer
+        push: true
+        tags: akshola00/paymesh-indexer:latest
+        
   deploy:
     needs: build
     runs-on: ubuntu-latest
