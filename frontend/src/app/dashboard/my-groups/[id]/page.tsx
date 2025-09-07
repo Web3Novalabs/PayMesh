@@ -79,6 +79,7 @@ const GroupDetailsPage = () => {
 
   // Get the current group data based on the URL ID
   const currentGroup = transaction?.find((group) => group.id === params.id);
+  console.log("Current group:", currentGroup);
 
   // Force refresh when params.id changes
   useEffect(() => {
@@ -365,7 +366,7 @@ const GroupDetailsPage = () => {
               <h1 className="border-r pr-3 text-xl capitalize border-[#ffffff2b]">
                 {currentGroup?.name || "Loading..."}
               </h1>
-              <h3 className="text-[#379A83]">Subscription Usage: {usage}</h3>
+              <h3 className="text-[#379A83]">Subscripgtion Usage: {usage}</h3>
             </div>
             <X className="w-5 h-5" />
           </div>
