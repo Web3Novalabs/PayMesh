@@ -103,8 +103,6 @@ jobs:
           API_URL=${{ secrets.API_URL }}
           EOL
           
-          docker compose --env-file .env stop api db
-          docker compose --env-file .env pull api db
-          docker compose --env-file .env up -d api db
-
-          # deploy the indexer also 
+          docker compose --env-file .env stop
+          docker compose --env-file .env pull
+          docker compose --env-file .env up -d
