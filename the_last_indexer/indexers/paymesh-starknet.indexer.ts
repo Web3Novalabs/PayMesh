@@ -1,5 +1,5 @@
 import { defineIndexer } from "apibara/indexer";
-import { logger, useLogger } from "apibara/plugins";
+import { useLogger } from "apibara/plugins";
 
 import { StarknetStream, getSelector, FieldElement, decodeEvent } from "@apibara/starknet";
 import type { ApibaraRuntimeConfig } from "apibara/types";
@@ -8,7 +8,6 @@ import { strk_abi } from "../strk_abi";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const { startingBlock, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
-  const config = runtimeConfig.paymeshStarknet;
 
   const TRANSFER_SELECTOR = getSelector("Transfer");
   const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
@@ -26,8 +25,8 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
     filter: {
       events: [
         {
-          address: "0x01710ab6e17d6809cd9d5e9b22e6bb1d1d09ca40f50449ea7ac81d67bef80f31",  //contractAddress as FieldElement,
-          keys: [],  // , GROUP_PAID_SELECTOR, SUBSCRIPTION_TOPPED_SELECTOR
+          address: contractAddress as FieldElement,
+          keys: [],
         },
         {
           address: STRK_TOKEN_ADDRESS,
@@ -51,7 +50,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
     async transform({ block }) {
       const logger = useLogger();
       const { events: blockEvents, header } = block;
-      logger.info(`Processing block ${header.blockNumber}`);
 
       for (const event of blockEvents) {
         const eventKey = event.keys[0];
@@ -90,6 +88,8 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
           const {group_address, amount, paid_by, paid_at, members, usage_count, token_address} = JSON.parse(safeArgs);
 
+          logger.info(`\n💡 Group paid event ${group_address}`);
+
           let tx_hash = event.transactionHash;
 
           store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
@@ -101,12 +101,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
 const store_distribution_history = (group_address: string, token_address: string, tx_hash: string, usage_remaining: number, 
   token_amount: string, members: Array<{ addr: string; share: string; }>) => {
-  console.log(`member array is:`, members);
   let members_decoupled = members.map(member => ({
     member_address: member.addr,
     member_amount: member.share
   }));
-  console.log("Members decoupled:", members_decoupled);
   let body = JSON.stringify({
       "group_address": group_address,
       "token_address": token_address,
@@ -117,8 +115,7 @@ const store_distribution_history = (group_address: string, token_address: string
           ...members_decoupled
         ]
     });
-    console.log("Storing distribution history:", body);
-  fetch("http://localhost:8080/store_payment_distribution_history", {
+  fetch(`${process.env.API_URL}/store_payment_distribution_history`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body
@@ -134,7 +131,7 @@ const pay = (address: string, from_address: string, tx_hash: string, amount: str
       "token_address": token_address
     });
 
-  fetch("http://localhost:8080/pay_group", {
+  fetch(`${process.env.API_URL}/pay_group`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body
@@ -157,7 +154,7 @@ const create_group = (address: string, creatorAddress: string, groupName: string
         ...members_decoupled
       ]
     })
-  fetch("http://localhost:8080/group", {
+  fetch(`${process.env.API_URL}/group`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body, 
