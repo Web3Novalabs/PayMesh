@@ -26,8 +26,8 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
     filter: {
       events: [
         {
-          address: "0x01710ab6e17d6809cd9d5e9b22e6bb1d1d09ca40f50449ea7ac81d67bef80f31",  //contractAddress as FieldElement,
-          keys: [],  // , GROUP_PAID_SELECTOR, SUBSCRIPTION_TOPPED_SELECTOR
+          address: contractAddress as FieldElement,
+          keys: [],
         },
         {
           address: STRK_TOKEN_ADDRESS,
@@ -90,6 +90,8 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
           const {group_address, amount, paid_by, paid_at, members, usage_count, token_address} = JSON.parse(safeArgs);
 
+          logger.info(`\n💡 Group paid event ${group_address}`);
+
           let tx_hash = event.transactionHash;
 
           store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
@@ -101,12 +103,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
 const store_distribution_history = (group_address: string, token_address: string, tx_hash: string, usage_remaining: number, 
   token_amount: string, members: Array<{ addr: string; share: string; }>) => {
-  console.log(`member array is:`, members);
   let members_decoupled = members.map(member => ({
     member_address: member.addr,
     member_amount: member.share
   }));
-  console.log("Members decoupled:", members_decoupled);
   let body = JSON.stringify({
       "group_address": group_address,
       "token_address": token_address,
@@ -117,7 +117,6 @@ const store_distribution_history = (group_address: string, token_address: string
           ...members_decoupled
         ]
     });
-    console.log("Storing distribution history:", body);
   fetch(`${process.env.API_URL}/store_payment_distribution_history`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
