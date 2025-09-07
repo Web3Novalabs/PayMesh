@@ -89,6 +89,7 @@ pub struct GroupFullDetailResponse {
     pub share_strk:Option<String>,
 }
 
+#[derive(Debug, Serialize)]
 pub struct GroupsMetricsResponse {
     pub group_address:String,
     pub share_usdc:Option<String>,
