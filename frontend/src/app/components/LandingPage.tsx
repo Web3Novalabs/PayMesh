@@ -67,7 +67,7 @@ const LandingPage = () => {
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-8 sm:mt-10">
           <Link
-            href="/dashboard"
+            href="/dashboard/create-new-group"
             className="border-gradient !px-6 md:!px-16 !rounded-sm hover:scale-102 transition-all cursor-pointer"
           >
             <p>Launch App</p>
