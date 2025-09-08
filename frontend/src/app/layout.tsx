@@ -31,11 +31,11 @@ export const metadata: Metadata = {
     title: "PAYMESH - An automated group payment on starknet",
     description:
       "Paymesh automates group payment distribution using Starknet smart contracts. Create a group, set wallet addresses with specific percentages, and any payment sent to your group address automatically splits and distributes funds instantly,",
-    url: "/",
+    url: "https://paymesh.app",
     siteName: "paymesh",
     images: [
       {
-        url: "../../public/WhatsApp Image 2025-08-24 at 22.16.46.jpeg",
+        url: "https://paymesh.app/logo.jpeg",
         width: 1200,
         height: 630,
         alt: "paymesh - Decentralized Payment Platform",
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     title: "PAYMESH - An automated group payment on starknet",
     description:
       "Paymesh automates group payment distribution using Starknet smart contracts. Create a group, set wallet addresses with specific percentages, and any payment sent to your group address automatically splits and distributes funds instantly,",
-    images: ["../../public/Logo (1).svg"],
+    images: ["https://paymesh.app/logo.jpeg"],
     creator: "@paymeshglobal",
   },
 
