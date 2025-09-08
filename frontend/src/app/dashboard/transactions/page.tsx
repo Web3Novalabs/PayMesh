@@ -33,7 +33,6 @@ const TransactionsPage = () => {
         throw new Error("Failed to fetch transaction");
       }
       const data = await response.json();
-      console.log("Transaction data:", data);
       setTransaction(data);
     } catch (error) {
       console.error("Error fetching transactions:", error);
@@ -104,55 +103,10 @@ const TransactionsPage = () => {
     getTransaction();
   }, []);
 
-  // Filter transactions based on selected filter
-  // const filteredTransactions = transaction?.filter((transaction) => {
-  //   if (filter === "all") return true;
-  //   if (filter === "cleared") return transaction.status === "Paid";
-  //   if (filter === "pending") return transaction.status === "In progress";
-  //   return true;
-  // });
-
-  // const transaction = useGetAllGroups();
-
   // Calculate pagination
   const totalPages = Math.ceil((transaction?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-
-  const { address } = useAccount();
-
-  // const isWalletConnected = !!address;
-
-  // if (!isWalletConnected) {
-  //   return (
-  //     <div className="min-h-[50vh] text-white p-6 flex items-center justify-center">
-  //       <div className="text-center">
-  //         <div className="w-16 h-16 bg-gradient-to-r from-[#434672] to-[#755a5a] rounded-full flex items-center justify-center mx-auto mb-4">
-  //           <svg
-  //             className="w-8 h-8 text-white"
-  //             fill="none"
-  //             stroke="currentColor"
-  //             viewBox="0 0 24 24"
-  //           >
-  //             <path
-  //               strokeLinecap="round"
-  //               strokeLinejoin="round"
-  //               strokeWidth={2}
-  //               d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-  //             />
-  //           </svg>
-  //         </div>
-  //         <h2 className="text-2xl font-bold text-white mb-2">
-  //           Wallet Not Connected
-  //         </h2>
-  //         <p className="text-gray-300 mb-4">
-  //           Please connect your wallet to view your groups
-  //         </p>
-  //         <WalletConnect />
-  //       </div>
-  //     </div>
-  //   );
-  // }
 
   // Show loading component while data is being fetched
   if (isLoading) {
@@ -181,7 +135,7 @@ const TransactionsPage = () => {
           {/* Filter Section */}
           <div className="flex flex-col items-start gap-4">
             <p className="text-[#8398AD] text-base">
-              Filter between all, cleared and pending
+              Filter between tokens recieved
             </p>
 
             <Select value={filter} onValueChange={setFilter}>
@@ -199,8 +153,8 @@ const TransactionsPage = () => {
         </div>
 
         {/* Transaction Table */}
-        <div className=" rounded-sm shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+        <div className=" rounded-sm shadow-sm overflow-hidden scrollbar-hide">
+          <div className="overflow-x-auto scrollbar-hide">
             <table className="w-full mb-10">
               <thead className="bg-[#FFFFFF0D] border-b border-[#FFFFFF0D]">
                 <tr>
@@ -227,7 +181,6 @@ const TransactionsPage = () => {
               <tbody className="bg-[#FFFFFF0D] divide-y divide-[#FFFFFF0D]">
                 {transaction &&
                   [...transaction]
-                    .reverse()
                     .slice(startIndex, endIndex)
                     .map((transactionItem, index) => {
                       const tokenAmount = getTokenAmount(transactionItem);

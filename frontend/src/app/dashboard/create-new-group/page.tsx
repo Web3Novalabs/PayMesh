@@ -446,21 +446,6 @@ const CreateNewGroup = () => {
     : "";
   const isWalletConnected = !!address;
 
-  // Show loading component while page is initializing
-  if (isPageLoading) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#434672] border-t-[#755A5A] rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-xl font-bold text-[#E2E2E2] mb-2">
-            Loading Create Group
-          </h2>
-          <p className="text-[#8398AD]">Preparing group creation form...</p>
-        </div>
-      </div>
-    );
-  }
-
   if (!isWalletConnected) {
     return (
       <div className="min-h-[50vh] text-white p-6 flex items-center justify-center">

@@ -76,9 +76,7 @@ const GroupDetailsPage = () => {
     if (!groupUsage && !usageCount) return;
     const m = +usageCount?.toString();
     const count = +groupUsage?.toString();
-    console.log(count);
-    const equate = `${count}/${m}`;
-    setUsage(equate);
+    setUsage(`${m}`);
   }, [usage, usageCount]);
   const { transaction } = useGroupAddressHasSharesIn(address || "");
   const { transaction: createdGroups } = useAddressCreatedGroups();
@@ -88,6 +86,27 @@ const GroupDetailsPage = () => {
     transaction?.find((group) => group.id === params.id) ||
     createdGroups?.find((group) => group.id === params.id);
 
+  const { data: usdcBalance } = useBalance({
+    token:
+      "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8" as `0x${string}`,
+    address: currentGroup?.groupAddress
+      ? (currentGroup?.groupAddress as `0x${string}`)
+      : ("0x0" as `0x${string}`),
+  });
+  const { data: usdtBalance } = useBalance({
+    token:
+      "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8" as `0x${string}`,
+    address: currentGroup?.groupAddress
+      ? (currentGroup?.groupAddress as `0x${string}`)
+      : ("0x0" as `0x${string}`),
+  });
+  const { data: ethBalance } = useBalance({
+    token:
+      "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7" as `0x${string}`,
+    address: currentGroup?.groupAddress
+      ? (currentGroup?.groupAddress as `0x${string}`)
+      : ("0x0" as `0x${string}`),
+  });
   // Force refresh when params.id changes
   useEffect(() => {
     if (params.id && transaction) {
@@ -150,7 +169,7 @@ const GroupDetailsPage = () => {
       ) {
         const swiftpayCall = {
           contractAddress: PAYMESH_ADDRESS,
-          entrypoint: "pay",
+          entrypoint: "paymesh",
           calldata: CallData.compile({
             group_address: currentGroup?.groupAddress,
           }),
@@ -330,80 +349,13 @@ const GroupDetailsPage = () => {
   }
 
   return (
-    <div className="min-h-screen text-white mb-24">
-      <div className="mb-8">
+    <div className="min-h-screen text-white mb-24 mt-9 md:mt-0">
+      {/* <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">My groups</h1>
         <p className="text-gray-300 text-lg">
           Filter between all, cleared and pending
         </p>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="relative">
-          <Select>
-            <SelectTrigger className="w-full bg-[#FFFFFF0D] border py-4 sm:py-6 px-3 sm:px-4 rounded-sm border-[#FFFFFF0D] text-[#8398AD] !text-sm sm:!text-base">
-              <SelectValue placeholder="Select status" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#1F2937] border border-[#FFFFFF0D] w-full">
-              <SelectGroup>
-                <SelectLabel className="text-[#E2E2E2]">Tokens</SelectLabel>
-                <SelectItem
-                  value="strk"
-                  className="text-[#8398AD] hover:bg-[#374151]"
-                >
-                  ALL
-                </SelectItem>
-                <SelectItem
-                  value="eth"
-                  className="text-[#8398AD] hover:bg-[#374151]"
-                >
-                  CLEARED
-                </SelectItem>
-                <SelectItem
-                  value="usdc"
-                  className="text-[#8398AD] hover:bg-[#374151]"
-                >
-                  PENDING
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-          <input
-            type="text"
-            placeholder="Search group by name.."
-            className=" bg-none border rounded-sm border-gray-600 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col w-fit h-fit sm:flex-row gap-6 mb-8">
-        <div className="bg-[#2A2D35] rounded-sm px-6 py-3 flex items-center gap-2">
-          <LucideUsers className="w-6 h-6 text-white" />
-          <div>
-            <p className="text-gray-300">
-              Total Groups -{" "}
-              <b className="text-white">{transaction?.length || 0}</b>{" "}
-            </p>
-          </div>
-        </div>
-
-        <div className="bg-[#2A2D35] rounded-sm px-6 flex items-center gap-2">
-          <ListPlus className="w-6 h-6 text-white" />
-          <div>
-            <p className="text-gray-300">
-              Groups Created -{" "}
-              <b className="text-white">
-                {transaction?.filter((group) => group.creator === address)
-                  .length || 0}
-              </b>{" "}
-            </p>
-          </div>
-        </div>
-      </div>
+      </div> */}
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
@@ -412,26 +364,27 @@ const GroupDetailsPage = () => {
           className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-white transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
-          <span className="hidden sm:inline">Back to Groups</span>
+          <span className="">Back to Groups</span>
         </button>
 
         <div className="flex items-center gap-2"></div>
       </div>
 
       {/* Members Table */}
-      <div className="bg-[#ffffff0d] rounded-sm overflow-hidden">
-        <div className="hidden lg:block overflow-x-auto">
+      <div className="bg-[#ffffff0d] rounded-sm overflow-hidden scrollbar-hide">
+        <div className="">
           <div className="flex items-center justify-between p-4 border-b border-[#20232bac]">
-            <div className="flex items-center gap-2">
-              <h1 className="border-r pr-3 text-xl capitalize border-[#ffffff2b]">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="sm:border-r pr-3 text-xl capitalize border-[#ffffff2b]">
                 {currentGroup?.name || "Loading..."}
               </h1>
-              <h3 className="text-[#379A83]">Subscripgtion Usage: {usage}</h3>
+              <h3 className="text-[#379A83]">
+                Remaining Subscription Usage: {usage}
+              </h3>
             </div>
-            <X className="w-5 h-5" />
           </div>
 
-          <div className="flex items-center justify-between p-4 border-b border-[#20232bb6]">
+          <div className="flex items-center flex-wrap gap-4 justify-between p-4 border-b border-[#20232bb6]">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h1 className="border-r pr-2 border-[#FFFFFF0D] text-[#8398AD] flex items-center gap-2">
@@ -457,7 +410,7 @@ const GroupDetailsPage = () => {
                 onClick={handleToUp}
                 className="border-gradient-flow cursor-pointer text-white px-4 py-2 rounded-sm transition-colors"
               >
-                {isTopUp ? "loading..." : "  Top Up"}
+                {isTopUp ? "loading..." : "Top Up"}
               </button>
               {/*  @ts-expect-error array need to be empty */}
               {balance?.formatted != 0 && (
@@ -476,16 +429,41 @@ const GroupDetailsPage = () => {
                 <span className="text-[#8398AD]">Balance:</span>
                 <span className="text-[#E2E2E2]">
                   {balance?.formatted
-                    ? parseFloat(balance.formatted).toFixed(2)
+                    ? Number.parseFloat(balance.formatted).toFixed(2)
                     : "0.00"}{" "}
                   {balance?.symbol}
                 </span>
+                {usdcBalance && +usdcBalance?.formatted > 0 && (
+                  <span className="text-[#E2E2E2]">
+                    {usdcBalance?.formatted
+                      ? Number.parseFloat(usdcBalance.formatted).toFixed(2)
+                      : "0.00"}{" "}
+                    {usdcBalance?.symbol}
+                  </span>
+                )}
+                {usdtBalance && +usdtBalance?.formatted > 0 && (
+                  <span className="text-[#E2E2E2]">
+                    {usdtBalance?.formatted
+                      ? Number.parseFloat(usdtBalance.formatted).toFixed(2)
+                      : "0.00"}{" "}
+                    {usdtBalance?.symbol}
+                  </span>
+                )}
+                {ethBalance && +ethBalance?.formatted > 0 && (
+                  <span className="text-[#E2E2E2]">
+                    {ethBalance?.formatted
+                      ? Number.parseFloat(ethBalance.formatted).toFixed(2)
+                      : "0.00"}{" "}
+                    {ethBalance?.symbol}
+                  </span>
+                )}
               </div>
             </div>
           </div>
+
           {currentGroup?.groupAddress && (
-            <div className="text-[#8398AD] flex items-center gap-1 p-4">
-              <h3 className=" border-r border-[#FFFFFF0D] pr-2 mr-2">
+            <div className="text-[#8398AD] flex items-center gap-1 p-4 flex-wrap">
+              <h3 className="sm:border-r border-[#FFFFFF0D] pr-2 mr-2">
                 Group address
               </h3>
               <div className="flex items-center space-x-1 gap-2">
@@ -507,95 +485,48 @@ const GroupDetailsPage = () => {
               </div>
             </div>
           )}
+
           <div className="p-4">
             <h1>Members</h1>
           </div>
 
-          <table className="w-full">
-            <thead className="bg-[#FFFFFF0D]">
-              <tr>
-                <th className="text-left p-4 text-gray-300 text-sm font-medium">
-                  S/N
-                </th>
-                <th className="text-left p-4 text-gray-300 text-sm font-medium">
-                  Beneficiary Address
-                </th>
-                <th className="text-left p-4 text-gray-300 text-sm font-medium">
-                  Percentage
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {groupMember?.map((member, index) => (
-                <tr
-                  key={member.addr}
-                  className="border-b border-[#FFFFFF0D] hover:bg-[#3a3d45] transition-colors"
-                >
-                  <td className="p-4 text-white text-sm">{index + 1}</td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-white text-sm font-mono">
-                        {member.addr}
-                      </span>
-                      {/* <button
-                        onClick={() => handleCopyToClipboard(member.addr)}
-                        className="text-gray-400 hover:text-white transition-colors"
-                      >
-                        {copySuccess ? (
-                          <Check className="w-4 h-4" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button> */}
-                    </div>
-                  </td>
-                  <td className="p-4 text-white text-sm">
-                    {member.percentage}%
-                  </td>
+          <div className="max-h-96 scrollbar-hide overflow-y-auto">
+            <table className="w-full">
+              <thead className="bg-[#FFFFFF0D] sticky top-0">
+                <tr>
+                  <th className="text-left p-4 text-gray-300 text-sm font-medium">
+                    S/N
+                  </th>
+                  <th className="text-left p-4 text-gray-300 text-sm font-medium">
+                    Beneficiary Address
+                  </th>
+                  <th className="text-left p-4 text-gray-300 text-sm font-medium">
+                    Percentage
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Mobile Cards */}
-        <div className="lg:hidden space-y-3 p-4">
-          {groupMember?.map((member, index) => (
-            <div
-              key={member.addr}
-              className="bg-[#1a1d25] p-4 rounded-lg border border-gray-600"
-            >
-              <div className="flex justify-between items-start mb-3">
-                <span className="text-white font-semibold">#{index + 1}</span>
-              </div>
-
-              <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Address:</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white font-mono text-xs">
-                      {member.addr.slice(0, 12)}...{member.addr.slice(-8)}
-                    </span>
-                    <button
-                      onClick={() => handleCopyToClipboard(member.addr)}
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      {copySuccess ? (
-                        <Check className="w-3 h-3" />
-                      ) : (
-                        <Copy className="w-3 h-3" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Percentage:</span>
-                  <span className="text-white">{member.percentage}%</span>
-                </div>
-              </div>
-            </div>
-          ))}
+              </thead>
+              <tbody>
+                {groupMember?.map((member, index) => (
+                  <tr
+                    key={member.addr}
+                    className="border-b border-[#FFFFFF0D] hover:bg-[#3a3d45] transition-colors"
+                  >
+                    <td className="p-4 text-white text-sm">{index + 1}</td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-white text-sm font-mono">
+                          {member.addr}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="p-4 text-white text-sm">
+                      {member.percentage}%
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
