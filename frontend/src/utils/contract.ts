@@ -96,7 +96,7 @@ export const useGetBalance = (userAddress: string) => {
   return balance;
 };
 
-const normalizeAddress = (address: string): string => {
+export const normalizeAddress = (address: string): string => {
   // Remove 0x prefix if present
   if (address.length === 66) {
     // console.log("man-2",address.slice(2))

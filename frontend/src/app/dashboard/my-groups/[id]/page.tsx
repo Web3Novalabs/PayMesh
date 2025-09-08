@@ -38,6 +38,7 @@ import WalletConnect from "@/app/components/WalletConnect";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import {
   myProvider,
+  normalizeAddress,
   ONE_STK,
   PAYMESH_ADDRESS,
   strkTokenAddress,
@@ -468,11 +469,13 @@ const GroupDetailsPage = () => {
               </h3>
               <div className="flex items-center space-x-1 gap-2">
                 <span className="text-[#E2E2E2] break-all text-sm">
-                  {currentGroup?.groupAddress}
+                  0x{normalizeAddress(currentGroup?.groupAddress)}
                 </span>
                 <button
                   onClick={() =>
-                    handleCopyToClipboard(currentGroup?.groupAddress)
+                    handleCopyToClipboard(
+                      "0x" + normalizeAddress(currentGroup?.groupAddress)
+                    )
                   }
                   className="text-gray-400 hover:text-white transition-colors cursor-pointer"
                 >
