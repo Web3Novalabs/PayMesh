@@ -14,7 +14,7 @@ impl Db {
             std::env::var("DATABASE_URL").map_err(|_| anyhow::anyhow!("DATABASE_URL not set"))?;
 
         let pool = PgPoolOptions::new()
-            .max_connections(5)
+            .max_connections(100)
             .acquire_timeout(Duration::from_secs(3))
             .connect(&db_connection_str)
             .await
