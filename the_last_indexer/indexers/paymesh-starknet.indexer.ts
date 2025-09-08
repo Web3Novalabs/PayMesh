@@ -71,8 +71,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         } 
         else if (eventKey === TRANSFER_SELECTOR) {
 
-          logger.info("Transfer Occurred")
-
           const { args } = decodeEvent({ strict: true, event, abi: strk_abi, eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer" });
 
           const safeArgs = JSON.stringify(args, (_, v) =>
