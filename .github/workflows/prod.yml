@@ -102,9 +102,7 @@ jobs:
           DNA_TOKEN=${{ secrets.DNA_TOKEN }}
           API_URL=${{ secrets.API_URL }}
           EOL
-
-          docker compose --env-file .env down
+          
+          docker compose --env-file .env stop
           docker compose --env-file .env pull
           docker compose --env-file .env up -d
-
-          # deploy the indexer also 

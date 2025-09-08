@@ -382,6 +382,18 @@ export const myAbi =[
       },
       {
         "type": "function",
+        "name": "upgrade_child",
+        "inputs": [
+          {
+            "name": "new_class_hash",
+            "type": "core::starknet::class_hash::ClassHash"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
         "name": "paymesh",
         "inputs": [
           {
@@ -980,8 +992,8 @@ export const myAbi =[
     "kind": "struct",
     "members": [
       {
-        "name": "group_id",
-        "type": "core::integer::u256",
+        "name": "group_address",
+        "type": "core::starknet::contract_address::ContractAddress",
         "kind": "key"
       },
       {

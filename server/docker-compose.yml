@@ -24,14 +24,14 @@ services:
       POSTGRES_DB: "${DATABASE_URL_DB}"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      
-  paymesh-indexer:
-    image: akshola00/paymesh-indexer:latest 
-    platform: linux/amd64
-    restart: always
+
+  indexer:
+    image: akshola00/paymesh-indexer:latest
     environment:
-      DNA_TOKEN: ${DNA_TOKEN}
-      API_URL: ${API_URL}
-    mem_limit: 2g
+      DNA_TOKEN: "${DNA_TOKEN}"
+      API_URL: "${API_URL}"
+    mem_limit: 2g  
+    depends_on:
+      - db   
 volumes:
   pgdata:

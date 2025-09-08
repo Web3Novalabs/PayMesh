@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CrowdFundDashboard from "./components/CrowdFundDashboard";
 import CreateCrowdFundForm from "./components/CreateCrowdFundForm";
 import FundingDetailsModal from "./components/FundingDetailsModal";
 import WalletConnect from "@/app/components/WalletConnect";
 import { useAccount } from "@starknet-react/core";
+import ComingSoon from "./components/ComingSoon";
 
 // Type definitions
 interface FundingData {
@@ -55,6 +56,11 @@ const CrowdFundPage = () => {
     null
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
+
+  useEffect(() => {
+    setIsComingSoonOpen(true);
+  }, []);
 
   const handleCreateNew = () => {
     setCurrentView("create");
@@ -120,7 +126,14 @@ const CrowdFundPage = () => {
 
   return (
     <div className="min-h-screen">
-      <div className="">
+      <ComingSoon
+        isOpen={isComingSoonOpen}
+        onClose={() => setIsComingSoonOpen(false)}
+        title="Feature Coming Soon"
+        description="This feature is in development..."
+      />
+
+      <div className=" hidden">
         {/* Header Section */}
         <div className="mb-8 border-b border-[#FFFFFF0D] pb-8">
           <h1 className="text-xl font-bold text-[#DFDFE0] mb-2">

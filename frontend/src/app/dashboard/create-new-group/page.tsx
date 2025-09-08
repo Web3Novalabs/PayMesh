@@ -92,6 +92,7 @@ const CreateNewGroup = () => {
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const [creationFee, setCreationFee] = useState<null | number>(null);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
   const [resultHash, setResultHash] = useState("");
   const [hasProcessedTransaction, setHasProcessedTransaction] = useState(false);
@@ -139,7 +140,6 @@ const CreateNewGroup = () => {
     setCreationFee(Number(fee) / ONE_STK);
   }, [usageFee]);
 
-
   // Reset success state when component unmounts or when navigating away
   useEffect(() => {
     return () => {
@@ -149,6 +149,16 @@ const CreateNewGroup = () => {
       setHasProcessedTransaction(false);
       setResultHash("");
     };
+  }, []);
+
+  // Handle page loading state
+  useEffect(() => {
+    // Simulate page initialization loading
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const removeMember = (index: number) => {
@@ -186,8 +196,6 @@ const CreateNewGroup = () => {
       const result = await strkContract.balanceOf(groupAddr);
 
       const balanceValue = result.balance;
-
-
 
       const balanceInStrk =
         parseFloat(balanceValue.toString()) / Math.pow(10, 18);

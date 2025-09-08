@@ -50,11 +50,13 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
     async transform({ block }) {
       const logger = useLogger();
       const { events: blockEvents, header } = block;
+      logger.info(`Received mainnet block ${header.blockNumber}`);
 
       for (const event of blockEvents) {
         const eventKey = event.keys[0];
         
         if (eventKey === GROUP_CREATED_SELECTOR) {
+          logger.info(`\n💡 Group created event`);
 
           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupCreated" });
           
@@ -62,13 +64,15 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
             typeof v === "bigint" ? v.toString() : v
           );
 
-          logger.info(`\n💡 Group created event`);
 
           const {group_address, _, creator, name, usage_count, members} = JSON.parse(safeArgs);
                     
           create_group(group_address, creator, name, usage_count, members);
         } 
         else if (eventKey === TRANSFER_SELECTOR) {
+
+          logger.info("Transfer Occurred")
+
           const { args } = decodeEvent({ strict: true, event, abi: strk_abi, eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer" });
 
           const safeArgs = JSON.stringify(args, (_, v) =>
@@ -80,6 +84,9 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           pay(args.to, args.from, tx_hash, String(args.value), event.address);
         }
         else if (eventKey === GROUP_PAID_SELECTOR) {
+          
+          logger.info("Group Paid Occurred")
+
           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupPaid" });
           
           const safeArgs = JSON.stringify(args, (_, v) =>
@@ -93,6 +100,21 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           let tx_hash = event.transactionHash;
 
           store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
+        }
+        else if (eventKey === SUBSCRIPTION_TOPPED_SELECTOR) {
+
+          logger.info(`\n💡 Group top up subsribed`);
+
+          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::SubscriptionTopped" });
+
+          const safeArgs = JSON.stringify(args, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v
+          );
+
+          const {group_address, usage_count} = JSON.parse(safeArgs);
+
+
+          subsciption_topped(group_address, Number(usage_count));
         }
       }
     },
@@ -137,6 +159,22 @@ const pay = (address: string, from_address: string, tx_hash: string, amount: str
     body: body
   }).catch((err) => {
     console.error(`Payment error for ${address}:`, err);
+  });
+};
+
+const subsciption_topped = (group_address: string, usage_count: number) => {
+  let body = JSON.stringify({
+      "group_address": group_address,
+      "usage_count": usage_count,
+    });
+  console.log(`subscription topped data ${body}`)
+
+  fetch(`${process.env.API_URL}/subscription_topped`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: body
+  }).catch((err) => {
+    console.error(`Subscription top up error for ${group_address}:`, err);
   });
 };
 

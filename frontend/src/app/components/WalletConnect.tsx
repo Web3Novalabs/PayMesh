@@ -8,8 +8,8 @@ import {
 } from "@starknet-react/core";
 import { sepolia, mainnet } from "@starknet-react/chains";
 import { useState } from "react";
-import bravoos from "../../../public/braavos_icon.jpeg.svg"
-import argent from "../../../public/Argent.svg"
+import bravoos from "../../../public/braavos_icon.jpeg.svg";
+import argent from "../../../public/Argent.svg";
 import Image from "next/image";
 export default function WalletConnect() {
   const { address, isConnected } = useAccount();
@@ -61,7 +61,7 @@ export default function WalletConnect() {
         </div>
 
         {/* Address Display */}
-        <div className="bg-gradient-to-r from-[#434672] to-[#755A5A] px-3 py-2 rounded-lg">
+        <div className="bg-gradient-to-r from-[#434672] to-[#755A5A] px-3 py-2 rounded-lg hidden sm:block">
           <span className="text-sm font-mono text-white">
             {formatAddress(address || "")}
           </span>
@@ -244,7 +244,7 @@ export default function WalletConnect() {
                           {connector.id === "braavos"
                             ? "Braavos"
                             : connector.id === "argentX"
-                            ? "Argent X"
+                            ? "Ready"
                             : connector.id}
                         </span>
                       </div>

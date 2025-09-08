@@ -318,6 +318,7 @@ pub mod AutoShare {
         ) {
             let mut group: Group = self.get_group(group_id);
             let caller = get_caller_address();
+            let group_address = group.group_address;
             let is_member = self.is_group_member(group_id, caller);
             let caller = is_member || caller == group.creator;
             assert(caller, 'Only creator or member');
@@ -335,7 +336,7 @@ pub mod AutoShare {
             self
                 .emit(
                     Event::SubscriptionTopped(
-                        SubscriptionTopped { group_id, usage_count: usage_count_remaining },
+                        SubscriptionTopped { group_address , usage_count: usage_count_remaining },
                     ),
                 )
         }

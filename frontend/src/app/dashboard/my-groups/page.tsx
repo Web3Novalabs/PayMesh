@@ -7,7 +7,7 @@ import {
   LucideUsers,
   Loader2,
 } from "lucide-react";
-import React, {useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Sofia_Sans } from "next/font/google";
 import { useAccount } from "@starknet-react/core";
 import Link from "next/link";
@@ -20,16 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import {
-  GroupData,
+  type GroupData,
   useAddressCreatedGroups,
   useGroupAddressHasSharesIn,
   useGroupMember,
 } from "@/hooks/useContractInteraction";
 import WalletConnect from "@/app/components/WalletConnect";
 import { compareAddresses } from "@/utils/contract";
-// import { SWIFTSWAP_ABI } from "@/abi/swiftswap_abi";
 
 // Separate component for individual group cards
 const GroupCard = ({
@@ -88,12 +86,13 @@ const sofiaSans = Sofia_Sans({
 });
 
 const MyGroupsPage = () => {
-  const { account, address } = useAccount();
+  const { address } = useAccount();
   const [filter, setFilter] = useState("all");
   const { transaction } = useGroupAddressHasSharesIn(address || "");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
-
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { transaction: createdGroup } = useAddressCreatedGroups();
 
@@ -101,6 +100,12 @@ const MyGroupsPage = () => {
   const [myGroup, setMyGroup] = useState<GroupData[]>([]);
 
   useEffect(() => {
+    // Show loading while data is being fetched
+    if (!transaction && !createdGroup) {
+      setIsLoading(true);
+      return;
+    }
+
     const combinedData = [...(transaction || []), ...(createdGroup || [])];
 
     // Remove duplicates based on id, keeping the first occurrence
@@ -111,16 +116,28 @@ const MyGroupsPage = () => {
     );
 
     setMyGroup(uniqueData);
+    setIsLoading(false);
   }, [transaction, createdGroup]);
 
   // Apply filtering to the combined data
   // Filter groups based on member and creator
-  const filteredGroups = myGroup?.filter((group) => {
+  let filteredGroups = myGroup?.filter((group) => {
     if (filter === "all") return true;
     if (filter === "creator") return group.creator === address;
     if (filter === "member") return group.creator !== address;
     return true;
   });
+
+  if (searchQuery.trim()) {
+    filteredGroups = filteredGroups.filter((group) =>
+      group.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
 
   // Calculate pagination
   const totalPages = Math.ceil((filteredGroups?.length || 0) / itemsPerPage);
@@ -129,6 +146,8 @@ const MyGroupsPage = () => {
 
   // Check if wallet is connected
   const isWalletConnected = !!address;
+
+  // Show loading component while data is being fetched
 
   // Show wallet connection message if not connected
   if (!isWalletConnected) {
@@ -157,6 +176,19 @@ const MyGroupsPage = () => {
             Please connect your wallet to view your groups
           </p>
           <WalletConnect />
+        </div>
+      </div>
+    );
+  }
+  if (isLoading) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#434672] border-t-[#755A5A] rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-bold text-[#E2E2E2] mb-2">
+            Loading Groups
+          </h2>
+          <p className="text-[#8398AD]">Fetching your groups...</p>
         </div>
       </div>
     );
@@ -209,6 +241,8 @@ const MyGroupsPage = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
             placeholder="Search group by name.."
             className=" bg-none border rounded-sm border-gray-600 pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-800 focus:border-transparent"
           />
@@ -233,7 +267,7 @@ const MyGroupsPage = () => {
           </div>
         </div>
 
-        <div className="bg-[#2A2D35] rounded-sm px-6 flex items-center gap-4">
+        <div className="bg-[#2A2D35] rounded-sm px-6 flex items-center gap-4 py-3">
           <Plus className="w-6 h-6 text-white" />
           <div>
             {!transaction ? (
@@ -255,65 +289,95 @@ const MyGroupsPage = () => {
         </div>
       </div>
 
-      <div
-        className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-12 gap-6 ${sofiaSans.className}`}
-      >
-        {[...(filteredGroups || [])]
-          // .reverse()
-          .sort((a, b) => {
-            return parseInt(b.id) - parseInt(a.id);
-          })
-          .slice(startIndex, endIndex)
-          ?.map((group) => (
-            <GroupCard key={group.id} group={group} address={address || ""} />
-          ))}
-      </div>
-
-      {/* Pagination */}
-      <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-16">
-        <div className="text-sm text-[#E2E2E2]">
-          Showing {startIndex + 1} to{" "}
-          {Math.min(endIndex, filteredGroups?.length || 0)} of{" "}
-          {filteredGroups?.length || 0} results
+      {filteredGroups?.length === 0 && searchQuery.trim() ? (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-[#2A2D35] rounded-full flex items-center justify-center mx-auto mb-4">
+            <Search className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">
+            Group not found
+          </h3>
+          <p className="text-gray-300">
+            No groups found matching &rdquo;{searchQuery}&rdquo;. Try a
+            different search term.
+          </p>
         </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-            disabled={currentPage === 1}
-            className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-          >
-            ← Previous
-          </button>
-
-          {/* Page Numbers */}
-          <div className="flex items-center gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-3 py-2 text-sm font-medium rounded-md ${
-                  currentPage === page
-                    ? "bg-gradient-to-r from-[#434672] to-[#755a5a] text-white"
-                    : "text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] hover:bg-[#282e38]"
-                }`}
-              >
-                {page}
-              </button>
+      ) : filteredGroups?.length === 0 && !searchQuery.trim() ? (
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-[#2A2D35] rounded-full flex items-center justify-center mx-auto mb-4">
+            <Users className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-xl font-semibold text-white mb-2">
+            No groups yet
+          </h3>
+          <p className="text-gray-300">
+            You haven&ldquo;t joined or created any groups yet.
+          </p>
+        </div>
+      ) : (
+        <div
+          className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 mb-12 gap-6 ${sofiaSans.className}`}
+        >
+          {[...(filteredGroups || [])]
+            // .reverse()
+            .sort((a, b) => {
+              return Number.parseInt(b.id) - Number.parseInt(a.id);
+            })
+            .slice(startIndex, endIndex)
+            ?.map((group) => (
+              <GroupCard key={group.id} group={group} address={address || ""} />
             ))}
+        </div>
+      )}
+
+      {filteredGroups?.length > 0 && (
+        <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-16">
+          <div className="text-sm text-[#E2E2E2]">
+            Showing {startIndex + 1} to{" "}
+            {Math.min(endIndex, filteredGroups?.length || 0)} of{" "}
+            {filteredGroups?.length || 0} results
           </div>
 
-          <button
-            onClick={() =>
-              setCurrentPage(Math.min(totalPages, currentPage + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-          >
-            Next →
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
+              ← Previous
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md ${
+                      currentPage === page
+                        ? "bg-gradient-to-r from-[#434672] to-[#755a5a] text-white"
+                        : "text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] hover:bg-[#282e38]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+            </div>
+
+            <button
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
