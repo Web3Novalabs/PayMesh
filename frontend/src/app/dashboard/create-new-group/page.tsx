@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 //   SelectValue,
 // } from "@/components/ui/select";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import {
   useAccount,
   // useBalance,
@@ -23,7 +24,12 @@ import {
   Contract,
   PaymasterDetails,
 } from "starknet";
-import { myProvider, ONE_STK, PAYMESH_ADDRESS, strkTokenAddress } from "@/utils/contract";
+import {
+  myProvider,
+  ONE_STK,
+  PAYMESH_ADDRESS,
+  strkTokenAddress,
+} from "@/utils/contract";
 import React from "react";
 import group1icon from "../../../../public/PlusCircle.svg";
 import Image from "next/image";
@@ -31,11 +37,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import group4icon from "../../../../public/UsersFour.svg";
 import QRcode from "../components/QRcode";
 import Loading from "../components/Loading";
-import { SWIFTPAY_CONTRACT_ADDRESS } from "@/constants/abi";
-import { Trash, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { useContractFetch } from "@/hooks/useContractInteraction";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import WalletConnect from "@/app/components/WalletConnect";
+import { useGetBalance } from "@/utils/contract";
 
 interface GroupMember {
   addr: string;
@@ -44,7 +50,7 @@ interface GroupMember {
 
 interface CreateGroupFormData {
   name: string;
-  usage: string | null;
+  usage: string;
   tokenAddress: string;
   members: GroupMember[];
 }
@@ -56,7 +62,7 @@ const CreateNewGroup = () => {
 
   const [formData, setFormData] = useState<CreateGroupFormData>({
     name: "",
-    usage: null,
+    usage: "",
     tokenAddress:
       "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
     members: [
@@ -86,17 +92,18 @@ const CreateNewGroup = () => {
   const [isLoadingBalance, setIsLoadingBalance] = useState(false);
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const [creationFee, setCreationFee] = useState<null | number>(null);
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
   const [resultHash, setResultHash] = useState("");
   const [hasProcessedTransaction, setHasProcessedTransaction] = useState(false);
   const { address } = useAccount();
+  const balance = useGetBalance(address || "0x0");
 
   const { data, error } = useTransactionReceipt({
     hash: resultHash,
   });
 
   useEffect(() => {
-    console.log(data, error);
     let m;
     if (!data || hasProcessedTransaction) return;
     if (
@@ -112,12 +119,12 @@ const CreateNewGroup = () => {
       setGroupAddress(m);
       setIsSuccess(true);
       setHasProcessedTransaction(true);
+      toast.success("Group created successfully! 🎉");
       // Fetch balance when group address is set
       fetchGroupBalance(m);
     } else {
       m = undefined;
     }
-    console.log(m);
   }, [data, error, hasProcessedTransaction]);
 
   const { readData: usageFee } = useContractFetch(
@@ -126,16 +133,13 @@ const CreateNewGroup = () => {
     [""]
   );
 
-
   useEffect(() => {
-    if (!usageFee) return
+    if (!usageFee) return;
 
-      const fee = BigInt(usageFee);
-      console.log(fee)
-      setCreationFee(Number(fee) / ONE_STK);
+    const fee = BigInt(usageFee);
+    setCreationFee(Number(fee) / ONE_STK);
   }, [usageFee]);
 
-  console.log(creationFee,"feeeee")
   // Reset success state when component unmounts or when navigating away
   useEffect(() => {
     return () => {
@@ -145,6 +149,16 @@ const CreateNewGroup = () => {
       setHasProcessedTransaction(false);
       setResultHash("");
     };
+  }, []);
+
+  // Handle page loading state
+  useEffect(() => {
+    // Simulate page initialization loading
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 1000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const removeMember = (index: number) => {
@@ -180,10 +194,8 @@ const CreateNewGroup = () => {
 
       // Call balanceOf function
       const result = await strkContract.balanceOf(groupAddr);
-      console.log("result in full_______", result);
-      const balanceValue = result.balance;
 
-      console.log("balanceValue______", balanceValue);
+      const balanceValue = result.balance;
 
       const balanceInStrk =
         parseFloat(balanceValue.toString()) / Math.pow(10, 18);
@@ -196,27 +208,58 @@ const CreateNewGroup = () => {
     }
   };
 
+  // Check for duplicate addresses
+  const checkDuplicateAddresses = () => {
+    const addresses = formData.members
+      .map((member) => member.addr.trim().toLowerCase())
+      .filter((addr) => addr !== ""); // Only check non-empty addresses
+
+    const uniqueAddresses = new Set(addresses);
+
+    if (addresses.length !== uniqueAddresses.size) {
+      return true; // Has duplicates
+    }
+    return false; // No duplicates
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check for duplicate addresses
+    if (checkDuplicateAddresses()) {
+      toast.error(
+        "Duplicate addresses detected! Please ensure each member has a unique address."
+      );
+      return;
+    }
+
     // Basic validation
     if (!formData.name.trim()) {
-      console.error("Group name is required");
+      toast.error("Group name is required");
       return;
     }
 
     if (totalPercentage !== 100) {
-      console.error("Total percentage must be exactly 100%");
+      toast.error("Total percentage must be exactly 100%");
       return;
     }
 
     if (!account) {
-      console.error("No account connected");
+      toast.error("No account connected");
       return;
     }
 
     if (!isCheckboxChecked) {
-      console.error("Please accept the terms by checking the checkbox");
+      toast.error("Please accept the terms by checking the checkbox");
+      return;
+    }
+
+    if (!formData.usage) {
+      toast.error("Please select a usage");
+      return;
+    }
+    if (balance?.formatted && Number(balance.formatted) < +formData.usage) {
+      toast.error(`Insufficient balance, Top Up!`);
       return;
     }
 
@@ -246,7 +289,7 @@ const CreateNewGroup = () => {
           ],
         };
 
-        const multicallData = [approveCall ,swiftpayCall];
+        const multicallData = [approveCall, swiftpayCall];
         // const result = await account.execute(multicallData)
 
         const feeDetails: PaymasterDetails = {
@@ -278,7 +321,7 @@ const CreateNewGroup = () => {
       // Reset form
       setFormData({
         name: "",
-        usage: null,
+        usage: "",
         tokenAddress: "",
         members: [
           { addr: "", percentage: 0 },
@@ -288,6 +331,7 @@ const CreateNewGroup = () => {
       setIsCheckboxChecked(false);
     } catch (error) {
       console.error("Error creating group:", error);
+      toast.error("Failed to create group. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -368,7 +412,7 @@ const CreateNewGroup = () => {
     setResultHash("");
     setFormData({
       name: "",
-      usage: null,
+      usage: "",
       tokenAddress:
         "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
       members: [
@@ -396,8 +440,9 @@ const CreateNewGroup = () => {
     setHasProcessedTransaction(false);
     setResultHash("");
   };
-  const fee = creationFee ? Number(creationFee * Number(formData.usage)).toFixed(2) : ""
-  console.log(fee, "rr");
+  const fee = creationFee
+    ? Number(creationFee * Number(formData.usage)).toFixed(2)
+    : "";
   const isWalletConnected = !!address;
 
   if (!isWalletConnected) {
@@ -671,7 +716,6 @@ const CreateNewGroup = () => {
             value={formData?.usage ? formData.usage : ""}
             placeholder="Enter number of usage"
             min={1}
-
             onChange={(e) =>
               setFormData((prev) => ({ ...prev, usage: e.target.value }))
             }
@@ -706,9 +750,7 @@ const CreateNewGroup = () => {
               </h3>
               <p className="text-[#E2E2E2] text-base sm:text-lg font-bold">
                 STRK
-             
                 {Number(Number(formData.usage)).toFixed(2)}
-               
               </p>
             </div>
           </div>
@@ -798,11 +840,11 @@ const CreateNewGroup = () => {
         {/* Create Group Button */}
         <button
           onClick={handleSubmit}
-          disabled={
-            totalPercentage !== 100 || isSubmitting || !isCheckboxChecked || !formData.usage
-          }
           className={`w-full sm:w-fit  bg-[#FFFFFF0D] border border-[#FFFFFF0D] text-[#E2E2E2] py-3 sm:py-4 px-6 sm:px-12 rounded-sm flex items-center justify-center gap-2 sm:gap-3 transition-colors ${
-            totalPercentage !== 100 || isSubmitting || !isCheckboxChecked
+            totalPercentage !== 100 ||
+            isSubmitting ||
+            !isCheckboxChecked ||
+            !formData.usage
               ? "opacity-50 cursor-not-allowed"
               : "hover:bg-[#282e38] cursor-pointer"
           }`}

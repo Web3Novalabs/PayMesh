@@ -8,205 +8,116 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {  useGetAllGroups, } from "@/hooks/useContractInteraction";
-import WalletConnect from "@/app/components/WalletConnect";
+import { useGetAllGroups } from "@/hooks/useContractInteraction";
+// import WalletConnect from "@/app/components/WalletConnect";
 import { useAccount } from "@starknet-react/core";
-
-// Sample transaction data
-const transactionData = [
-  {
-    id: 1,
-    groupAddress: "0x6B8e6d5B3A4F3E9bF7dC4D6aB2bF4D6B3A4D7cF3",
-    amount: "$120",
-    date: "27th-Aug-2025",
-    status: "Paid",
-  },
-  {
-    id: 2,
-    groupAddress: "0x7E8f6D6F4C5E4D7B3A8C7E5B8A9D8C6F6A5D4A1",
-    amount: "$250",
-    date: "15th-Sep-2025",
-    status: "In progress",
-  },
-  {
-    id: 3,
-    groupAddress: "0x4C6B8D5E2F3A6D7B8C8D9E5A1B2F9C4E3A5D7B8",
-    amount: "$90",
-    date: "2nd-Oct-2025",
-    status: "Paid",
-  },
-  {
-    id: 4,
-    groupAddress: "0x9D2E7F8A1B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7",
-    amount: "$300",
-    date: "12th-Nov-2025",
-    status: "In progress",
-  },
-  {
-    id: 5,
-    groupAddress: "0x1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0",
-    amount: "$450",
-    date: "31st-Jan-2026",
-    status: "Paid",
-  },
-  {
-    id: 6,
-    groupAddress: "0x2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1",
-    amount: "$220",
-    date: "5th-Mar-2026",
-    status: "In progress",
-  },
-  {
-    id: 7,
-    groupAddress: "0x3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2",
-    amount: "$75",
-    date: "21st-Apr-2026",
-    status: "Paid",
-  },
-  {
-    id: 8,
-    groupAddress: "0x4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3",
-    amount: "$600",
-    date: "10th-Jun-2026",
-    status: "In progress",
-  },
-  {
-    id: 9,
-    groupAddress: "0x5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4",
-    amount: "$150",
-    date: "15th-Jul-2026",
-    status: "In progress",
-  },
-  {
-    id: 10,
-    groupAddress: "0x6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4F5",
-    amount: "$380",
-    date: "28th-Aug-2026",
-    status: "Paid",
-  },
-  {
-    id: 11,
-    groupAddress: "0x6B8e6d5B3A4F3E9bF7dC4D6aB2bF4D6B3A4D7cF3",
-    amount: "$120",
-    date: "27th-Aug-2025",
-    status: "Paid",
-  },
-  {
-    id: 12,
-    groupAddress: "0x7E8f6D6F4C5E4D7B3A8C7E5B8A9D8C6F6A5D4A1",
-    amount: "$250",
-    date: "15th-Sep-2025",
-    status: "In progress",
-  },
-  {
-    id: 13,
-    groupAddress: "0x4C6B8D5E2F3A6D7B8C8D9E5A1B2F9C4E3A5D7B8",
-    amount: "$90",
-    date: "2nd-Oct-2025",
-    status: "Paid",
-  },
-  {
-    id: 14,
-    groupAddress: "0x9D2E7F8A1B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7",
-    amount: "$300",
-    date: "12th-Nov-2025",
-    status: "In progress",
-  },
-  {
-    id: 15,
-    groupAddress: "0x1A2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0",
-    amount: "$450",
-    date: "31st-Jan-2026",
-    status: "Paid",
-  },
-  {
-    id: 16,
-    groupAddress: "0x2B3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1",
-    amount: "$220",
-    date: "5th-Mar-2026",
-    status: "In progress",
-  },
-  {
-    id: 17,
-    groupAddress: "0x3C4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2",
-    amount: "$75",
-    date: "21st-Apr-2026",
-    status: "Paid",
-  },
-  {
-    id: 18,
-    groupAddress: "0x4D5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3",
-    amount: "$600",
-    date: "10th-Jun-2026",
-    status: "In progress",
-  },
-  {
-    id: 19,
-    groupAddress: "0x5E6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4",
-    amount: "$150",
-    date: "15th-Jul-2026",
-    status: "In progress",
-  },
-  {
-    id: 20,
-    groupAddress: "0x6F7A8B9C0D1E2F3A4B5C6D7E8F9A0B1C2D3E4F5",
-    amount: "$380",
-    date: "28th-Aug-2026",
-    status: "Paid",
-  },
-];
+// import { getTimeFromEpoch } from "@/utils/contract";
+// import { truncateAddress } from "@/lib/utils";
+import { GroupTransactionData } from "@/types/group";
+import { truncateAddress } from "@/lib/utils";
 
 const TransactionsPage = () => {
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState("strk");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [transaction, setTransaction] = useState<GroupTransactionData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Filter transactions based on selected filter
-  const filteredTransactions = transactionData.filter((transaction) => {
-    if (filter === "all") return true;
-    if (filter === "cleared") return transaction.status === "Paid";
-    if (filter === "pending") return transaction.status === "In progress";
-    return true;
-  });
+  async function getTransaction() {
+    try {
+      setIsLoading(true);
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/all_groups`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch transaction");
+      }
+      const data = await response.json();
+      setTransaction(data);
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-  const transaction = useGetAllGroups();
-console.log(transaction)
+  // Helper function to format token amounts
+  const formatTokenAmount = (amount: string, decimals: number = 18): string => {
+    if (!amount || amount === "0") return "0.00";
+    const numAmount = parseFloat(amount);
+    if (numAmount === 0) return "0.00";
+
+    // Convert from wei to token units
+    const formattedAmount = numAmount / Math.pow(10, decimals);
+    return formattedAmount.toFixed(2);
+  };
+
+  // Helper function to get token amount based on filter
+  const getTokenAmount = (transaction: GroupTransactionData): string => {
+    switch (filter) {
+      case "strk":
+        return formatTokenAmount(transaction.share_strk, 18);
+      case "usdc":
+        return formatTokenAmount(transaction.share_usdc, 6);
+      case "usdt":
+        return formatTokenAmount(transaction.share_usdt, 6);
+      case "eth":
+        return formatTokenAmount(transaction.share_eth, 18);
+      default:
+        return "0";
+    }
+  };
+
+  // Helper function to decode group name from hex
+  const decodeGroupName = (hexName: string): string => {
+    try {
+      // Remove 0x prefix and convert hex to string
+      const cleanHex = hexName.replace("0x", "");
+      let result = "";
+      for (let i = 0; i < cleanHex.length; i += 2) {
+        const hex = cleanHex.substr(i, 2);
+        const charCode = parseInt(hex, 16);
+        if (charCode > 0) {
+          result += String.fromCharCode(charCode);
+        }
+      }
+      return result || "Unnamed Group";
+    } catch (error) {
+      return "Unnamed Group";
+    }
+  };
+
+  // Helper function to format date
+  const formatDate = (dateString: string): { date: string; time: string } => {
+    try {
+      const date = new Date(dateString);
+      const dateStr = date.toLocaleDateString();
+      const timeStr = date.toLocaleTimeString();
+      return { date: dateStr, time: timeStr };
+    } catch (error) {
+      return { date: "Invalid Date", time: "" };
+    }
+  };
+
+  useEffect(() => {
+    getTransaction();
+  }, []);
 
   // Calculate pagination
-  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const totalPages = Math.ceil((transaction?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentTransactions = filteredTransactions.slice(startIndex, endIndex);
 
-  const { address } = useAccount();
-  const isWalletConnected = !!address;
-
-  if (!isWalletConnected) {
+  // Show loading component while data is being fetched
+  if (isLoading) {
     return (
-      <div className="min-h-[50vh] text-white p-6 flex items-center justify-center">
+      <div className="min-h-[50vh] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-[#434672] to-[#755a5a] rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Wallet Not Connected
+          <div className="w-16 h-16 border-4 border-[#434672] border-t-[#755A5A] rounded-full animate-spin mx-auto mb-4"></div>
+          <h2 className="text-xl font-bold text-[#E2E2E2] mb-2">
+            Loading Transactions
           </h2>
-          <p className="text-gray-300 mb-4">
-            Please connect your wallet to view your groups
-          </p>
-          <WalletConnect />
+          <p className="text-[#8398AD]">Fetching your transaction history...</p>
         </div>
       </div>
     );
@@ -224,7 +135,7 @@ console.log(transaction)
           {/* Filter Section */}
           <div className="flex flex-col items-start gap-4">
             <p className="text-[#8398AD] text-base">
-              Filter between all, cleared and pending
+              Filter between tokens recieved
             </p>
 
             <Select value={filter} onValueChange={setFilter}>
@@ -232,60 +143,103 @@ console.log(transaction)
                 <SelectValue placeholder="Select filter" />
               </SelectTrigger>
               <SelectContent className="bg-[#1F2937] border border-[#FFFFFF0D] w-full text-[#8398AD]">
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="cleared">Cleared</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="strk">STRK</SelectItem>
+                <SelectItem value="usdc">USDC</SelectItem>
+                <SelectItem value="eth">ETH</SelectItem>
+                <SelectItem value="usdt">USDT</SelectItem>
               </SelectContent>
             </Select>
           </div>
         </div>
 
         {/* Transaction Table */}
-        <div className=" rounded-sm shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <div className=" rounded-sm shadow-sm overflow-hidden scrollbar-hide">
+          <div className="overflow-x-auto scrollbar-hide">
+            <table className="w-full mb-10">
               <thead className="bg-[#FFFFFF0D] border-b border-[#FFFFFF0D]">
                 <tr>
                   <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
                     S/N
                   </th>
-                  <th className="px-6 py-6   text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
+                  <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
+                    Group Name
+                  </th>
+                  <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
                     Group Address
                   </th>
                   <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
-                    Amount Recieved
+                    Amount ({filter.toUpperCase()})
                   </th>
                   <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
-                    Date
+                    Members
                   </th>
-                  {/* <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
-                    Status
-                  </th>*/}
+                  <th className="px-6 py-6 text-left text-xs font-medium text-[#8398AD] uppercase tracking-wider">
+                    Date/Time
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-[#FFFFFF0D] divide-y divide-[#FFFFFF0D]">
                 {transaction &&
-                  transaction.map((transaction, index) => (
-                    <tr key={transaction.id} className="hover:bg-[#282e38]">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#E2E2E2]">
-                        {startIndex + index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#E2E2E2] font-mono">
-                        {transaction.groupAddress}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#E2E2E2]">
-                        {transaction.amount ? `STK ${transaction.amount.toFixed(2)}` : "-"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-[#E2E2E2]">
-                        {transaction.date}
-                      </td>
-                      {/* <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="px-6 py-4 whitespace-nowrap text-sm text-[#E2E2E2]">
-                        {transaction.usage_limit_reached}
-                      </span>
-                    </td> */}
-                    </tr>
-                  ))}
+                  [...transaction]
+                    .slice(startIndex, endIndex)
+                    .map((transactionItem, index) => {
+                      const tokenAmount = getTokenAmount(transactionItem);
+                      const groupName = decodeGroupName(
+                        transactionItem.group_data.group_name
+                      );
+                      const { date, time } = formatDate(
+                        transactionItem.group_data.created_at
+                      );
+
+                      return (
+                        <tr
+                          key={transactionItem?.group_data?.group_address}
+                          className="hover:bg-[#282e38]"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-[#E2E2E2]">
+                            {startIndex + index + 1}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[#E2E2E2]">
+                            <div
+                              className="truncate max-w-[150px]"
+                              title={groupName}
+                            >
+                              {groupName}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[#E2E2E2] font-mono">
+                            <div
+                              className="truncate max-w-[200px]"
+                              title={transactionItem.group_data.group_address}
+                            >
+                              {truncateAddress(
+                                transactionItem.group_data.group_address
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-[#E2E2E2]">
+                            {tokenAmount !== "0"
+                              ? `${tokenAmount} ${filter.toUpperCase()}`
+                              : "0"}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-[#E2E2E2]">
+                            {transactionItem.group_data.members.length}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm">
+                            <div className="flex flex-col">
+                              <span className="text-[#E2E2E2] font-medium">
+                                {date}
+                              </span>
+                              {time && (
+                                <span className="text-[#8398AD] text-xs">
+                                  {time}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
               </tbody>
             </table>
           </div>
@@ -295,8 +249,8 @@ console.log(transaction)
         <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-16">
           <div className="text-sm text-[#E2E2E2]">
             Showing {startIndex + 1} to{" "}
-            {Math.min(endIndex, filteredTransactions.length)} of{" "}
-            {filteredTransactions.length} results
+            {Math.min(endIndex, transaction?.length || 0)} of{" "}
+            {transaction?.length || 0} results
           </div>
 
           <div className="flex items-center gap-2">

@@ -55,6 +55,13 @@ jobs:
           *.cache-from=type=gha
           *.cache-to=type=gha,mode=max
 
+    - name: Build and push indexer
+      uses: docker/build-push-action@v4
+      with:
+        context: ./the_last_indexer
+        push: true
+        tags: akshola00/paymesh-indexer:latest
+        
   deploy:
     needs: build
     runs-on: ubuntu-latest
@@ -88,20 +95,14 @@ jobs:
           PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
           PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
           CONTRACT_ADDRESS=${{ secrets.CONTRACT_ADDRESS }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DATABASE_URL_USER=${{ secrets.DATABASE_URL_USER }}
+          DATABASE_URL_PASSWORD=${{ secrets.DATABASE_URL_PASSWORD }}
+          DATABASE_URL_DB=${{ secrets.DATABASE_URL_DB }}
+          DNA_TOKEN=${{ secrets.DNA_TOKEN }}
+          API_URL=${{ secrets.API_URL }}
           EOL
-
-          docker compose --env-file .env down
+          
+          docker compose --env-file .env stop
           docker compose --env-file .env pull
           docker compose --env-file .env up -d
-
-    - name: Deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ vars.DROPLET_IP }}
-        username: root
-        password: ${{ secrets.DROPLET_PASSWORD }}
-        script: |
-          cd ~
-          docker compose down
-          docker compose pull
-          docker compose up -d

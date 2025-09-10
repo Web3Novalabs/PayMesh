@@ -8,9 +8,10 @@ import argent from "../../../public/Argent.svg";
 import flow1 from "../../../public/Group (1).svg";
 import flow2 from "../../../public/Group (2).svg";
 import flow3 from "../../../public/Group 3.svg";
-import paymesh_landing_bg from "../../../public/bg_Landing.png";
-import Link from "next/link";
+// import paymesh_landing_bg from "../../../public/bg_Landing.png";
+import paymesh_landing_bg_svg from "../../../public/Stars.svg";
 import NavBarLandingPage from "../components/NavBarLandingPage";
+import Link from "next/link";
 
 const PaymeshFlow = [
   {
@@ -36,7 +37,7 @@ const LandingPage = () => {
       <div
         className="bg-cover bg-center bg-no-repeat w-full h-full absolute top-0 left-0 -z-10"
         style={{
-          backgroundImage: `url(${paymesh_landing_bg.src})`,
+          backgroundImage: `url(${paymesh_landing_bg_svg.src})`,
         }}
       />
 
@@ -65,15 +66,12 @@ const LandingPage = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mt-8 sm:mt-10">
-          <div className="border-gradient !rounded-sm hover:scale-102 transition-all cursor-pointer">
-            <Image src={bravos} alt="bravos" width={28} height={28} />
-            <p>Connect Braavos</p>
-          </div>
-
-          <div className="border-gradient hover:scale-102 transition-all cursor-pointer">
-            <Image src={argent} alt="argent" width={28} height={28} />
-            <p>Connect ArgentX</p>
-          </div>
+          <Link
+            href="/dashboard/create-new-group"
+            className="border-gradient !px-6 md:!px-16 !rounded-sm hover:scale-102 transition-all cursor-pointer"
+          >
+            <p>Launch App</p>
+          </Link>
         </div>
       </div>
 
