@@ -31,4 +31,8 @@ pub trait ICrowdFund<TContractState> {
     fn set_platform_percentage(ref self: TContractState, value: u256);
     // get the platform percentage
     fn get_platform_percentage(self: @TContractState) -> u256;
+    fn set_supported_token(ref self: TContractState, new_token_address: ContractAddress);
+    fn get_supported_token(self: @TContractState) -> Array<ContractAddress>;
+
+    fn upgrade_child(ref self: TContractState, new_class_hash: ClassHash);
 }

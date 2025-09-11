@@ -65,6 +65,8 @@ pub mod CrowdFund {
         pool_count: u256,
         pool_usage_fee: u256,
         is_pool_paid: Map<u256, bool>, // checker for when a pool is resolve / paid
+        supported_tokens: Map<u256, ContractAddress>, // id -> token address
+        token_count: u256,
         //pool_update_fee: u256,
         #[substorage(v0)]
         upgradeable: UpgradeableComponent::Storage,
@@ -190,9 +192,14 @@ pub mod CrowdFund {
             self.pool_created_by_address.entry(caller).push(id);
             self.beneficiary_in_pool_by_address.entry(beneficiary).push(id);
 
+            let len = self.token_count.read();
             let child_contract = ICrowdFundChildDispatcher {
                 contract_address: contract_address_for_pool,
             };
+            for i in 1..=len {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                child_contract.set_supported_token(token_address);
+            }
             child_contract.set_and_approve_main_contract(get_contract_address());
             pool.pool_address = contract_address_for_pool;
             self.pools.write(id, pool.clone());
@@ -207,6 +214,7 @@ pub mod CrowdFund {
                             pool_id: id,
                             creator: get_caller_address(),
                             pool_name: name.clone(),
+                            target_amount: target_amount,
                         },
                     ),
                 );
@@ -270,14 +278,6 @@ pub mod CrowdFund {
             self.pool_donors_count.write(pool_id, donor_num);
         }
 
-        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
-            self.accesscontrol.assert_only_role(ADMIN_ROLE);
-
-            assert(new_class_hash.is_non_zero(), 'Class hash cannot be zero');
-
-            starknet::syscalls::replace_class_syscall(new_class_hash).unwrap();
-        }
-
         fn is_pool_completed(self: @ContractState, pool_id: u256) -> bool {
             self.is_pool_paid.read(pool_id)
         }
@@ -292,7 +292,39 @@ pub mod CrowdFund {
         fn get_platform_percentage(self: @ContractState) -> u256 {
             self.platform_percentage.read()
         }
+        fn set_supported_token(ref self: ContractState, new_token_address: ContractAddress) {
+            let caller = get_caller_address();
+            let caller = self.accesscontrol.has_role(ADMIN_ROLE, caller);
+            assert(caller, 'Unauthorize caller');
+            let len = self.token_count.read();
+            if len > 0 {
+                for i in 1..=len {
+                    let token_address: ContractAddress = self.supported_tokens.read(i);
+                    let token_check = new_token_address == token_address;
+                    assert(!token_check, 'token added already')
+                }
+            }
 
+            let id = self.token_count.read() + 1;
+            self.token_count.write(id);
+            self.supported_tokens.write(id, new_token_address);
+            let len = self.donors_count.read();
+            for i in 1..=len {
+                let pool_address = self.pool_addresses.read(i);
+                let child_contract = ICrowdFundChildDispatcher { contract_address: pool_address };
+                child_contract.set_supported_token(new_token_address);
+            }
+        }
+
+        fn get_supported_token(self: @ContractState) -> Array<ContractAddress> {
+            let mut token: Array<ContractAddress> = ArrayTrait::new();
+            let len = self.token_count.read();
+            for i in 1..=len {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                token.append(token_address);
+            }
+            token
+        }
         fn paymesh(ref self: ContractState, pool_address: ContractAddress) {
             let pool_id: u256 = self.pool_addresses_map.read(pool_address);
             assert(pool_id != 0, 'pool id is 0');
@@ -337,6 +369,16 @@ pub mod CrowdFund {
                         },
                     ),
                 );
+        }
+        fn upgrade_child(ref self: ContractState, new_class_hash: ClassHash) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+
+            assert(new_class_hash.is_non_zero(), 'Class hash cannot be zero');
+            self.child_contract_class_hash.write(new_class_hash)
+        }
+        fn upgrade(ref self: ContractState, new_class_hash: ClassHash) {
+            self.accesscontrol.assert_only_role(ADMIN_ROLE);
+            self.upgradeable.upgrade(new_class_hash);
         }
     }
 

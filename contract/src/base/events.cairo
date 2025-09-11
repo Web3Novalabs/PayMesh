@@ -20,6 +20,7 @@ pub struct PoolCreated {
     pub pool_id: u256,
     pub creator: ContractAddress,
     pub pool_name: ByteArray,
+    pub target_amount: u256,
 }
 
 
