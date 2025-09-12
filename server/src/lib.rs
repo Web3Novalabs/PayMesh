@@ -1,4 +1,5 @@
 pub mod libs {
+    pub mod cache;
     pub mod config;
     pub mod db;
     pub mod error;
@@ -20,10 +21,11 @@ pub mod util {
     pub mod util_types;
 }
 
+use crate::libs::cache::Cache;
 use axum::{
     Router,
     http::{
-        HeaderName, HeaderValue, Method, StatusCode,
+        HeaderName, Method, StatusCode,
         header::{AUTHORIZATION, CONTENT_TYPE},
     },
     routing::{get, post},
@@ -34,6 +36,7 @@ use tower_http::cors::CorsLayer;
 #[derive(Clone)]
 pub struct AppState {
     pub db: PgPool,
+    pub cache: Cache,
 }
 
 use crate::routes::{group, health, pay_group, subscription_topped};
