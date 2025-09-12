@@ -27,6 +27,13 @@ pub async fn pay_group(
         tracing::error!("Failed to parse token amount: {}", e);
         ApiError::BadRequest("Invalid token amount")
     })?;
+
+    if !state.cache.read().await.contains(&group_address) {
+        return Err(ApiError::BadRequest("Group doesnt exist"));
+    }
+
+    tracing::info!("Payment hapened for {group_address}");
+
     let token_address = payload.token_address;
 
     // Get the users usage remaining
@@ -57,12 +64,6 @@ pub async fn pay_group(
     let address = Felt::from_hex(group_address.as_str())
         .map_err(|_| ApiError::BadRequest("TOKEN ADDRESS NOT VALID"))?;
 
-    call_paymesh_contract_function(address)
-        .await
-        .map_err(|_| ApiError::BadRequest("Failed to call paymesh contract"))?;
-
-    // insert the tx hash into group tx hashes table
-
     sqlx::query!(r#"INSERT INTO group_tx_hashes (group_address, from_address, tx_hash, token_amount, token_address) VALUES ($1, $2, $3, $4, $5)"#, 
     group_address, from_address, tx_hash, token_amount, token_address)
         .execute(&state.db)
@@ -72,6 +73,11 @@ pub async fn pay_group(
             ApiError::Internal("Database Error Occurred")
         })?;
 
+    call_paymesh_contract_function(address)
+        .await
+        .map_err(|_| ApiError::BadRequest("Failed to call paymesh contract"))?;
+
+    tracing::info!("Payment hapened");
     Ok((StatusCode::OK, Json("TOKEN SPLIT SUCCESSFULLY")))
 }
 
