@@ -1,0 +1,8 @@
+services:
+  indexer:
+    image: akshola00/paymesh-indexer:latest
+    restart: always
+    environment:
+      DNA_TOKEN: "${DNA_TOKEN}"
+      API_URL: "${API_URL}"
+    mem_limit: 2g
