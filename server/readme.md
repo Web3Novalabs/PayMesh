@@ -110,6 +110,40 @@ cargo run
 
 👉 App available at: `http://localhost:8080`
 
+## 🧑‍💻 Development Setup
+
+During development, you may want to:
+
+Run Postgres in Docker
+
+Run the backend locally with cargo run (for hot reload & debugging)
+
+1. Start only the database
+```
+docker-compose up db
+```
+
+This starts Postgres and exposes it at localhost:5432.
+
+2. Configure .env for local dev
+```
+DATABASE_URL=postgresql://myuser:mypassword123@localhost:5432/mydatabase
+```
+
+3. Run migrations
+```
+sqlx migrate run
+```
+
+For changes made in the db migrations file, reset the db `sqlx database reset` and re run migrations.
+
+4. Start the backend locally
+```
+cargo watch -x run
+```
+
+
+👉 Backend will now auto-reload on code changes, while the database runs inside Docker.
 
 ## 🛠 Useful Commands
 
