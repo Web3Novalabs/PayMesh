@@ -18,6 +18,8 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const USDT_TOKEN_ADDRESS = "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
   const USDC_TOKEN_ADDRESS = "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 
+  const groupCache: string[] = [];
+
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
@@ -56,17 +58,20 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         const eventKey = event.keys[0];
         
         if (eventKey === GROUP_CREATED_SELECTOR) {
-          logger.info(`\n💡 Group created event`);
-
+          logger.info(`\n💡 Group created event`); 
           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupCreated" });
           
           const safeArgs = JSON.stringify(args, (_, v) =>
             typeof v === "bigint" ? v.toString() : v
-          );
+        );
+        
+        const {group_address, _, creator, name, usage_count, members} = JSON.parse(safeArgs);
 
-
-          const {group_address, _, creator, name, usage_count, members} = JSON.parse(safeArgs);
-                    
+        if (!groupCache.includes(group_address)) {
+          groupCache.push(group_address);
+          console.log(`✅ Added group ${group_address} to cache`);
+        }
+        
           create_group(group_address, creator, name, usage_count, members);
         } 
         else if (eventKey === TRANSFER_SELECTOR) {
@@ -79,7 +84,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
           let tx_hash = event.transactionHash;
 
-          pay(args.to, args.from, tx_hash, String(args.value), event.address);
+          if (groupCache.includes(args.to)) {
+            console.log(`💰 Transfer to group ${args.to}, processing payment...`);
+            pay(args.to, args.from, tx_hash, String(args.value), event.address);
+          }         
         }
         else if (eventKey === GROUP_PAID_SELECTOR) {
           
@@ -156,8 +164,6 @@ const pay = (address: string, from_address: string, tx_hash: string, amount: str
     headers: { "Content-Type": "application/json" },
     body: body
   })
-  .then(response => response.text()) // Consume response to close connection properly
-  .then(() => {}) // Do nothing with the result
   .catch((err) => {
     console.error(`Payment error for ${address}:`, err);
   });
