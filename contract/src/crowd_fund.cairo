@@ -270,16 +270,14 @@ pub mod CrowdFund {
             let mut pool = self.pools.read(pool_id);
             let is_complete = self.is_pool_completed(pool_id);
             assert(!is_complete, 'pool is completed');
-            let current_balance = self
-                ._check_token_balance_of_child(pool_address);
+            let current_balance = self._check_token_balance_of_child(pool_address);
             self._check_token_allowance(get_caller_address(), get_contract_address(), amount);
             assert(current_balance < pool.target, 'target reach');
 
             // Add this transfer:
             let token = IERC20Dispatcher { contract_address: self.token_address.read() };
             token.transfer_from(get_caller_address(), pool_address, amount);
-            let new_balance = self
-                ._check_token_balance_of_child(pool_address);
+            let new_balance = self._check_token_balance_of_child(pool_address);
             pool.balance = new_balance;
             pool.donors = pool.donors + 1;
 
@@ -350,8 +348,7 @@ pub mod CrowdFund {
             assert(caller, 'not creator, member or admin');
 
             let len = self.token_count.read();
-            let current_balance = self
-            ._check_token_balance_of_child(pool_address);
+            let current_balance = self._check_token_balance_of_child(pool_address);
             assert(current_balance >= pool.target, 'target not reach yet');
             for i in 1..=len {
                 let token_address: ContractAddress = self.supported_tokens.read(i);
@@ -364,12 +361,11 @@ pub mod CrowdFund {
                     let token = IERC20Dispatcher { contract_address: token_address };
                     token.transfer_from(pool_address, get_contract_address(), platform_fee);
                     // remaining balance after platform fee
-                    let remaining_balance = self
-                        ._check_token_balance_of_child(pool_address);
+                    let remaining_balance = self._check_token_balance_of_child(pool_address);
                     token.transfer_from(pool_address, pool.beneficiary, remaining_balance);
 
                     // check the contract balance after paymesh
-                     let group_balance_after_paymesh = token.balance_of(pool_address);
+                    let group_balance_after_paymesh = token.balance_of(pool_address);
                     assert(group_balance_after_paymesh == 0, 'balance shuld b 0 after');
 
                     self
@@ -427,7 +423,7 @@ pub mod CrowdFund {
         }
 
         fn _check_token_balance_of_child(
-            self: @ContractState, group_address: ContractAddress
+            self: @ContractState, group_address: ContractAddress,
         ) -> u256 {
             let token = IERC20Dispatcher { contract_address: self.token_address.read() };
             let balance = token.balance_of(group_address);

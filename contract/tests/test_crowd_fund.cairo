@@ -127,7 +127,7 @@ fn test_crowd_fund_flow() {
     let contract_balance_after_donation = erc20_dispatcher
         .balance_of(contract_address.contract_address);
     assert(contract_balance_after_donation >= ONE_STRK, 'balance should at least b 1 STK');
-println!("contract balance {}",contract_balance_after_donation);
+    println!("contract balance {}", contract_balance_after_donation);
     start_cheat_caller_address(contract_address.contract_address, USER1_ADDR());
     contract_address.paymesh(pool1_address);
     stop_cheat_caller_address(contract_address.contract_address);
@@ -215,7 +215,7 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
     let get_pool = contract_address.get_pool(1);
     assert(get_pool.pool_address == pool_address, 'wrong pool address before');
     assert(get_pool.target == ONE_STRK * 8, 'wrong pool target before');
-    println!("balance {}",get_pool.balance);
+    println!("balance {}", get_pool.balance);
     assert(get_pool.balance == 0, 'balace not zero');
     assert(get_pool.donors == 0, 'wrong pool donors before');
     assert(get_pool.creator == CREATOR_ADDR(), 'wrong pool creator before');
@@ -244,7 +244,7 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
 
     // check pool balance after donation
     let get_pool = contract_address.get_pool(1);
-    println!("balance after {}",get_pool.balance);
+    println!("balance after {}", get_pool.balance);
     assert(get_pool.balance == ONE_STRK * 8, 'wrong pool balance after');
     assert(get_pool.donors == 2, 'wrong pool donors after');
     assert(get_pool.creator == CREATOR_ADDR(), 'wrong pool creator after');
@@ -504,7 +504,6 @@ fn test_error_donating_to_end_pool() {
     usdc_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
     stop_cheat_caller_address(usdc_dispatcher.contract_address);
 
-
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
     erc20_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
@@ -567,7 +566,6 @@ fn test_error_paymesh_caller_not_auth() {
     usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
     usdc_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
     stop_cheat_caller_address(usdc_dispatcher.contract_address);
-
 
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
     erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
