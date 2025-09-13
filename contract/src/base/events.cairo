@@ -13,6 +13,17 @@ pub struct GroupCreated {
     pub members: Array<GroupMember>,
 }
 
+#[derive(Serde, Drop, starknet::Event)]
+pub struct PoolCreated {
+    #[key]
+    pub pool_address: ContractAddress,
+    pub pool_id: u256,
+    pub creator: ContractAddress,
+    pub pool_name: ByteArray,
+    pub target_amount: u256,
+}
+
+
 // Event emitted when a group update is requested
 #[derive(Serde, Drop, starknet::Event)]
 pub struct GroupUpdateRequested {
@@ -51,6 +62,17 @@ pub struct GroupPaid {
     pub paid_at: u64,
     pub members: Array<MemberShare>,
     pub usage_count: u256,
+    pub token_address: ContractAddress,
+}
+
+// event emmitted when a pool is paid
+#[derive(Serde, Drop, starknet::Event)]
+pub struct PoolPaid {
+    #[key]
+    pub pool_id: u256,
+    pub amount: u256,
+    pub paid_by: ContractAddress,
+    pub paid_at: u64,
     pub token_address: ContractAddress,
 }
 

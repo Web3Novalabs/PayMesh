@@ -336,7 +336,7 @@ pub mod AutoShare {
             self
                 .emit(
                     Event::SubscriptionTopped(
-                        SubscriptionTopped { group_address , usage_count: usage_count_remaining },
+                        SubscriptionTopped { group_address, usage_count: usage_count_remaining },
                     ),
                 )
         }
