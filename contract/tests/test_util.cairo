@@ -142,8 +142,10 @@ pub fn deploy_tokens() -> (IERC20Dispatcher, IERC20Dispatcher, IERC20Dispatcher)
     (strk_dispatcher, usdc_dispatcher, usdt_dispatcher)
 }
 
-// deploy the autoshare contract
-pub fn deploy_crowdfund_contract() -> (ICrowdFundDispatcher, IERC20Dispatcher) {
+// deploy the crowd_fund contract
+pub fn deploy_crowdfund_contract() -> (
+    ICrowdFundDispatcher, IERC20Dispatcher, IERC20Dispatcher, IERC20Dispatcher,
+) {
     let erc20_class = declare("STARKTOKEN").unwrap().contract_class();
     let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
     let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
@@ -157,10 +159,21 @@ pub fn deploy_crowdfund_contract() -> (ICrowdFundDispatcher, IERC20Dispatcher) {
         EMERGENCY_WITHDRAW_ADDR().into(),
         child_contract.into(),
     ];
+
+    let erc20_class = declare("USDTTOKEN").unwrap().contract_class();
+    let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+    let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+    let usdc_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
+    let erc20_class = declare("USDCTOKEN").unwrap().contract_class();
+    let mut calldata = array![CREATOR_ADDR().into(), CREATOR_ADDR().into(), 6];
+    let (erc20_address, _) = erc20_class.deploy(@calldata).unwrap();
+    let usdt_dispatcher = IERC20Dispatcher { contract_address: erc20_address };
+
     let (contract_address, _) = contract.deploy(@constructor_calldata).unwrap();
 
-    let AutoShare = ICrowdFundDispatcher { contract_address };
-    (AutoShare, erc20_dispatcher)
+    let crowd_fund = ICrowdFundDispatcher { contract_address };
+    (crowd_fund, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher)
 }
 
 pub fn group_member_two() -> Array<GroupMember> {

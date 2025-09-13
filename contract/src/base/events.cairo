@@ -73,6 +73,7 @@ pub struct PoolPaid {
     pub amount: u256,
     pub paid_by: ContractAddress,
     pub paid_at: u64,
+    pub token_address: ContractAddress,
 }
 
 #[derive(Serde, Drop, starknet::Event)]

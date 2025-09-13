@@ -1,5 +1,5 @@
 use starknet::{ClassHash, ContractAddress};
-use crate::base::crowd_fund_type::Pool;
+use crate::base::crowd_fund_type::{Pool, Token};
 #[starknet::interface]
 pub trait ICrowdFund<TContractState> {
     // create a pool with a name, target amount and beneficiary
@@ -23,6 +23,7 @@ pub trait ICrowdFund<TContractState> {
     fn get_donor_count(self: @TContractState, pool_id: u256) -> u256;
     // get a pool balance by pool address
     fn get_pool_balance(self: @TContractState, pool_address: ContractAddress) -> u256;
+    fn get_pool_token_balance(self: @TContractState, pool_address: ContractAddress) -> Token;
     // get a pool target by pool id
     fn get_pool_target(self: @TContractState, pool_id: u256) -> u256;
     // check if a pool is completed by pool id

@@ -42,18 +42,19 @@ pub mod CrowdFundChild {
     #[constructor]
     pub fn constructor(
         ref self: ContractState,
-        group_id: u256,
+        pool_id: u256,
         pool: Pool,
         emergency_withdraw_address: ContractAddress,
         token_address: ContractAddress,
         admin: ContractAddress,
         creator_address: ContractAddress,
     ) {
-        self.id.write(group_id);
+        self.id.write(pool_id);
         self.pool_data.write(pool);
         self.emergency_withdraw_address.write(emergency_withdraw_address);
         self.created_at.write(get_block_timestamp());
         self.admin.write(admin);
+        self.creator_address.write(creator_address);
     }
 
     const MAIN_AMOUNT: u256 = 900_000_000_000_000_000_000_000_000_000_000;
@@ -74,9 +75,13 @@ pub mod CrowdFundChild {
 
         fn emergency_withdraw(ref self: ContractState) {
             self.assert_only_admin();
-            let token = IERC20Dispatcher { contract_address: self.token_address.read() };
-            let balance = self._check_token_balance(get_contract_address());
-            token.transfer(self.emergency_withdraw_address.read(), balance);
+            let supported_tokens_count = self.token_count.read();
+            for i in 1..=supported_tokens_count {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                let token = IERC20Dispatcher { contract_address: token_address };
+                let balance = token.balance_of(get_caller_address());
+                token.transfer(self.emergency_withdraw_address.read(), balance);
+            }
         }
 
         fn set_and_approve_main_contract(

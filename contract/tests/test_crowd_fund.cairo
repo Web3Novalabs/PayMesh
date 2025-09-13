@@ -9,11 +9,57 @@ use crate::test_util::{
 
 
 #[test]
-fn test_crowd_fund_flow() {
-    let (contract_address, erc20_dispatcher) = deploy_crowdfund_contract();
-    // let token = erc20_dispatcher.contract_address;
+#[should_panic(expected: ('Unauthorize caller',))]
+fn test_get_supported_tokens_error() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
 
-    // check contract balnce
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+
+    let tokens = contract_address.get_supported_token();
+    assert(tokens.len() == 3, 'should be 3');
+}
+#[test]
+#[should_panic(expected: ('token added already',))]
+fn test_add_same_token_error() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+}
+#[test]
+fn test_get_supported_tokens_success() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    let tokens = contract_address.get_supported_token();
+    assert(tokens.len() == 3, 'should be 3');
+}
+
+#[test]
+fn test_crowd_fund_flow() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+    // let token = erc20_dispatcher.contract_address;
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+    // check contract balance
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
     assert(contract_balance_before == 0, 'balance not up to date');
 
@@ -81,7 +127,7 @@ fn test_crowd_fund_flow() {
     let contract_balance_after_donation = erc20_dispatcher
         .balance_of(contract_address.contract_address);
     assert(contract_balance_after_donation >= ONE_STRK, 'balance should at least b 1 STK');
-
+println!("contract balance {}",contract_balance_after_donation);
     start_cheat_caller_address(contract_address.contract_address, USER1_ADDR());
     contract_address.paymesh(pool1_address);
     stop_cheat_caller_address(contract_address.contract_address);
@@ -102,7 +148,14 @@ fn test_crowd_fund_flow() {
 
 #[test]
 fn test_create_crowd_fund_pool() {
-    let (contract_address, erc20_dispatcher) = deploy_crowdfund_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+    // let token = erc20_dispatcher.contract_address;
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
@@ -130,7 +183,14 @@ fn test_create_crowd_fund_pool() {
 
 #[test]
 fn test_create_crowd_fund_pool_with_multiple_accounts() {
-    let (contract_address, erc20_dispatcher) = deploy_crowdfund_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+    // let token = erc20_dispatcher.contract_address;
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
@@ -155,7 +215,8 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
     let get_pool = contract_address.get_pool(1);
     assert(get_pool.pool_address == pool_address, 'wrong pool address before');
     assert(get_pool.target == ONE_STRK * 8, 'wrong pool target before');
-    assert(get_pool.balance == 0, 'wrong pool balance before');
+    println!("balance {}",get_pool.balance);
+    assert(get_pool.balance == 0, 'balace not zero');
     assert(get_pool.donors == 0, 'wrong pool donors before');
     assert(get_pool.creator == CREATOR_ADDR(), 'wrong pool creator before');
     assert(get_pool.beneficiary == USER1_ADDR(), 'wrong pool beneficiary before');
@@ -183,6 +244,7 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
 
     // check pool balance after donation
     let get_pool = contract_address.get_pool(1);
+    println!("balance after {}",get_pool.balance);
     assert(get_pool.balance == ONE_STRK * 8, 'wrong pool balance after');
     assert(get_pool.donors == 2, 'wrong pool donors after');
     assert(get_pool.creator == CREATOR_ADDR(), 'wrong pool creator after');
@@ -213,7 +275,7 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
     println!("beneficiary balance after paymesh: {}", beneficiary_balance_after);
 
     // For now, let's check if the balance is at least reduced
-    assert(get_pool.balance == 0, 'balance should b reduce paymesh');
+    assert(get_pool.is_complete, 'pool is not completed');
     assert(get_pool.donors == 2, 'wrong pool donors final');
     assert(get_pool.creator == CREATOR_ADDR(), 'wrong pool creator final');
     assert(get_pool.beneficiary == USER1_ADDR(), 'wrong pool beneficiary final');
@@ -225,7 +287,14 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
 
 #[test]
 fn test_paymesh_donate() {
-    let (contract_address, erc20_dispatcher) = deploy_crowdfund_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+    // let token = erc20_dispatcher.contract_address;
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
@@ -270,7 +339,14 @@ fn test_paymesh_donate() {
 
 #[test]
 fn test_get_all_pools() {
-    let (contract_address, erc20_dispatcher) = deploy_crowdfund_contract();
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+    // let token = erc20_dispatcher.contract_address;
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
@@ -318,4 +394,210 @@ fn test_get_all_pools() {
     assert(*all_pools[1].donors == 0, 'wrong pool donors 1');
     assert(*all_pools[0].balance == 0, 'wrong pool balance 0');
     assert(*all_pools[1].balance == 0, 'wrong pool balance 1');
+}
+
+#[test]
+fn test_multitoken_donation() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+    // let token = erc20_dispatcher.contract_address;
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // check contract balance
+    let contract_balance_before = usdc_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'contract balance should be 0');
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    erc20_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    usdc_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    // create a pool with target amount of 10 USDC
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let pool_address0 = contract_address
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // donate
+    start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 10);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    let balance = usdc_dispatcher.balance_of(USER2_ADDR());
+    println!("balance user 1 {}", balance);
+
+    start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
+    contract_address.paymesh_donate(pool_address0, ONE_STRK * 10);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    let balance = usdc_dispatcher.balance_of(USER2_ADDR());
+    println!("balance user 2 {}", balance);
+
+    // get pool balance
+    let get_pool = contract_address.get_pool(1);
+    assert(get_pool.donors == 1, 'wrong pool donor');
+    assert(get_pool.balance == ONE_STRK * 10, 'wrong pool balance');
+    let balance = contract_address.get_pool_balance(pool_address0);
+    assert(balance == ONE_STRK * 10, 'balance not up to date');
+}
+
+#[test]
+#[should_panic(expected: ('pool id is 0',))]
+fn test_donate_to_non_exixting_pool() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, _) = deploy_crowdfund_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // check contract balance
+    let contract_balance_before = usdc_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'contract balance should be 0');
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    usdc_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    // create a pool with target amount of 10 USDC
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let _ = contract_address.create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
+    contract_address.paymesh_donate(USER3_ADDR(), ONE_STRK * 10);
+    stop_cheat_caller_address(contract_address.contract_address);
+}
+
+#[test]
+#[should_panic(expected: ('pool is completed',))]
+fn test_error_donating_to_end_pool() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, _) = deploy_crowdfund_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // check contract balance
+    let contract_balance_before = usdc_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'contract balance should be 0');
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    usdc_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    erc20_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // create a pool with target amount of 10 USDC
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let pool_address0 = contract_address
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // donate
+    start_cheat_caller_address(usdc_dispatcher.contract_address, USER2_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 30);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 90);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    let balance = usdc_dispatcher.balance_of(USER2_ADDR());
+    println!("balance user 1 {}", balance);
+
+    start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
+    contract_address.paymesh_donate(pool_address0, ONE_STRK * 10);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // pay to group members
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    contract_address.paymesh(pool_address0);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 30);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
+    contract_address.paymesh_donate(pool_address0, ONE_STRK * 10);
+    stop_cheat_caller_address(contract_address.contract_address);
+}
+
+#[test]
+#[should_panic(expected: ('not creator, member or admin',))]
+fn test_error_paymesh_caller_not_auth() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, _) = deploy_crowdfund_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // check contract balance
+    let contract_balance_before = usdc_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'contract balance should be 0');
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    usdc_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    erc20_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // create a pool with target amount of 10 USDC
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let pool_address0 = contract_address
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // donate
+    start_cheat_caller_address(usdc_dispatcher.contract_address, USER2_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 30);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 90);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    let balance = usdc_dispatcher.balance_of(USER2_ADDR());
+    println!("balance user 1 {}", balance);
+
+    start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
+    contract_address.paymesh_donate(pool_address0, ONE_STRK * 10);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // pay to group members
+    start_cheat_caller_address(contract_address.contract_address, USER3_ADDR());
+    contract_address.paymesh(pool_address0);
+    stop_cheat_caller_address(contract_address.contract_address);
 }
