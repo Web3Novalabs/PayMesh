@@ -1,7 +1,6 @@
 services:
   indexer:
     image: akshola00/paymesh-indexer:latest
-    platform: linux/amd64
     environment:
       DNA_TOKEN: "${DNA_TOKEN}"
       API_URL: "${API_URL}"

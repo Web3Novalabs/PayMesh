@@ -21,7 +21,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(startingBlock),
+    startingBlock: BigInt(2152513), // 2067200
     filter: {
       events: [
         {
@@ -143,23 +143,25 @@ const store_distribution_history = (group_address: string, token_address: string
 }
 
 const pay = (address: string, from_address: string, tx_hash: string, amount: string, token_address: string) => {
-  let body = JSON.stringify({
-      "group_address": address,
-      "from_address": from_address,
-      "tx_hash": tx_hash,
-      "token_amount": amount,
-      "token_address": token_address
-    });
+  const body = JSON.stringify({
+    "group_address": address,
+    "from_address": from_address,
+    "tx_hash": tx_hash,
+    "token_amount": amount,
+    "token_address": token_address
+  });
 
   fetch(`${process.env.API_URL}/pay_group`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: body
-  }).catch((err) => {
+  })
+  .then(response => response.text()) // Consume response to close connection properly
+  .then(() => {}) // Do nothing with the result
+  .catch((err) => {
     console.error(`Payment error for ${address}:`, err);
   });
 };
-
 const subsciption_topped = (group_address: string, usage_count: number) => {
   let body = JSON.stringify({
       "group_address": group_address,
