@@ -1,0 +1,5 @@
+Autoshare Contract mainnet deployemnet dev - 0x04d01c5be14a15ec2b9fb28a99bf465b57c80da5ac93c6a5bccda52dc97b9a83
+
+Autoshare Contract class hash (sepolia) - 0x01af16fe794ab5ff595aa88d2e44071f511e5d9649ae0a5867526236b72627f6
+
+Autoshare Contract sepolia deployment dev - 0x0265351930b4bc74f5a33171c2046cbc17f91a3a88e614cf507998477190356d

@@ -106,3 +106,23 @@ jobs:
           docker compose --env-file .env stop
           docker compose --env-file .env pull
           docker compose --env-file .env up -d
+
+    - name: Copy docker-compose.yml to paymesh indexer droplet
+      run: sshpass -v -p ${{ secrets.PAYMESH_DROPLET_PASSWORD }} scp -o StrictHostKeyChecking=no the_last_indexer/docker-compose.yml root@${{ vars.PAYMESH_DROPLET_IP }}:~
+      
+    - name: Deploy with environment variables
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ vars.PAYMESH_DROPLET_IP }}
+        username: root
+        password: ${{ secrets.PAYMESH_DROPLET_PASSWORD }}
+        script: |
+          cd ~
+          cat > .env <<EOL
+          DNA_TOKEN=${{ secrets.DNA_TOKEN }}
+          API_URL=${{ secrets.API_URL }}
+          EOL
+          
+          docker compose --env-file .env stop
+          docker compose --env-file .env pull
+          docker compose --env-file .env up -d

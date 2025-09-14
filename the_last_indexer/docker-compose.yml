@@ -1,0 +1,6 @@
+services:
+  indexer:
+    image: akshola00/paymesh-indexer:latest
+    environment:
+      DNA_TOKEN: "${DNA_TOKEN}"
+      API_URL: "${API_URL}"

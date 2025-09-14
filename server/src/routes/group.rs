@@ -40,6 +40,11 @@ pub async fn create_group(
     .await
     .map_err(|e| map_sqlx_error(&e))?;
 
+    {
+        let mut cache = state.cache.write().await;
+        cache.insert(group_address.to_string());
+    }
+
     for group_member in payload.members {
         let member_percentage: BigDecimal = group_member.percentage.into();
         sqlx::query!(
