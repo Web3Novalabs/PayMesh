@@ -7,7 +7,7 @@ import { myAbi } from "../abi";
 import { strk_abi } from "../strk_abi";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
-  const { startingBlock, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
+  const { startingBlock: configStartingBlock, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
 
   const TRANSFER_SELECTOR = getSelector("Transfer");
   const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
@@ -23,7 +23,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(2166052), // 2067200
+    startingBlock: BigInt(startingBlock), 
     filter: {
       events: [
         {
@@ -206,3 +206,19 @@ const create_group = (address: string, creatorAddress: string, groupName: string
     console.error(`Create group error ${address}:`, err);
   });
 };
+
+export const startingBlock = await fetch(
+  "https://starknet-mainnet.public.blastapi.io",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 0,
+      method: "starknet_blockNumber",
+    }),
+  },
+)
+  .then((response) => response.json())
+  .then((data: any) => data.result);
+
