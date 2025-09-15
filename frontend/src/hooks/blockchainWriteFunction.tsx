@@ -12,11 +12,12 @@ import {
 export const CROWDFUNDINGADDRESS =
   "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0";
 type SetIsSubmitting = (isSubmitting: boolean) => void;
+type SetIsSuccess = (isSuccess: boolean) => void;
 export const create_pool = async (
   formData: FormData,
   account: AccountInterface,
   setIsSubmitting: SetIsSubmitting,
-  onSubmit: () => void
+  setIsSuccess: SetIsSuccess
 ): Promise<void> => {
   const { walletAddress, name, targetAmount } = formData;
 
@@ -34,6 +35,7 @@ export const create_pool = async (
   }
   // handler();
   try {
+    console.log("Blockchain function - Starting create_pool");
     setIsSubmitting(true);
 
     if (account != undefined) {
@@ -79,16 +81,22 @@ export const create_pool = async (
         result?.transaction_hash as string
       );
       //   setIsOpen(true);
-      onSubmit();
+      console.log("Blockchain function - Setting isSuccess to true");
+      setIsSuccess(true);
+      //   onSubmit();
       console.log(result);
 
       console.log(status);
+      console.log("Blockchain function - Successfully completed");
     }
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Blockchain function - Error occurred:", error);
     // setIsError(true);
     toast.error("error creating a pool");
   } finally {
+    console.log(
+      "Blockchain function - Finally block, setting isSubmitting to false"
+    );
     setIsSubmitting(false);
   }
 };

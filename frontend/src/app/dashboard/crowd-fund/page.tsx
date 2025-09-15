@@ -1,75 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import CrowdFundDashboard from "./components/CrowdFundDashboard";
 import CreateCrowdFundForm from "./components/CreateCrowdFundForm";
-import FundingDetailsModal from "./components/FundingDetailsModal";
 import WalletConnect from "@/app/components/WalletConnect";
 import { useAccount } from "@starknet-react/core";
-import ComingSoon from "./components/ComingSoon";
-import {
-  useContractFetch,
-  useGetAllPools,
-} from "@/hooks/useContractInteraction";
-import { POOL_ABI } from "@/abi/pool_abi";
-import { CROWDFUNDINGADDRESS } from "@/hooks/blockchainWriteFunction";
-import { epocTime } from "@/utils/contract";
-
-// Type definitions
-interface FundingData {
-  id: number;
-  title: string;
-  progress: number;
-  donors: number;
-  dateCreated: string;
-  targetAmount: string;
-  currentAmount: string;
-  description?: string;
-}
-
-interface FormData {
-  name: string;
-  tokenType: string;
-  targetAmount: string;
-  walletAddress: string;
-}
-
-const fundingData: FundingData[] = [
-  {
-    id: 1,
-    title: "Visa Application",
-    progress: 79,
-    donors: 12,
-    dateCreated: "20th - 08 - 2025",
-    targetAmount: "$5,000",
-    currentAmount: "$3,950",
-  },
-  {
-    id: 2,
-    title: "School Fees",
-    progress: 55,
-    donors: 5,
-    dateCreated: "29th - 08 - 2025",
-    targetAmount: "$3,000",
-    currentAmount: "$1,650",
-  },
-];
 
 type currentView = "dashboard" | "create";
 
 const CrowdFundPage = () => {
   const [currentView, setCurrentView] = useState<currentView>("dashboard");
-  const [selectedFunding, setSelectedFunding] = useState<FundingData | null>(
-    null
-  );
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
-
-  useEffect(() => {
-    setIsComingSoonOpen(true);
-  }, []);
+  // Debug logging
+  React.useEffect(() => {
+    console.log("CrowdFundPage - currentView:", currentView);
+  }, [currentView]);
 
   const handleCreateNew = () => {
     setCurrentView("create");
@@ -79,12 +24,6 @@ const CrowdFundPage = () => {
     setCurrentView("dashboard");
   };
 
-  const handleViewDetails = (id: number) => {
-    const funding = fundingData.find((f) => f.id === id);
-    setSelectedFunding(funding || null);
-    setIsModalOpen(true);
-  };
-
   const handleFormSubmit = () => {
     // Handle form submission logic here
     // After successful submission, you might want to:
@@ -92,11 +31,6 @@ const CrowdFundPage = () => {
     // 2. Show a success message
     // 3. Return to dashboard
     setCurrentView("dashboard");
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedFunding(null);
   };
 
   const { address } = useAccount();
@@ -155,23 +89,13 @@ const CrowdFundPage = () => {
 
         {/* Dynamic Content */}
         {currentView === "dashboard" ? (
-          <CrowdFundDashboard
-            onCreateNew={handleCreateNew}
-            onViewDetails={handleViewDetails}
-          />
+          <CrowdFundDashboard onCreateNew={handleCreateNew} />
         ) : (
           <CreateCrowdFundForm
             onBack={handleBackToDashboard}
             onSubmit={handleFormSubmit}
           />
         )}
-
-        {/* Funding Details Modal */}
-        <FundingDetailsModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          funding={selectedFunding}
-        />
       </div>
     </div>
   );

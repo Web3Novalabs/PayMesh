@@ -10,52 +10,34 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { Search, Users, Calendar, Handshake } from "lucide-react";
+import { Search, Users, Calendar } from "lucide-react";
 import group1icon from "../../../../../public/PlusCircle.svg";
 import group4icon from "../../../../../public/Handshake.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
-
-// Sample funding data
-const fundingData = [
-  {
-    id: 1,
-    title: "Visa Application",
-    progress: 79,
-    donors: 12,
-    dateCreated: "20th - 08 - 2025",
-    targetAmount: "$5,000",
-    currentAmount: "$3,950",
-  },
-  {
-    id: 2,
-    title: "School Fees",
-    progress: 55,
-    donors: 5,
-    dateCreated: "29th - 08 - 2025",
-    targetAmount: "$3,000",
-    currentAmount: "$1,650",
-  },
-];
+import { useRouter } from "next/navigation";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
-  onViewDetails: (id: number) => void;
 }
 
 const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   onCreateNew,
-  onViewDetails,
 }) => {
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
   const pools = useGetAllPools();
 
-  const filteredFundings = fundingData.filter((funding) => {
-    const matchesSearch = funding.title
+  const handleViewDetails = (id: number) => {
+    router.push(`/dashboard/crowd-fund/details/${id}`);
+  };
+
+  const filteredFundings = pools?.filter((funding) => {
+    const matchesSearch = funding.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === "all" || true; // Add filter logic if needed
+    const matchesFilter = filter === "all" || true;
     return matchesSearch && matchesFilter;
   });
 
@@ -93,7 +75,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
           <span className="text-[#8398AD] text-sm">
             Active Funding{" "}
             <span className="text-[#DFDFE0] font-semibold">
-              {filteredFundings.length}
+              {filteredFundings?.length}
             </span>
           </span>
         </div>
@@ -162,7 +144,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 
             {/* View Details Button */}
             <button
-              onClick={() => onViewDetails(funding.id)}
+              onClick={() => handleViewDetails(funding.id)}
               className="w-full bg-[#FFFFFF0D] cursor-pointer border border-[#FFFFFF0D] text-[#DFDFE0] py-2 px-4 rounded-sm hover:bg-[#282e38] transition-colors duration-200 text-sm"
             >
               View Details

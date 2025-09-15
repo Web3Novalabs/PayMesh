@@ -874,7 +874,18 @@ const CreateNewGroup = () => {
       </div>
 
       {/* Loading Overlay */}
-      {isSubmitting && <Loading />}
+      {isSubmitting && (
+        <Loading
+          title="Creating Your Group"
+          description="Please wait while we process your transaction on the blockchain..."
+          progressSteps={[
+            "Validating group data",
+            "Approving transaction",
+            "Deploying group contract",
+          ]}
+          estimatedTime="15-30 seconds"
+        />
+      )}
 
       {isSuccess && (
         <QRcode

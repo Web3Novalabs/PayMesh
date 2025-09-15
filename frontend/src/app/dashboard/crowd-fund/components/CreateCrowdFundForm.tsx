@@ -9,11 +9,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
 import { create_pool } from "@/hooks/blockchainWriteFunction";
 import { useAccount } from "@starknet-react/core";
 import toast from "react-hot-toast";
+import Loading from "../../components/Loading";
+import QRcodeCrowdfund from "../../components/QRcodeCrowdfund";
 
 export interface FormData {
   name: string;
@@ -33,12 +34,31 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
 }) => {
   const { account } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log("CreateCrowdFundForm - isSuccess:", isSuccess);
+  }, [isSuccess]);
+
+  const [copySuccess, setCopySuccess] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     tokenType: "",
     targetAmount: "",
     walletAddress: "",
   });
+
+  // Copy address to clipboard
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(formData.walletAddress);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
+  };
 
   const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({
@@ -49,12 +69,38 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Form submitted - handleSubmit called");
     // onSubmit(formData);
     if (!account) {
       return toast.error("Connect Wallet to continue");
     }
 
-    create_pool(formData, account, setIsSubmitting, onSubmit);
+    // Reset success state before creating new pool
+    console.log("Setting isSuccess to false before creating pool");
+    setIsSuccess(false);
+    console.log("Calling create_pool function");
+    create_pool(formData, account, setIsSubmitting, setIsSuccess);
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      tokenType: "",
+      targetAmount: "",
+      walletAddress: "",
+    });
+    setIsSubmitting(false);
+    onSubmit();
+    setCopySuccess(false);
+  };
+
+  const closeModal = () => {
+    setIsSuccess(false);
+  };
+
+  const resetFormAndClose = () => {
+    resetForm();
+    closeModal();
   };
 
   return (
@@ -85,7 +131,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
               placeholder="Enter name for your crowd funding"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full bg-transparent py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
+              className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
             />
           </div>
         </div>
@@ -170,6 +216,36 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
           </button>
         </div>
       </form>
+
+      {isSubmitting && (
+        <Loading
+          title="Creating Your Crowd Funding"
+          description="Please wait while we process your transaction on the blockchain..."
+          progressSteps={[
+            "Validating crowd funding data",
+            "Approving transaction",
+            "Deploying crowd funding contract",
+          ]}
+          estimatedTime="10-20 seconds"
+        />
+      )}
+
+      {isSuccess && (
+        <>
+          {console.log(
+            "Rendering QRcodeCrowdfund - isSuccess is true, groupAddress:",
+            formData.walletAddress
+          )}
+          <QRcodeCrowdfund
+            groupAddress={formData.walletAddress}
+            groupBalance="0"
+            isLoadingBalance={false}
+            copySuccess={copySuccess}
+            copyToClipboard={copyToClipboard}
+            resetForm={resetFormAndClose}
+          />
+        </>
+      )}
     </div>
   );
 };

@@ -1,31 +1,30 @@
-import Link from "next/link";
 import QRCode from "react-qr-code";
 
-interface QRcodeProps {
+interface QRcodeCrowdfundProps {
   groupAddress: string;
   groupBalance: string;
   isLoadingBalance: boolean;
   copySuccess: boolean;
   copyToClipboard: () => void;
   resetForm: () => void;
-  closeModal: () => void;
 }
 
-export default function QRcode({
+export default function QRcodeCrowdfund({
   groupAddress,
-  isLoadingBalance,
   copySuccess,
   copyToClipboard,
   resetForm,
-  closeModal,
-}: QRcodeProps) {
+}: QRcodeCrowdfundProps) {
+  console.log(
+    "QRcodeCrowdfund component rendering with groupAddress:",
+    groupAddress
+  );
   return (
     <div className="fixed inset-0 bg-[#000000a3] bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
       <div className="bg-[#ffffff1e] border-gradient-modal rounded-lg shadow-xl w-full max-w-sm sm:max-w-xl max-h-[95vh] sm:max-h-[100vh] overflow-y-auto relative mx-2">
         {/* Close Button */}
         <button
           onClick={() => {
-            closeModal();
             resetForm();
           }}
           className="absolute top-2 sm:top-4 right-2 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 bg-[#434672] hover:bg-[#755A5A] text-[#E2E2E2] rounded-full flex items-center justify-center transition-colors cursor-pointer z-10"
@@ -109,20 +108,18 @@ export default function QRcode({
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full">
-            <Link
-              href="/dashboard/my-groups"
+            <button
               onClick={() => {
                 resetForm();
-                closeModal();
               }}
               className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#434672] cursor-pointer text-white w-full rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
-              Go to Groups
-            </Link>
+              Go to Crowd Fundings
+            </button>
             <button
               onClick={() =>
                 window.open(
-                  `https://mainnet.starkscan.co/contract/${groupAddress}`,
+                  `https://sepolia.starkscan.co/contract/${groupAddress}`,
                   "_blank"
                 )
               }
