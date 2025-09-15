@@ -56,7 +56,9 @@ const StickyNav = () => {
               onClick={() => handleLinkClick(item.link)}
             >
               <li
-                className={`cursor-pointer text-white !py-1 !px-2 sm:!px-3 md:!px-4 transition-all text-xs sm:text-sm md:text-base ${
+                className={` ${
+                  item.name == "Crowd Funding" ? "hidden sm:block" : ""
+                } cursor-pointer text-white !py-1 !px-2 sm:!px-3 md:!px-4 transition-all text-xs sm:text-sm md:text-base ${
                   item.link === activeLink
                     ? "border-gradient-create-sticky !py-1.5 sm:!py-2 md:!py-2.5 !px-4 md:!px-6"
                     : "border-gradient-create-sticky-active"

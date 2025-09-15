@@ -10,7 +10,7 @@ const NavItems = [
 
   {
     name: "Launch App",
-    link: "/dashboard",
+    link: "/dashboard/create-new-group",
   },
   {
     name: "Waitlist",

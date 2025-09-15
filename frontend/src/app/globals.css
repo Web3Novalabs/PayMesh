@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "tailwind-scrollbar-hide/v4";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -91,7 +92,7 @@
   position: relative;
   display: inline-flex; /* keep content aligned like a button */
   align-items: center;
-   /* padding: 1.5rem 5rem; button-like spacing */
+  /* padding: 1.5rem 5rem; button-like spacing */
   border-radius: 4px; /* fully rounded like your screenshot */
   background: linear-gradient(90deg, #434672, #755a5a);
   z-index: 0;

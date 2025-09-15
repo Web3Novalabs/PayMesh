@@ -55,7 +55,7 @@ const MainGroupLinks = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mx-auto justify-center gap-4 sm:gap-5 mt-16 sm:mt-18 md:mt-10 pb-20 md:pb-16 px-4 sm:px-6 lg:px-0">
+      <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mx-auto justify-center gap-4 sm:gap-5 mt-16 sm:mt-18 md:mt-10 pb-20 md:pb-16 px-4 sm:px-6 lg:px-0">
         {MainGroupLinksData.map((link, index) => (
           <Link
             href={link.link}

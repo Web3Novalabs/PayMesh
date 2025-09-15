@@ -1,0 +1,32 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            group_address,\n            token_symbol,\n            amount\n        FROM group_token_history\n        ORDER BY group_address\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "group_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "token_symbol",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "amount",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "3ddc5e290cca4a572765c144121142f0827c29e6404e6d5be2558409079d206c"
+}

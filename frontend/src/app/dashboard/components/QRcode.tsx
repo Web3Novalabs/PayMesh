@@ -123,7 +123,7 @@ export default function QRcode({
             <button
               onClick={() =>
                 window.open(
-                  `https://sepolia.starkscan.co/contract/${groupAddress}`,
+                  `https://mainnet.starkscan.co/contract/${groupAddress}`,
                   "_blank"
                 )
               }

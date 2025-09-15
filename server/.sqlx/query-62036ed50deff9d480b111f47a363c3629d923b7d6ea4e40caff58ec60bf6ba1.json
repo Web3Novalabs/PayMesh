@@ -1,0 +1,50 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            COUNT(DISTINCT p.group_address) as total_groups,\n            COUNT(p.tx_hash) as total_payments,\n            COALESCE(SUM(CASE WHEN p.token_address = '0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8' THEN p.amount END), 0) as total_usdc_paid,\n            COALESCE(SUM(CASE WHEN p.token_address = '0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8' THEN p.amount END), 0) as total_usdt_paid,\n            COALESCE(SUM(CASE WHEN p.token_address = '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7' THEN p.amount END), 0) as total_eth_paid,\n            COALESCE(SUM(CASE WHEN p.token_address = '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d' THEN p.amount END), 0) as total_strk_paid\n        FROM payments p\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "total_groups",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "total_payments",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "total_usdc_paid",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 3,
+        "name": "total_usdt_paid",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 4,
+        "name": "total_eth_paid",
+        "type_info": "Numeric"
+      },
+      {
+        "ordinal": 5,
+        "name": "total_strk_paid",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "62036ed50deff9d480b111f47a363c3629d923b7d6ea4e40caff58ec60bf6ba1"
+}

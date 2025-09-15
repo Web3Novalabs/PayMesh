@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select usage_remaining from groups where group_address = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "usage_remaining",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e99e004c7022b2573c6403a5411d5fd2808a97f7d420bd8d1955c6e32fea04fd"
+}

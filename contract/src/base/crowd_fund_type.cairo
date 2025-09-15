@@ -13,3 +13,12 @@ pub struct Pool {
     pub pool_address: ContractAddress,
     pub is_complete: bool,
 }
+
+#[derive(Serde, Drop, Debug, Clone, starknet::Store, PartialEq)]
+pub struct Token {
+    pub pool_address: ContractAddress,
+    pub usdc: u256,
+    pub usdt: u256,
+    pub strk: u256,
+    pub eth: u256,
+}

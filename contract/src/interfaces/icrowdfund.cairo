@@ -1,5 +1,5 @@
 use starknet::{ClassHash, ContractAddress};
-use crate::base::crowd_fund_type::Pool;
+use crate::base::crowd_fund_type::{Pool, Token};
 #[starknet::interface]
 pub trait ICrowdFund<TContractState> {
     // create a pool with a name, target amount and beneficiary
@@ -25,16 +25,19 @@ pub trait ICrowdFund<TContractState> {
     fn get_donor_count(self: @TContractState, pool_id: u256) -> u256;
     // get a pool balance by pool address
     fn get_pool_balance(self: @TContractState, pool_address: ContractAddress) -> u256;
+    fn get_pool_token_balance(self: @TContractState, pool_address: ContractAddress) -> Token;
     // get a pool target by pool id
     fn get_pool_target(self: @TContractState, pool_id: u256) -> u256;
+    //get pool creating fee
+    fn get_pool_creation_fee(self: @TContractState)->u256;
     // check if a pool is completed by pool id
     fn is_pool_completed(self: @TContractState, pool_id: u256) -> bool;
     // set the platform percentage
     fn set_platform_percentage(ref self: TContractState, value: u256);
     // get the platform percentage
     fn get_platform_percentage(self: @TContractState) -> u256;
-    // set the supported token
-    // fn set_supported_token(ref self: TContractState, new_token_address: ContractAddress);
-    // get the supported token
-    // fn get_supported_token(self: @TContractState) -> Array<ContractAddress>;
+    fn set_supported_token(ref self: TContractState, new_token_address: ContractAddress);
+    fn get_supported_token(self: @TContractState) -> Array<ContractAddress>;
+
+    fn upgrade_child(ref self: TContractState, new_class_hash: ClassHash);
 }

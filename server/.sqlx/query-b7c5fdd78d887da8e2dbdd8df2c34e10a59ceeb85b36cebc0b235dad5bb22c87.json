@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE groups \n        SET usage_remaining = $1 \n        WHERE group_address = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Numeric",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b7c5fdd78d887da8e2dbdd8df2c34e10a59ceeb85b36cebc0b235dad5bb22c87"
+}

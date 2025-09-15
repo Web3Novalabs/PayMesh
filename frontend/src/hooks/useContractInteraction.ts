@@ -1,13 +1,21 @@
-import { useAccount, useContract, useReadContract } from "@starknet-react/core";
+import { useAccount, useReadContract } from "@starknet-react/core";
 import { useEffect, useState } from "react";
-import { CreateGroupData, epocTime, ONE_STK, PAYMESH_ADDRESS } from "../utils/contract";
+import {
+  epocTime,
+  getTimeFromEpoch,
+  ONE_STK,
+  PAYMESH_ADDRESS,
+} from "../utils/contract";
 import { Abi } from "starknet";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
+import { POOL_ABI } from "@/abi/pool_abi";
+import { CROWDFUNDINGADDRESS } from "./blockchainWriteFunction";
 
 export function useContractFetch(
   abi: Abi,
   functionName: string,
-  args: [string | number]
+  args: (string | number)[],
+  contract_address: string = PAYMESH_ADDRESS
 ) {
   const {
     data: readData,
@@ -19,7 +27,8 @@ export function useContractFetch(
   } = useReadContract({
     abi: abi,
     functionName: functionName,
-    address: PAYMESH_ADDRESS,
+    // @ts-expect-error 0x0 error
+    address: contract_address,
     args: args,
     refetchInterval: 600000,
   });
@@ -34,94 +43,108 @@ export function useContractFetch(
   };
 }
 
-export const useContractInteraction = () => {
-  const { account } = useAccount();
+// export const useContractInteraction = () => {
+//   const { account } = useAccount();
 
-  const { contract } = useContract({
-    address:
-      "0x049dba901f9a9c50509c070c47f37d191783b24ec8021b06ec5d8464af827918",
-    abi: [
-      {
-        type: "function",
-        name: "create_group",
-        inputs: [
-          { name: "name", type: "core::byte_array::ByteArray" },
-          { name: "amount", type: "core::integer::u256" },
-          {
-            name: "members",
-            type: "core::array::Array::<contract::base::types::GroupMember>",
-          },
-          {
-            name: "token_address",
-            type: "core::starknet::contract_address::ContractAddress",
-          },
-        ],
-        outputs: [],
-        state_mutability: "external",
-      },
-    ],
-  });
+//   const { contract } = useContract({
+//     address:
+//       "0x049dba901f9a9c50509c070c47f37d191783b24ec8021b06ec5d8464af827918",
+//     abi: [
+//       {
+//         type: "function",
+//         name: "create_group",
+//         inputs: [
+//           { name: "name", type: "core::byte_array::ByteArray" },
+//           { name: "amount", type: "core::integer::u256" },
+//           {
+//             name: "members",
+//             type: "core::array::Array::<contract::base::types::GroupMember>",
+//           },
+//           {
+//             name: "token_address",
+//             type: "core::starknet::contract_address::ContractAddress",
+//           },
+//         ],
+//         outputs: [],
+//         state_mutability: "external",
+//       },
+//     ],
+//   });
 
-  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+//   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
-  const createGroup = async (groupData: CreateGroupData) => {
-    if (!account || !contract) {
-      throw new Error("No account or contract connected");
-    }
+//   const createGroup = async (groupData: CreateGroupData) => {
+//     if (!account || !contract) {
+//       throw new Error("No account or contract connected");
+//     }
 
-    setIsCreatingGroup(true);
-    try {
-      // Format the data for the contract call
-      const { formatU256 } = await import("../utils/contract");
+//     setIsCreatingGroup(true);
+//     try {
+//       // Format the data for the contract call
+//       const { formatU256 } = await import("../utils/contract");
 
-      const formattedAmount = formatU256(groupData.amount);
+//       const formattedAmount = formatU256(groupData.amount);
 
-      // Format members as proper Cairo structs
-      const formattedMembers = groupData.members.map((member) => ({
-        addr: member.addr,
-        percentage: member.percentage,
-      }));
+//       // Format members as proper Cairo structs
+//       const formattedMembers = groupData.members.map((member) => ({
+//         addr: member.addr,
+//         percentage: member.percentage,
+//       }));
 
-      console.log("Creating group with data:", {
-        name: groupData.name,
-        amount: formattedAmount,
-        members: formattedMembers,
-        tokenAddress: groupData.tokenAddress,
-      });
+//       console.log("Creating group with data:", {
+//         name: groupData.name,
+//         amount: formattedAmount,
+//         members: formattedMembers,
+//         tokenAddress: groupData.tokenAddress,
+//       });
 
-      const result = await contract.create_group(
-        groupData.name, // Pass name as string directly
-        formattedAmount,
-        formattedMembers,
-        groupData.tokenAddress
-      );
+//       const result = await contract.create_group(
+//         groupData.name, // Pass name as string directly
+//         formattedAmount,
+//         formattedMembers,
+//         groupData.tokenAddress
+//       );
 
-      console.log("Transaction result:", result);
-      return result;
-    } catch (error) {
-      console.error("Error creating group:", error);
-      throw error;
-    } finally {
-      setIsCreatingGroup(false);
-    }
-  };
+//       console.log("Transaction result:", result);
+//       return result;
+//     } catch (error) {
+//       console.error("Error creating group:", error);
+//       throw error;
+//     } finally {
+//       setIsCreatingGroup(false);
+//     }
+//   };
 
-  return {
-    createGroup,
-    isCreatingGroup,
-    account,
-  };
+//   return {
+//     createGroup,
+//     isCreatingGroup,
+//     account,
+//   };
+// };
+
+type Pool = {
+  balance: number;
+  beneficiary: { toString: (radix: number) => string };
+  create_at: string;
+  creator: { toString: (radix: number) => string };
+  donors: number;
+  id: number;
+  is_completed: boolean;
+  name: string;
+  pool_address: { toString: (radix: number) => string };
+  target: number;
 };
 
 export function useGetAllGroups() {
   interface GroupData {
     creator: string;
     date: string;
+    rawTime: string;
     name: string;
     id: string;
     usage_limit_reached: boolean;
     groupAddress: string;
-    amount:number
+    amount: number;
   }
 
   const [transaction, setTransaction] = useState<GroupData[] | undefined>(
@@ -130,7 +153,6 @@ export function useGetAllGroups() {
   const { readData: groupList } = useContractFetch(
     PAYMESH_ABI,
     "get_all_groups",
-    // @ts-expect-error array need to be empty
     []
   );
 
@@ -139,15 +161,15 @@ export function useGetAllGroups() {
     const groupData: GroupData[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     groupList.map((data: any) => {
-      console.log("DATA xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", data);
       groupData.push({
         creator: `0x0${data.creator.toString(16)}`,
         date: data.date ? epocTime(data.date.toString()) : "",
+        rawTime: data.date ? getTimeFromEpoch(data.date.toString()) : "",
         name: data.name,
         id: data.id.toString(),
         usage_limit_reached: data.usage_limit_reached,
         groupAddress: `0x0${data["group_address"].toString(16)}`,
-        amount: +data.total_amount.toString()/ONE_STK,
+        amount: +data.total_amount.toString() / ONE_STK,
       });
     });
     setTransaction(groupData);
@@ -173,8 +195,6 @@ export function useGroupMember(id: string) {
     undefined
   );
 
-  console.log("useGroupMember called with ID:", id);
-
   const { readData: member } = useContractFetch(
     PAYMESH_ABI,
     "get_group_member",
@@ -182,16 +202,11 @@ export function useGroupMember(id: string) {
   );
 
   useEffect(() => {
-    console.log("useGroupMember useEffect triggered for ID:", id);
-    console.log("Raw member data:", member);
-
     if (!member) {
-      console.log("No member data yet for ID:", id);
       return;
     }
 
     const membersData: GroupMember[] = [];
-    console.log("Processing member data for ID:", id, "Data:", member);
 
     member.forEach((data: ContractMemberData) => {
       const memberData = {
@@ -199,14 +214,43 @@ export function useGroupMember(id: string) {
         percentage: Number(data.percentage),
       };
       membersData.push(memberData);
-      console.log("Processed member data:", memberData);
     });
 
-    console.log("Final members data for ID:", id, ":", membersData);
     setGroupMember(membersData);
   }, [member, id]);
 
   return groupMember;
+}
+
+export function useGetAllPools() {
+  const [createdPool, setCreatedPool] = useState<Pool[]>();
+  const { readData: pools } = useContractFetch(
+    POOL_ABI,
+    "get_all_pools",
+    [],
+    CROWDFUNDINGADDRESS
+  );
+  useEffect(() => {
+    if (!pools) return; //
+    const poolData: Pool[] = [];
+    pools.forEach((data: Pool) => {
+      poolData.push({
+        balance: +data.balance?.toString(),
+        beneficiary: `0x0${data["beneficiary"]?.toString(16)}`,
+        pool_address: `0x0${data["pool_address"]?.toString(16)}`,
+        name: data?.name,
+        id: +data?.id.toString(),
+        donors: +data?.donors.toString(),
+        is_completed: data?.is_completed,
+        create_at: epocTime(data?.create_at?.toString()),
+        creator: `0x0${data["creator"]?.toString(16)}`,
+        target: +data?.target?.toString() / ONE_STK,
+      });
+    });
+    setCreatedPool(poolData);
+  }, [pools]);
+
+  return createdPool;
 }
 
 export function useGroupAddressHasSharesIn(address: string) {
@@ -236,7 +280,7 @@ export function useGroupAddressHasSharesIn(address: string) {
   const { readData: groupList } = useContractFetch(
     PAYMESH_ABI,
     "group_address_has_shares_in",
-    address ? [address] : ["0x0"] // ✅ Only call contract if address exists
+    address ? [address] : ["0x0"]
   );
 
   useEffect(() => {
@@ -253,21 +297,23 @@ export function useGroupAddressHasSharesIn(address: string) {
       });
     });
     setTransaction(groupData);
-  }, [groupList, address]); // ✅ Add address to dependencies
+  }, [groupList, address]);
 
   return { transaction };
 }
 
+export interface GroupData {
+  creator: string;
+  date: string;
+  rawTime?: string;
+  name: string;
+  id: string;
+  usage_limit_reached: boolean;
+  groupAddress: string;
+}
+
 export function useAddressCreatedGroups() {
-  const {address} = useAccount()
-  interface GroupData {
-    creator: string;
-    date: string;
-    name: string;
-    id: string;
-    usage_limit_reached: boolean;
-    groupAddress: string;
-  }
+  const { address } = useAccount();
 
   interface ContractGroupData {
     creator: { toString: (radix: number) => string };
@@ -286,7 +332,7 @@ export function useAddressCreatedGroups() {
   const { readData: groupList } = useContractFetch(
     PAYMESH_ABI,
     "get_groups_created_by_address",
-    address ? [address] : ["0x0"] // ✅ Only call contract if address exists
+    address ? [address] : ["0x0"]
   );
 
   useEffect(() => {
@@ -296,6 +342,7 @@ export function useAddressCreatedGroups() {
       groupData.push({
         creator: `0x0${data.creator.toString(16)}`,
         date: data.date ? epocTime(data.date.toString()) : "",
+        rawTime: data.date ? getTimeFromEpoch(data.date.toString()) : "",
         name: data.name,
         id: data.id.toString(),
         usage_limit_reached: data.usage_limit_reached,
@@ -303,16 +350,13 @@ export function useAddressCreatedGroups() {
       });
     });
     setTransaction(groupData);
-  }, [groupList, address]); // ✅ Add address to dependencies
+  }, [groupList, address]);
 
   return { transaction };
 }
 
-export function useGetGroupsUsage(id:number| undefined) {
-
-  const [transaction, setTransaction] = useState<undefined|string>(
-    undefined
-  );
+export function useGetGroupsUsage(id: number | undefined) {
+  const [transaction, setTransaction] = useState<undefined | string>(undefined);
   const { readData: usage } = useContractFetch(
     PAYMESH_ABI,
     "get_group_usage_paid_history",
@@ -329,11 +373,12 @@ export function useGetGroupsUsage(id:number| undefined) {
   useEffect(() => {
     if (!usage && !usageCount) return;
     const m = +usageCount.toString();
-    const count = +usage[0].toString()
-    const cal = count - m
+    const count = +usage[0].toString();
+    console.log("count", count);
+    const cal = count - m;
     const equate = cal ? `${count}/${cal}` : `${count}/${count}`;
     setTransaction(equate);
-  }, [usage,usageCount]);
+  }, [usage, usageCount]);
 
   return transaction;
 }

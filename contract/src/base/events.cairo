@@ -20,6 +20,7 @@ pub struct PoolCreated {
     pub pool_id: u256,
     pub creator: ContractAddress,
     pub pool_name: ByteArray,
+    pub target_amount: u256,
 }
 
 
@@ -72,12 +73,13 @@ pub struct PoolPaid {
     pub amount: u256,
     pub paid_by: ContractAddress,
     pub paid_at: u64,
+    pub token_address: ContractAddress,
 }
 
 #[derive(Serde, Drop, starknet::Event)]
 pub struct SubscriptionTopped {
     #[key]
-    pub group_id: u256,
+    pub group_address: ContractAddress,
     pub usage_count: u256,
 }
 
