@@ -17,8 +17,8 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const ETH_TOKEN_ADDRESS = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
   const USDT_TOKEN_ADDRESS = "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
   const USDC_TOKEN_ADDRESS = "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
-
-  const groupCache: string[] = [];
+  const groupCache: string[] = [...group_address_cache];
+  console.log(` the group cache is ${groupCache}`);
 
   return defineIndexer(StarknetStream)({
     streamUrl,
@@ -221,4 +221,15 @@ export const startingBlock = await fetch(
 )
   .then((response) => response.json())
   .then((data: any) => data.result);
+
+export const group_address_cache = await fetch(
+  `${process.env.API_URL}/all_group_addresses`,
+  {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  },
+)
+  .then((response) => response.json())
+  .then((data: any) => data);
+
 
