@@ -8,11 +8,14 @@ import {
 } from "../utils/contract";
 import { Abi } from "starknet";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
+import { POOL_ABI } from "@/abi/pool_abi";
+import { CROWDFUNDINGADDRESS } from "./blockchainWriteFunction";
 
 export function useContractFetch(
   abi: Abi,
   functionName: string,
-  args: [string | number]
+  args: (string | number)[],
+  contract_address: string = PAYMESH_ADDRESS
 ) {
   const {
     data: readData,
@@ -24,7 +27,8 @@ export function useContractFetch(
   } = useReadContract({
     abi: abi,
     functionName: functionName,
-    address: PAYMESH_ADDRESS,
+    // @ts-expect-error 0x0 error
+    address: contract_address,
     args: args,
     refetchInterval: 600000,
   });
@@ -118,6 +122,19 @@ export function useContractFetch(
 //   };
 // };
 
+type Pool = {
+  balance: number;
+  beneficiary: { toString: (radix: number) => string };
+  create_at: string;
+  creator: { toString: (radix: number) => string };
+  donors: number;
+  id: number;
+  is_completed: boolean;
+  name: string;
+  pool_address: { toString: (radix: number) => string };
+  target: number;
+};
+
 export function useGetAllGroups() {
   interface GroupData {
     creator: string;
@@ -136,7 +153,6 @@ export function useGetAllGroups() {
   const { readData: groupList } = useContractFetch(
     PAYMESH_ABI,
     "get_all_groups",
-    // @ts-expect-error array need to be empty
     []
   );
 
@@ -186,14 +202,11 @@ export function useGroupMember(id: string) {
   );
 
   useEffect(() => {
-
-
     if (!member) {
       return;
     }
 
     const membersData: GroupMember[] = [];
-
 
     member.forEach((data: ContractMemberData) => {
       const memberData = {
@@ -207,6 +220,37 @@ export function useGroupMember(id: string) {
   }, [member, id]);
 
   return groupMember;
+}
+
+export function useGetAllPools() {
+  const [createdPool, setCreatedPool] = useState<Pool[]>();
+  const { readData: pools } = useContractFetch(
+    POOL_ABI,
+    "get_all_pools",
+    [],
+    CROWDFUNDINGADDRESS
+  );
+  useEffect(() => {
+    if (!pools) return; //
+    const poolData: Pool[] = [];
+    pools.forEach((data: Pool) => {
+      poolData.push({
+        balance: +data.balance?.toString(),
+        beneficiary: `0x0${data["beneficiary"]?.toString(16)}`,
+        pool_address: `0x0${data["pool_address"]?.toString(16)}`,
+        name: data?.name,
+        id: +data?.id.toString(),
+        donors: +data?.donors.toString(),
+        is_completed: data?.is_completed,
+        create_at: epocTime(data?.create_at?.toString()),
+        creator: `0x0${data["creator"]?.toString(16)}`,
+        target: +data?.target?.toString() / ONE_STK,
+      });
+    });
+    setCreatedPool(poolData);
+  }, [pools]);
+
+  return createdPool;
 }
 
 export function useGroupAddressHasSharesIn(address: string) {
@@ -236,7 +280,7 @@ export function useGroupAddressHasSharesIn(address: string) {
   const { readData: groupList } = useContractFetch(
     PAYMESH_ABI,
     "group_address_has_shares_in",
-    address ? [address] : ["0x0"] 
+    address ? [address] : ["0x0"]
   );
 
   useEffect(() => {
@@ -253,7 +297,7 @@ export function useGroupAddressHasSharesIn(address: string) {
       });
     });
     setTransaction(groupData);
-  }, [groupList, address]); 
+  }, [groupList, address]);
 
   return { transaction };
 }
@@ -288,7 +332,7 @@ export function useAddressCreatedGroups() {
   const { readData: groupList } = useContractFetch(
     PAYMESH_ABI,
     "get_groups_created_by_address",
-    address ? [address] : ["0x0"] 
+    address ? [address] : ["0x0"]
   );
 
   useEffect(() => {
@@ -306,7 +350,7 @@ export function useAddressCreatedGroups() {
       });
     });
     setTransaction(groupData);
-  }, [groupList, address]); 
+  }, [groupList, address]);
 
   return { transaction };
 }

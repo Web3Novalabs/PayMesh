@@ -7,6 +7,13 @@ import FundingDetailsModal from "./components/FundingDetailsModal";
 import WalletConnect from "@/app/components/WalletConnect";
 import { useAccount } from "@starknet-react/core";
 import ComingSoon from "./components/ComingSoon";
+import {
+  useContractFetch,
+  useGetAllPools,
+} from "@/hooks/useContractInteraction";
+import { POOL_ABI } from "@/abi/pool_abi";
+import { CROWDFUNDINGADDRESS } from "@/hooks/blockchainWriteFunction";
+import { epocTime } from "@/utils/contract";
 
 // Type definitions
 interface FundingData {
@@ -55,7 +62,9 @@ const CrowdFundPage = () => {
   const [selectedFunding, setSelectedFunding] = useState<FundingData | null>(
     null
   );
+
   const [isModalOpen, setIsModalOpen] = useState(false);
+
   const [isComingSoonOpen, setIsComingSoonOpen] = useState(false);
 
   useEffect(() => {
@@ -76,7 +85,7 @@ const CrowdFundPage = () => {
     setIsModalOpen(true);
   };
 
-  const handleFormSubmit = (formData: FormData) => {
+  const handleFormSubmit = () => {
     // Handle form submission logic here
     // After successful submission, you might want to:
     // 1. Add the new funding to the list
@@ -126,14 +135,14 @@ const CrowdFundPage = () => {
 
   return (
     <div className="min-h-screen">
-      <ComingSoon
+      {/* <ComingSoon
         isOpen={isComingSoonOpen}
         onClose={() => setIsComingSoonOpen(false)}
         title="Feature Coming Soon"
         description="This feature is in development..."
-      />
+      /> */}
 
-      <div className=" hidden">
+      <div className="">
         {/* Header Section */}
         <div className="mb-8 border-b border-[#FFFFFF0D] pb-8">
           <h1 className="text-xl font-bold text-[#DFDFE0] mb-2">

@@ -11,8 +11,11 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { ArrowLeft } from "lucide-react";
+import { create_pool } from "@/hooks/blockchainWriteFunction";
+import { useAccount } from "@starknet-react/core";
+import toast from "react-hot-toast";
 
-interface FormData {
+export interface FormData {
   name: string;
   tokenType: string;
   targetAmount: string;
@@ -21,13 +24,15 @@ interface FormData {
 
 interface CreateCrowdFundFormProps {
   onBack: () => void;
-  onSubmit: (formData: FormData) => void;
+  onSubmit: () => void;
 }
 
 const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   onBack,
   onSubmit,
 }) => {
+  const { account } = useAccount();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
     tokenType: "",
@@ -42,9 +47,14 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    // onSubmit(formData);
+    if (!account) {
+      return toast.error("Connect Wallet to continue");
+    }
+
+    create_pool(formData, account, setIsSubmitting, onSubmit);
   };
 
   return (
@@ -151,11 +161,12 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
         {/* Submit Button */}
         <div className="pt-3 pb-10 md:pb-20">
           <button
+            disabled={isSubmitting}
             type="submit"
             className="w-full sm:w-auto px-5 py-4 bg-gradient-to-r from-[#434672] to-[#755a5a] text-white font-semibold rounded-sm hover:opacity-90 transition-opacity duration-200 cursor-pointer flex items-center justify-center gap-2"
           >
             <span className="text-2xl font-bold">+</span>
-            Create Crowd Funding
+            {isSubmitting ? "creating pool....." : "Create Crowd Funding"}
           </button>
         </div>
       </form>

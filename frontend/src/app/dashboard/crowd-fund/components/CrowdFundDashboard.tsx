@@ -13,6 +13,7 @@ import Image from "next/image";
 import { Search, Users, Calendar, Handshake } from "lucide-react";
 import group1icon from "../../../../../public/PlusCircle.svg";
 import group4icon from "../../../../../public/Handshake.svg";
+import { useGetAllPools } from "@/hooks/useContractInteraction";
 
 // Sample funding data
 const fundingData = [
@@ -47,6 +48,8 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 }) => {
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  const pools = useGetAllPools();
 
   const filteredFundings = fundingData.filter((funding) => {
     const matchesSearch = funding.title
@@ -112,7 +115,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
         </div>
 
         {/* Existing Funding Cards */}
-        {filteredFundings.map((funding) => (
+        {pools?.map((funding) => (
           <div
             key={funding.id}
             className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 hover:bg-[#282e38] transition-colors duration-200"
@@ -120,10 +123,10 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
             {/* Header with Title and Progress */}
             <div className="flex justify-between items-start mb-4 border-b border-[#FFFFFF0D] pb-4">
               <h3 className="text-[#DFDFE0] font-semibold text-lg">
-                {funding.title}
+                {funding.name}
               </h3>
               <span className="bg-[#10273E] text-[#0073E6] text-xs px-2 py-1 rounded-sm">
-                {funding.progress}% Complete
+                {/* {funding.progress}% Complete */}
               </span>
             </div>
 
@@ -138,7 +141,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[#8398AD]" />
                 <span className="text-[#8398AD] text-sm">
-                  Date Created {funding.dateCreated}
+                  Date Created {funding.create_at}
                 </span>
               </div>
             </div>
@@ -148,12 +151,12 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               <div className="w-full bg-[#282e38] rounded-full h-2">
                 <div
                   className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${funding.progress}%` }}
+                  // style={{ width: `${funding.progress}%` }}
                 ></div>
               </div>
               <div className="flex justify-between text-xs text-[#8398AD] mt-1">
-                <span>{funding.currentAmount}</span>
-                <span>{funding.targetAmount}</span>
+                {/* <span>{funding.currentAmount}</span>
+                <span>{funding.targetAmount}</span> */}
               </div>
             </div>
 

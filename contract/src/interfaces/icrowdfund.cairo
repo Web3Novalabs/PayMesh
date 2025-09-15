@@ -26,6 +26,8 @@ pub trait ICrowdFund<TContractState> {
     fn get_pool_token_balance(self: @TContractState, pool_address: ContractAddress) -> Token;
     // get a pool target by pool id
     fn get_pool_target(self: @TContractState, pool_id: u256) -> u256;
+    //get pool creating fee
+    fn get_pool_creation_fee(self: @TContractState)->u256;
     // check if a pool is completed by pool id
     fn is_pool_completed(self: @TContractState, pool_id: u256) -> bool;
     // set the platform percentage

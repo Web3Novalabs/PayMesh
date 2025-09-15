@@ -240,7 +240,9 @@ pub mod CrowdFund {
             }
             pools
         }
-
+fn get_pool_creation_fee(self: @ContractState)->u256{
+    self.pool_usage_fee.read()
+}
         fn get_pool(self: @ContractState, pool_id: u256) -> Pool {
             let pool: Pool = self.pools.read(pool_id);
             pool
