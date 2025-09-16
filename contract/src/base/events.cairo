@@ -69,7 +69,7 @@ pub struct GroupPaid {
 #[derive(Serde, Drop, starknet::Event)]
 pub struct PoolPaid {
     #[key]
-    pub pool_id: u256,
+    pub pool_address: ContractAddress,
     pub amount: u256,
     pub paid_by: ContractAddress,
     pub paid_at: u64,

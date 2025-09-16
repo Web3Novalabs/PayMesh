@@ -253,6 +253,34 @@ export function useGetAllPools() {
   return createdPool;
 }
 
+export function useGetPool(id: string) {
+  const [createdPool, setCreatedPool] = useState<Pool>();
+  const { readData: pool } = useContractFetch(
+    POOL_ABI,
+    "get_pool",
+    [id],
+    CROWDFUNDINGADDRESS
+  );
+  useEffect(() => {
+    if (!pool) return;
+
+    setCreatedPool({
+      balance: +pool.balance?.toString(),
+      beneficiary: `0x0${pool["beneficiary"]?.toString(16)}`,
+      pool_address: `0x0${pool["pool_address"]?.toString(16)}`,
+      name: pool?.name,
+      id: +pool?.id.toString(),
+      donors: +pool?.donors.toString(),
+      is_completed: pool?.is_completed,
+      create_at: epocTime(pool?.create_at?.toString()),
+      creator: `0x0${pool["creator"]?.toString(16)}`,
+      target: +pool?.target?.toString() / ONE_STK,
+    });
+  }, [pool]);
+
+  return createdPool;
+}
+
 export function useGroupAddressHasSharesIn(address: string) {
   interface GroupData {
     creator: string;

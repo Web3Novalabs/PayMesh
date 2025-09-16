@@ -77,8 +77,6 @@ pub mod CrowdFund {
         #[substorage(v0)]
         src5: SRC5Component::Storage,
         token_address: ContractAddress,
-        supported_tokens: Map<u256, ContractAddress>, // id -> token address
-        token_count: u256,
         child_contract_class_hash: ClassHash,
         pool_addresses: Map<u256, ContractAddress>, // pool_id -> child_contract_address
         pool_addresses_map: Map<ContractAddress, u256>, // child_contract_address ->  pool_id
@@ -242,9 +240,9 @@ pub mod CrowdFund {
             }
             pools
         }
-fn get_pool_creation_fee(self: @ContractState)->u256{
-    self.pool_usage_fee.read()
-}
+        fn get_pool_creation_fee(self: @ContractState) -> u256 {
+            self.pool_usage_fee.read()
+        }
         fn get_pool(self: @ContractState, pool_id: u256) -> Pool {
             let pool: Pool = self.pools.read(pool_id);
             pool
@@ -345,45 +343,61 @@ fn get_pool_creation_fee(self: @ContractState)->u256{
             assert(pool_id != 0, 'pool id is 0');
             let mut pool = self.pools.read(pool_id);
             let caller = get_caller_address();
-
-            let caller = pool.beneficiary == caller
+        
+            let is_authorized = pool.beneficiary == caller
                 || caller == pool.creator
                 || self.accesscontrol.has_role(ADMIN_ROLE, caller);
-            assert(caller, 'not creator, member or admin');
-
+            assert(is_authorized, 'not creator, member or admin');
+        
             let len = self.token_count.read();
             let current_balance = self._check_token_balance_of_child(pool_address);
             assert(current_balance >= pool.target, 'target not reach yet');
+            
             for i in 1..=len {
                 let token_address: ContractAddress = self.supported_tokens.read(i);
                 let balance = self
                     ._check_token_balance_of_pool_by_tokens(pool_address, token_address);
-
-                // calculate platform % and send to platform
-                let platform_fee = current_balance * self.platform_percentage.read() / 100;
+        
                 if balance > 0 {
                     let token = IERC20Dispatcher { contract_address: token_address };
-                    token.transfer_from(pool_address, get_contract_address(), platform_fee);
-                    // remaining balance after platform fee
-                    let remaining_balance = self._check_token_balance_of_child(pool_address);
-                    token.transfer_from(pool_address, pool.beneficiary, remaining_balance);
-
-                    // check the contract balance after paymesh
-                    let group_balance_after_paymesh = token.balance_of(pool_address);
-                    assert(group_balance_after_paymesh == 0, 'balance shuld b 0 after');
-
-                    self
-                        .emit(
-                            Event::PoolPaid(
-                                PoolPaid {
-                                    pool_id: pool_id,
-                                    amount: current_balance,
-                                    paid_by: get_caller_address(),
-                                    paid_at: get_block_timestamp(),
-                                    token_address,
-                                },
-                            ),
-                        );
+                    
+                    // Method 2: Alternative - multiply first, then divide (more precise for other percentages)
+                    let platform_percentage = balance * self.platform_percentage.read();
+                    let platform_fee = platform_percentage / 100;
+                    
+                    // Ensure we have enough balance (this should prevent underflow)
+                    assert(balance > platform_fee, 'insufficient balance for fee');
+                    let remaining_balance = balance - platform_fee;
+                    
+                    // Verify the math adds up
+                    assert(platform_fee + remaining_balance == balance, 'math error');
+                    
+                    // Transfer platform fee to contract
+                    if platform_fee > 0 {
+                        token.transfer_from(pool_address, get_contract_address(), platform_fee);
+                    }
+                    
+                    // Transfer remaining balance to beneficiary  
+                    if remaining_balance > 0 {
+                        token.transfer_from(pool_address, pool.beneficiary, remaining_balance);
+                    }
+        
+                    // Verify pool is empty after transfers
+                    let pool_balance_after = token.balance_of(pool_address);
+                    assert(pool_balance_after == 0, 'pool not empty after transfer');
+        
+                    // Emit event
+                    self.emit(
+                        Event::PoolPaid(
+                            PoolPaid {
+                                pool_address: pool_address,
+                                amount: balance,
+                                paid_by: get_caller_address(),
+                                paid_at: get_block_timestamp(),
+                                token_address,
+                            },
+                        ),
+                    );
                 }
                 let mut pool = self.pools.read(pool_id);
 

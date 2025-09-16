@@ -12,9 +12,10 @@ import {
   X,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-import { useGetAllPools } from "@/hooks/useContractInteraction";
+import { useGetAllPools, useGetPool } from "@/hooks/useContractInteraction";
 import { useAccount } from "@starknet-react/core";
 import WalletConnect from "@/app/components/WalletConnect";
+import { donate } from "@/hooks/blockchainWriteFunction";
 
 // Sample funding data - in real app, this would come from API
 const sampleFundingData = [
@@ -55,15 +56,23 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
 }) => {
   const [amount, setAmount] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
-
+  const { id } = useParams();
+  const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
+  const { account, address } = useAccount();
+  console.log(pool);
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseFloat(amount);
     if (numAmount > 0) {
-      onContribute(numAmount, isAnonymous);
-      setAmount("");
-      setIsAnonymous(false);
-      onClose();
+      // onContribute(numAmount, isAnonymous);
+      // setAmount("");
+      // setIsAnonymous(false);
+      // onClose();
+      donate(
+        typeof pool?.pool_address === "string" ? pool.pool_address : "",
+        numAmount,
+        account
+      );
     }
   };
 
@@ -163,9 +172,12 @@ const FundingDetailsPage = () => {
   const params = useParams();
   const { address } = useAccount();
   const isWalletConnected = !!address;
+  const { id } = useParams();
+  const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
+  console.log(pool);
 
   const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
-  const [funding, setFunding] = useState<any>(null);
+  // const [funding, setFunding] = useState<any>(null);
 
   const fundingId = params.id ? parseInt(params.id as string) : null;
 
@@ -173,7 +185,7 @@ const FundingDetailsPage = () => {
     if (fundingId) {
       // In real app, fetch from API using fundingId
       const foundFunding = sampleFundingData.find((f) => f.id === fundingId);
-      setFunding(foundFunding || null);
+      // setFunding(foundFunding || null);
     }
   }, [fundingId]);
 
@@ -211,7 +223,7 @@ const FundingDetailsPage = () => {
     );
   }
 
-  if (!funding) {
+  if (!pool) {
     return (
       <div className="min-h-[50vh] text-white p-6 flex items-center justify-center">
         <div className="text-center">
@@ -243,9 +255,7 @@ const FundingDetailsPage = () => {
           <ArrowLeft className="w-4 h-4" />
           Back to Crowd Fundings
         </button>
-        <h1 className="text-2xl font-bold text-[#DFDFE0] mb-2">
-          {funding.title}
-        </h1>
+        <h1 className="text-2xl font-bold text-[#DFDFE0] mb-2">{pool.name}</h1>
         <p className="text-[#8398AD] text-base">
           Help us reach our funding goal
         </p>
@@ -262,7 +272,7 @@ const FundingDetailsPage = () => {
                   Progress
                 </span>
                 <span className="bg-blue-600 text-white text-sm px-3 py-1 rounded-sm">
-                  {funding.progress}% Complete
+                  {/* {funding.progress}% Complete */}
                 </span>
               </div>
 
@@ -270,12 +280,12 @@ const FundingDetailsPage = () => {
                 <div className="w-full bg-[#282e38] rounded-full h-4">
                   <div
                     className="bg-blue-600 h-4 rounded-full transition-all duration-300"
-                    style={{ width: `${funding.progress}%` }}
+                    // style={{ width: `${funding.progress}%` }}
                   ></div>
                 </div>
                 <div className="flex justify-between text-sm text-[#8398AD]">
-                  <span>Raised: {funding.currentAmount}</span>
-                  <span>Target: {funding.targetAmount}</span>
+                  <span>Raised: {pool.balance}</span>
+                  <span>Target: {pool.target}</span>
                 </div>
               </div>
             </div>
@@ -287,7 +297,7 @@ const FundingDetailsPage = () => {
               Description
             </h3>
             <p className="text-[#8398AD] text-sm leading-relaxed">
-              {funding.description}
+              {/* {funding.description} */}
             </p>
           </div>
         </div>
@@ -303,7 +313,7 @@ const FundingDetailsPage = () => {
               <div className="flex items-center gap-3">
                 <Users className="w-5 h-5 text-[#8398AD]" />
                 <div>
-                  <p className="text-[#DFDFE0] font-medium">{funding.donors}</p>
+                  <p className="text-[#DFDFE0] font-medium">{pool.donors}</p>
                   <p className="text-[#8398AD] text-sm">Total Donors</p>
                 </div>
               </div>
@@ -311,9 +321,7 @@ const FundingDetailsPage = () => {
               <div className="flex items-center gap-3">
                 <Calendar className="w-5 h-5 text-[#8398AD]" />
                 <div>
-                  <p className="text-[#DFDFE0] font-medium">
-                    {funding.dateCreated}
-                  </p>
+                  <p className="text-[#DFDFE0] font-medium">{pool.create_at}</p>
                   <p className="text-[#8398AD] text-sm">Date Created</p>
                 </div>
               </div>
@@ -321,9 +329,7 @@ const FundingDetailsPage = () => {
               <div className="flex items-center gap-3">
                 <DollarSign className="w-5 h-5 text-[#8398AD]" />
                 <div>
-                  <p className="text-[#DFDFE0] font-medium">
-                    {funding.currentAmount}
-                  </p>
+                  <p className="text-[#DFDFE0] font-medium">{pool.balance}</p>
                   <p className="text-[#8398AD] text-sm">Amount Raised</p>
                 </div>
               </div>
@@ -331,9 +337,7 @@ const FundingDetailsPage = () => {
               <div className="flex items-center gap-3">
                 <Target className="w-5 h-5 text-[#8398AD]" />
                 <div>
-                  <p className="text-[#DFDFE0] font-medium">
-                    {funding.targetAmount}
-                  </p>
+                  <p className="text-[#DFDFE0] font-medium">{pool.target}</p>
                   <p className="text-[#8398AD] text-sm">Target Amount</p>
                 </div>
               </div>

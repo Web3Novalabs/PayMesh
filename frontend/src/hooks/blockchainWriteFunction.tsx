@@ -100,3 +100,74 @@ export const create_pool = async (
     setIsSubmitting(false);
   }
 };
+
+export const donate = async (
+  pool_address: string,
+  amount: number,
+  account: AccountInterface | undefined
+): Promise<void> => {
+  // handler();
+  try {
+    console.log("Blockchain function - Starting donation");
+
+    if (account != undefined) {
+      const Call = {
+        contractAddress: CROWDFUNDINGADDRESS,
+        entrypoint: "paymesh_donate",
+        calldata: CallData.compile({
+          pool_address: pool_address,
+          amount: cairo.uint256(amount * ONE_STK),
+        }),
+      };
+      console.log(Call);
+      const approveCall = {
+        contractAddress:
+          "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d", // strk address
+        entrypoint: "approve",
+        calldata: [
+          CROWDFUNDINGADDRESS, // spender
+          cairo.uint256(amount * ONE_STK),
+        ],
+      };
+      const multicallData = [approveCall, Call];
+      const feeDetails: PaymasterDetails = {
+        feeMode: {
+          mode: "sponsored",
+        },
+      };
+
+      const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        [...multicallData],
+        feeDetails
+      );
+
+      const result = await account?.executePaymasterTransaction(
+        [...multicallData],
+        feeDetails,
+        feeEstimation?.suggested_max_fee_in_gas_token
+      );
+      //   const result = await account.execute(multicallData);
+
+      const status = await myProvider.waitForTransaction(
+        result?.transaction_hash as string
+      );
+      //   setIsOpen(true);
+      console.log("Blockchain function - Setting isSuccess to true");
+      //   setIsSuccess(true);
+      //   onSubmit();
+      console.log(result);
+
+      console.log(status);
+      console.log("Blockchain function - Successfully completed");
+    }
+  } catch (error) {
+    console.error("Blockchain function - Error occurred:", error);
+    // setIsError(true);
+    toast.error("error creating a pool");
+  } finally {
+    console.log(
+      "Blockchain function - Finally block, setting isSubmitting to false"
+    );
+    // setIsSubmitting(false);
+  }
+};
