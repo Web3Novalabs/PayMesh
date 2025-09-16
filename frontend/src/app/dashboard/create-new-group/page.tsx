@@ -640,6 +640,7 @@ const CreateNewGroup = () => {
               <p className="text-[#E2E2E2] text-xs sm:text-[15px]">
                 Total percentage must equal
               </p>
+
               <div className="text-[#E2E2E2] text-xs sm:text-[15px]">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700"></span>

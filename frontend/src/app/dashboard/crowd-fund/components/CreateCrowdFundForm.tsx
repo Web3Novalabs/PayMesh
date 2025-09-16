@@ -35,6 +35,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   const { account } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [poolAddress, setPoolAddress] = useState("");
 
   // Debug logging
   React.useEffect(() => {
@@ -78,8 +79,15 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
     // Reset success state before creating new pool
     console.log("Setting isSuccess to false before creating pool");
     setIsSuccess(false);
+    setPoolAddress(""); // Reset pool address
     console.log("Calling create_pool function");
-    create_pool(formData, account, setIsSubmitting, setIsSuccess);
+    create_pool(
+      formData,
+      account,
+      setIsSubmitting,
+      setIsSuccess,
+      setPoolAddress
+    );
   };
 
   const resetForm = () => {
@@ -90,6 +98,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
       walletAddress: "",
     });
     setIsSubmitting(false);
+    setPoolAddress("");
     onSubmit();
     setCopySuccess(false);
   };
@@ -233,11 +242,11 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
       {isSuccess && (
         <>
           {console.log(
-            "Rendering QRcodeCrowdfund - isSuccess is true, groupAddress:",
-            formData.walletAddress
+            "Rendering QRcodeCrowdfund - isSuccess is true, poolAddress:",
+            poolAddress
           )}
           <QRcodeCrowdfund
-            groupAddress={formData.walletAddress}
+            fundAddress={poolAddress || formData.walletAddress}
             groupBalance="0"
             isLoadingBalance={false}
             copySuccess={copySuccess}
