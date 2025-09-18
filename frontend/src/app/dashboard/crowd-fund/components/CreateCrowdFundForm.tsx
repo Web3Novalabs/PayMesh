@@ -15,9 +15,11 @@ import { useAccount } from "@starknet-react/core";
 import toast from "react-hot-toast";
 import Loading from "../../components/Loading";
 import QRcodeCrowdfund from "../../components/QRcodeCrowdfund";
+import { Textarea } from "@/components/ui/textarea";
 
 export interface FormData {
   name: string;
+  description: string;
   tokenType: string;
   targetAmount: string;
   walletAddress: string;
@@ -45,6 +47,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   const [copySuccess, setCopySuccess] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     name: "",
+    description: "",
     tokenType: "",
     targetAmount: "",
     walletAddress: "",
@@ -93,6 +96,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   const resetForm = () => {
     setFormData({
       name: "",
+      description: "",
       tokenType: "",
       targetAmount: "",
       walletAddress: "",
@@ -140,6 +144,18 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
               placeholder="Enter name for your crowd funding"
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
+              className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-[#E2E2E2]">
+              Description
+            </label>
+            <Textarea
+              placeholder="Enter description for your crowd funding"
+              value={formData.description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
               className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
             />
           </div>

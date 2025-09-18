@@ -16,6 +16,9 @@ import { useAccount } from "@starknet-react/core";
 import WalletConnect from "@/app/components/WalletConnect";
 import { donate } from "@/hooks/blockchainWriteFunction";
 import { toast } from "react-hot-toast";
+import QRcodeCrowdfund from "@/app/dashboard/components/QRcodeCrowdfund";
+import { poolAddrQr } from "@/hooks/blockchainWriteFunction";
+import QRCode from "react-qr-code";
 
 interface ContributeModalProps {
   isOpen: boolean;
@@ -193,6 +196,16 @@ const FundingDetailsPage = () => {
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   console.log(pool);
 
+  const crowdFundingAddr: string = pool?.pool_address
+    ? (pool.pool_address as bigint).toString()
+    : "";
+
+  console.log(
+    "this is for you xxXXXXXXXxxxxxxXXXXXX",
+    crowdFundingAddr,
+    pool?.pool_address
+  );
+
   // const targetReached = pool
   //   ? Number.parseFloat(pool.balance.toString()) / 1e18 >=
   //     Number.parseFloat(pool.target.toString())
@@ -253,7 +266,7 @@ const FundingDetailsPage = () => {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen mb-10">
       {/* Header */}
       <div className="mb-8 border-b border-[#FFFFFF0D] pb-8">
         <button
@@ -392,6 +405,20 @@ const FundingDetailsPage = () => {
             >
               Contribute Now
             </button>
+          </div>
+
+          <div className="mb-4 sm:mb-6 text-center bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 flex flex-col items-center justify-center">
+            <div className="inline-block w-full p-2 sm:p-3 bg-[#fffffffe] border-2 border-[#434672d8] rounded-lg">
+              <QRCode
+                value={crowdFundingAddr}
+                size={160}
+                level="H"
+                className="w-40 h-40 sm:w-full sm:h-48 lg:w-full lg:h-50"
+              />
+            </div>
+            <p className="text-xs sm:text-sm text-[#e2e2e2] mt-2">
+              Scan this QR code to get the fund address
+            </p>
           </div>
         </div>
       </div>

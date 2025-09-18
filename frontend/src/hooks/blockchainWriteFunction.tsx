@@ -11,11 +11,13 @@ import {
 } from "starknet";
 
 export const CROWDFUNDINGADDRESS =
-  "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d"; // mainnet
+  "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; // mainnet
 //   "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; //sepolia
 type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
 type SetPoolAddress = (address: string) => void;
+
+export let poolAddrQr: string = "";
 
 export const create_pool = async (
   formData: FormData,
@@ -91,6 +93,7 @@ export const create_pool = async (
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const poolAddress = (status as any)?.events?.[3]?.data?.[0];
+      poolAddrQr = poolAddress as string;
 
       console.log("Pool address extracted:", poolAddress);
       setPoolAddress(poolAddress as string);
