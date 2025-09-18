@@ -83,7 +83,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
     console.log("Setting isSuccess to false before creating pool");
     setIsSuccess(false);
     setPoolAddress(""); // Reset pool address
-    console.log("Calling create_pool function");
+    console.log("Calling create_pool function", formData);
     create_pool(
       formData,
       account,

@@ -133,6 +133,7 @@ type Pool = {
   name: string;
   pool_address: { toString: (radix: number) => string };
   target: number;
+  description: string;
 };
 
 export function useGetAllGroups() {
@@ -230,6 +231,7 @@ export function useGetAllPools() {
     [],
     CROWDFUNDINGADDRESS
   );
+  console.log("pools ", pools);
   useEffect(() => {
     if (!pools) return; //
     const poolData: Pool[] = [];
@@ -275,6 +277,7 @@ export function useGetPool(id: string) {
       create_at: epocTime(pool?.create_at?.toString()),
       creator: `0x0${pool["creator"]?.toString(16)}`,
       target: +pool?.target?.toString() / ONE_STK,
+      description: pool?.description,
     });
   }, [pool]);
 

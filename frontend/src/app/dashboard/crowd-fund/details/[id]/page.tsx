@@ -48,18 +48,19 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
         numAmount,
         account,
         setIsLoading,
-        setIsSuccessT,
-        () => {
-          // onSuccess callback
-          toast.success("Contribution successful!");
-          setAmount("");
-          setIsAnonymous(false);
-          onClose();
-        },
-        (errorMessage) => {
-          // onError callback
-          toast.error(`Donation failed: ${errorMessage}`);
-        }
+        isAnonymous
+        // setIsSuccessT,
+        // () => {
+        //   // onSuccess callback
+        //   toast.success("Contribution successful!");
+        //   setAmount("");
+        //   setIsAnonymous(false);
+        //   onClose();
+        // },
+        // (errorMessage) => {
+        //   // onError callback
+        //   toast.error(`Donation failed: ${errorMessage}`);
+        // }
       );
     }
   };
@@ -337,7 +338,7 @@ const FundingDetailsPage = () => {
               Description
             </h3>
             <p className="text-[#8398AD] text-sm leading-relaxed">
-              {/* {funding.description} */} No description
+              {pool?.description} No description
             </p>
           </div>
         </div>

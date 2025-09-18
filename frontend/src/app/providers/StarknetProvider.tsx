@@ -9,8 +9,7 @@ import { mainnet, sepolia } from "@starknet-react/chains";
 import { jsonRpcProvider } from "@starknet-react/core";
 
 const chains = [sepolia];
-// const chains = [sepolia];
-
+// const chains = [mainnet];
 const connectors = [
   new InjectedConnector({ options: { id: "braavos" } }),
   new InjectedConnector({ options: { id: "argentX" } }),

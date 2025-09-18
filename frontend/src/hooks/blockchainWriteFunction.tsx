@@ -11,14 +11,19 @@ import {
 } from "starknet";
 
 export const CROWDFUNDINGADDRESS =
-  "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; // mainnet
-//   "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; //sepolia
+  "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0";
+// "0x045018b1c2eaf173faf6ca864b5d6badf8fd86d1945215eee0bb0fa3b133f5e8"; // sepolia
+// "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d";
+// "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; // mainnet
+// "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; //sepolia
 type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
 type SetPoolAddress = (address: string) => void;
 
 export let poolAddrQr: string = "";
-
+function removeNonASCII(text: string) {
+  return text.replace(/[^\x00-\x7F]/g, "");
+}
 export const create_pool = async (
   formData: FormData,
   account: AccountInterface,
@@ -26,10 +31,15 @@ export const create_pool = async (
   setIsSuccess: SetIsSuccess,
   setPoolAddress: SetPoolAddress
 ): Promise<void> => {
-  const { walletAddress, name, targetAmount } = formData;
+  const { walletAddress, name, targetAmount, description } = formData;
 
   if (!name) {
     toast.error("pool name is required!");
+    return;
+  }
+
+  if (!description) {
+    toast.error("pool descrion with character lenth min 150 is required!");
     return;
   }
   if (!targetAmount) {
@@ -40,13 +50,18 @@ export const create_pool = async (
     toast.error("input a valid contract address");
     return;
   }
+  const formated_description = removeNonASCII(description);
 
   // handler();
   try {
-    console.log("Blockchain function - Starting create_pool");
+    console.log(
+      "Blockchain function - Starting create_pool"
+      // formated_description
+    );
     setIsSubmitting(true);
 
     if (account != undefined) {
+      console.log("hey");
       const Call = {
         contractAddress: CROWDFUNDINGADDRESS,
         entrypoint: "create_pool",
@@ -54,6 +69,7 @@ export const create_pool = async (
           name: byteArray.byteArrayFromString(name),
           target: cairo.uint256(+targetAmount * ONE_STK),
           beneficiary: walletAddress,
+          description: byteArray.byteArrayFromString(formated_description),
         }),
       };
       console.log(Call);
@@ -63,12 +79,13 @@ export const create_pool = async (
         entrypoint: "approve",
         calldata: [
           CROWDFUNDINGADDRESS, // spender
-          //   cairo.uint256(ONE_STK),
-          "1000000000000000000",
-          "0",
+          cairo.uint256(ONE_STK),
+          // "1000000000000000000",
+          // "0",
         ],
       };
       const multicallData = [approveCall, Call];
+      console.log(multicallData);
       //   const feeDetails: PaymasterDetails = {
       //     feeMode: {
       //       mode: "sponsored",
@@ -203,42 +220,95 @@ export const create_pool = async (
 //     // setIsSubmitting(false);
 //   }
 // };
-
+type SetIsLoading = (isSubmitting: boolean) => void;
+type OnSuccess = (isSubmitting: boolean) => void;
+type OnError = (isSubmitting: string) => void;
 export const donate = async (
   pool_address: string,
   amount: number,
   account: AccountInterface | undefined,
   setIsLoading: SetIsLoading,
-  setIsSuccess: SetIsSuccess,
-  onSuccess: OnSuccess,
-  onError: OnError
+  isAnonymous: boolean
+  // setIsSuccess: SetIsSuccess,
+  // onSuccess: OnSuccess,
+  // onError: OnError
 ): Promise<void> => {
   const sdk = new TyphoonSDK();
   const STRK_ADDR =
-    "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+    "0x52aecc8358313bd9bce6303b3152f8951723654d7e8dc2a6d55b291b8989976";
+  // "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
   try {
     console.log("Blockchain function - Starting donation");
     setIsLoading(true);
-
+    console.log("hey");
     if (account != undefined) {
-      const calls = await sdk.generate_approve_and_deposit_calls(
-        BigInt(+amount * ONE_STK),
-        STRK_ADDR
-      );
-      console.log(calls);
-      const multicall = await account.execute(calls);
+      if (isAnonymous) {
+        const calls = await sdk.generate_approve_and_deposit_calls(
+          BigInt(+amount * ONE_STK),
+          STRK_ADDR
+        );
+        console.log(calls);
+        const multicall = await account.execute(calls);
 
-      const download = await sdk.download_notes(multicall.transaction_hash);
-      console.log("download", download);
-      const result1 = await account.waitForTransaction(
-        multicall.transaction_hash
-      );
-      console.log("result1", result1);
-      const withdraw = await sdk.withdraw(multicall.transaction_hash, [
-        pool_address,
-      ]);
-      console.log("widthdraw", withdraw);
+        const download = await sdk.download_notes(multicall.transaction_hash);
+        console.log("download", download);
+        const result1 = await account.waitForTransaction(
+          multicall.transaction_hash
+        );
+        console.log("result1", result1);
+        const withdraw = await sdk.withdraw(multicall.transaction_hash, [
+          pool_address,
+        ]);
+        console.log("widthdraw", withdraw);
+      } else {
+        console.log("hello mate");
+        const Call = {
+          contractAddress: CROWDFUNDINGADDRESS,
+          entrypoint: "paymesh_donate",
+          calldata: CallData.compile({
+            pool_address: pool_address,
+            amount: cairo.uint256(amount * ONE_STK),
+          }),
+        };
+        console.log(Call, "input");
+        const approveCall = {
+          contractAddress:
+            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d", // strk address
+          entrypoint: "approve",
+          calldata: [
+            CROWDFUNDINGADDRESS, // spender
+            cairo.uint256(amount * ONE_STK),
+            // "1000000000000000000",
+            // "0",
+          ],
+        };
+        console.log();
+        const multicallData = [approveCall, Call];
+        // const feeDetails: PaymasterDetails = {
+        //   feeMode: {
+        //     mode: "sponsored",
+        //   },
+        // };
+
+        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        //   [...multicallData],
+        //   feeDetails
+        // );
+
+        // const result = await account?.executePaymasterTransaction(
+        //   [...multicallData],
+        //   feeDetails,
+        //   feeEstimation?.suggested_max_fee_in_gas_token
+        // );
+        const result = await account.execute(multicallData);
+        const status = await myProvider.waitForTransaction(
+          result?.transaction_hash as string
+        );
+        console.log("Blockchain function - Setting isSuccess to true");
+        console.log(status);
+        console.log("Blockchain function - Successfully completed");
+      }
       console.log("Blockchain function - Setting isSuccess to true");
       console.log("Blockchain function - Successfully completed");
     }
@@ -246,7 +316,7 @@ export const donate = async (
     console.error("Blockchain function - Error occurred:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
-    onError(errorMessage);
+    // onError(errorMessage);
     toast.error("Error making donation");
   } finally {
     console.log(
@@ -255,3 +325,28 @@ export const donate = async (
     setIsLoading(false);
   }
 };
+// export const donate = async (
+//   pool_address: string,
+//   amount: number,
+//   account: AccountInterface | undefined
+// ): Promise<void> => {
+//   const sdk = new TyphoonSDK();
+//   const STRK_ADDR =
+//     "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+
+//   try {
+//     console.log("Blockchain function - Starting donation");
+
+//     if (account != undefined) {
+//     }
+//   } catch (error) {
+//     console.error("Blockchain function - Error occurred:", error);
+//     // setIsError(true);
+//     toast.error("error creating a pool");
+//   } finally {
+//     console.log(
+//       "Blockchain function - Finally block, setting isSubmitting to false"
+//     );
+//     // setIsSubmitting(false);
+//   }
+// };

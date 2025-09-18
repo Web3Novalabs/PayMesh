@@ -28,6 +28,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   const router = useRouter();
 
   const pools = useGetAllPools();
+  console.log(pools);
 
   const handleViewDetails = (id: number) => {
     router.push(`/dashboard/crowd-fund/details/${id}`);

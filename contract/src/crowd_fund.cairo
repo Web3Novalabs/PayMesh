@@ -236,7 +236,7 @@ pub mod CrowdFund {
             let count = self.pool_count.read();
             let mut i: u256 = 1;
             while i <= count {
-                let pool = self.pools.read(i);
+                let pool = self.get_pool(i);
                 pools.append(pool);
                 i = i + 1;
             }
@@ -246,7 +246,9 @@ pub mod CrowdFund {
             self.pool_usage_fee.read()
         }
         fn get_pool(self: @ContractState, pool_id: u256) -> Pool {
-            let pool: Pool = self.pools.read(pool_id);
+            let mut pool: Pool = self.pools.read(pool_id);
+            let balance = self.get_pool_balance(pool.pool_address);
+            pool.balance = balance;
             pool
         }
 
