@@ -151,6 +151,7 @@ pub mod CrowdFund {
             name: ByteArray,
             target_amount: u256,
             beneficiary: ContractAddress,
+            description:ByteArray,
         ) -> ContractAddress {
             assert(get_caller_address() != contract_address_const::<0>(), 'zero address');
             assert(target_amount > 1_000_000_000_000_000_000, 'target amount <= 1 STRK');
@@ -167,6 +168,7 @@ pub mod CrowdFund {
                 target: target_amount,
                 pool_address: caller,
                 is_complete: false,
+                description,
             };
 
             // Collect pool creation fee based on how much we are charging for the pool usage

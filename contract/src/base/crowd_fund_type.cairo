@@ -12,6 +12,7 @@ pub struct Pool {
     pub donors: u256,
     pub pool_address: ContractAddress,
     pub is_complete: bool,
+    pub  description:ByteArray,
 }
 
 #[derive(Serde, Drop, Debug, Clone, starknet::Store, PartialEq)]
