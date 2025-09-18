@@ -1,7 +1,7 @@
 import QRCode from "react-qr-code";
 
 interface QRcodeCrowdfundProps {
-  groupAddress: string;
+  fundAddress: string;
   groupBalance: string;
   isLoadingBalance: boolean;
   copySuccess: boolean;
@@ -10,14 +10,14 @@ interface QRcodeCrowdfundProps {
 }
 
 export default function QRcodeCrowdfund({
-  groupAddress,
+  fundAddress,
   copySuccess,
   copyToClipboard,
   resetForm,
 }: QRcodeCrowdfundProps) {
   console.log(
-    "QRcodeCrowdfund component rendering with groupAddress:",
-    groupAddress
+    "QRcodeCrowdfund component rendering with fundAddress:",
+    fundAddress
   );
   return (
     <div className="fixed inset-0 bg-[#000000a3] bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
@@ -70,26 +70,26 @@ export default function QRcodeCrowdfund({
           <div className="mb-4 sm:mb-6">
             <div className="inline-block p-2 sm:p-3 bg-[#fffffffe] border-2 border-[#434672d8] rounded-lg">
               <QRCode
-                value={groupAddress}
+                value={fundAddress}
                 size={160}
                 level="H"
                 className="w-40 h-40 sm:w-48 sm:h-48 lg:w-50 lg:h-50"
               />
             </div>
             <p className="text-xs sm:text-sm text-[#e2e2e2] mt-2">
-              Scan this QR code to get the group address
+              Scan this QR code to get the fund address
             </p>
           </div>
 
           {/* Group Address Display */}
           <div className="mb-4 sm:mb-6 rounded-lg">
             <div className="!text-left text-xs sm:text-sm font-medium text-[#8398AD] mb-2">
-              Group Address
+              Fund Address
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <input
                 type="text"
-                value={groupAddress}
+                value={fundAddress}
                 readOnly
                 className="flex-1 px-2 sm:px-3 py-2 border-gradient font-mono text-xs sm:text-sm text-[#e2e2e2] break-all"
               />
@@ -119,7 +119,7 @@ export default function QRcodeCrowdfund({
             <button
               onClick={() =>
                 window.open(
-                  `https://sepolia.starkscan.co/contract/${groupAddress}`,
+                  `https://sepolia.starkscan.co/contract/${fundAddress}`,
                   "_blank"
                 )
               }

@@ -133,7 +133,14 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               <div className="w-full bg-[#282e38] rounded-full h-2">
                 <div
                   className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
-                  // style={{ width: `${funding.progress}%` }}
+                  style={{
+                    width: `${
+                      (Number.parseFloat(funding.balance.toString()) /
+                        1e18 /
+                        Number.parseFloat(funding.target.toString())) *
+                      100
+                    }%`,
+                  }}
                 ></div>
               </div>
               <div className="flex justify-between text-xs text-[#8398AD] mt-1">

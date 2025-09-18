@@ -15,11 +15,14 @@ export const CROWDFUNDINGADDRESS =
 //   "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; //sepolia
 type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
+type SetPoolAddress = (address: string) => void;
+
 export const create_pool = async (
   formData: FormData,
   account: AccountInterface,
   setIsSubmitting: SetIsSubmitting,
-  setIsSuccess: SetIsSuccess
+  setIsSuccess: SetIsSuccess,
+  setPoolAddress: SetPoolAddress
 ): Promise<void> => {
   const { walletAddress, name, targetAmount } = formData;
 
@@ -35,6 +38,7 @@ export const create_pool = async (
     toast.error("input a valid contract address");
     return;
   }
+
   // handler();
   try {
     console.log("Blockchain function - Starting create_pool");
@@ -84,6 +88,13 @@ export const create_pool = async (
       const status = await myProvider.waitForTransaction(
         result?.transaction_hash as string
       );
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const poolAddress = (status as any)?.events?.[3]?.data?.[0];
+
+      console.log("Pool address extracted:", poolAddress);
+      setPoolAddress(poolAddress as string);
+
       //   setIsOpen(true);
       console.log("Blockchain function - Setting isSuccess to true");
       setIsSuccess(true);
@@ -193,7 +204,11 @@ export const create_pool = async (
 export const donate = async (
   pool_address: string,
   amount: number,
-  account: AccountInterface | undefined
+  account: AccountInterface | undefined,
+  setIsLoading: SetIsLoading,
+  setIsSuccess: SetIsSuccess,
+  onSuccess: OnSuccess,
+  onError: OnError
 ): Promise<void> => {
   const sdk = new TyphoonSDK();
   const STRK_ADDR =
@@ -201,6 +216,7 @@ export const donate = async (
 
   try {
     console.log("Blockchain function - Starting donation");
+    setIsLoading(true);
 
     if (account != undefined) {
       const calls = await sdk.generate_approve_and_deposit_calls(
@@ -225,12 +241,14 @@ export const donate = async (
     }
   } catch (error) {
     console.error("Blockchain function - Error occurred:", error);
-    // setIsError(true);
-    toast.error("error creating a pool");
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+    onError(errorMessage);
+    toast.error("Error making donation");
   } finally {
     console.log(
-      "Blockchain function - Finally block, setting isSubmitting to false"
+      "Blockchain function - Finally block, setting isLoading to false"
     );
-    // setIsSubmitting(false);
+    setIsLoading(false);
   }
 };
