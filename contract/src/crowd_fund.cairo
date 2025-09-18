@@ -151,7 +151,7 @@ pub mod CrowdFund {
             name: ByteArray,
             target_amount: u256,
             beneficiary: ContractAddress,
-            description:ByteArray,
+            description: ByteArray,
         ) -> ContractAddress {
             assert(get_caller_address() != contract_address_const::<0>(), 'zero address');
             assert(target_amount > 1_000_000_000_000_000_000, 'target amount <= 1 STRK');
@@ -345,61 +345,63 @@ pub mod CrowdFund {
             assert(pool_id != 0, 'pool id is 0');
             let mut pool = self.pools.read(pool_id);
             let caller = get_caller_address();
-        
+
             let is_authorized = pool.beneficiary == caller
                 || caller == pool.creator
                 || self.accesscontrol.has_role(ADMIN_ROLE, caller);
             assert(is_authorized, 'not creator, member or admin');
-        
+
             let len = self.token_count.read();
             let current_balance = self._check_token_balance_of_child(pool_address);
             assert(current_balance >= pool.target, 'target not reach yet');
-            
+
             for i in 1..=len {
                 let token_address: ContractAddress = self.supported_tokens.read(i);
                 let balance = self
                     ._check_token_balance_of_pool_by_tokens(pool_address, token_address);
-        
+
                 if balance > 0 {
                     let token = IERC20Dispatcher { contract_address: token_address };
-                    
-                    // Method 2: Alternative - multiply first, then divide (more precise for other percentages)
+
+                    // Method 2: Alternative - multiply first, then divide (more precise for other
+                    // percentages)
                     let platform_percentage = balance * self.platform_percentage.read();
                     let platform_fee = platform_percentage / 100;
-                    
+
                     // Ensure we have enough balance (this should prevent underflow)
                     assert(balance > platform_fee, 'insufficient balance for fee');
                     let remaining_balance = balance - platform_fee;
-                    
+
                     // Verify the math adds up
                     assert(platform_fee + remaining_balance == balance, 'math error');
-                    
+
                     // Transfer platform fee to contract
                     if platform_fee > 0 {
                         token.transfer_from(pool_address, get_contract_address(), platform_fee);
                     }
-                    
-                    // Transfer remaining balance to beneficiary  
+
+                    // Transfer remaining balance to beneficiary
                     if remaining_balance > 0 {
                         token.transfer_from(pool_address, pool.beneficiary, remaining_balance);
                     }
-        
+
                     // Verify pool is empty after transfers
                     let pool_balance_after = token.balance_of(pool_address);
                     assert(pool_balance_after == 0, 'pool not empty after transfer');
-        
+
                     // Emit event
-                    self.emit(
-                        Event::PoolPaid(
-                            PoolPaid {
-                                pool_address: pool_address,
-                                amount: balance,
-                                paid_by: get_caller_address(),
-                                paid_at: get_block_timestamp(),
-                                token_address,
-                            },
-                        ),
-                    );
+                    self
+                        .emit(
+                            Event::PoolPaid(
+                                PoolPaid {
+                                    pool_address: pool_address,
+                                    amount: balance,
+                                    paid_by: get_caller_address(),
+                                    paid_at: get_block_timestamp(),
+                                    token_address,
+                                },
+                            ),
+                        );
                 }
                 let mut pool = self.pools.read(pool_id);
 

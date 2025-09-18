@@ -73,7 +73,7 @@ fn test_crowd_fund_flow() {
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
     // create a pool with target amount of 5 STRK
     let pool1_address = contract_address
-        .create_pool("john doe school fee", ONE_STRK * 5, USER1_ADDR());
+        .create_pool("john doe school fee", ONE_STRK * 5, USER1_ADDR(), "hello");
     stop_cheat_caller_address(contract_address.contract_address);
 
     //contract balance after a pool creation
@@ -169,7 +169,8 @@ fn test_create_crowd_fund_pool() {
 
     // create a pool with target amount of 50 STRK
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    let pool_address = contract_address.create_pool("Crowd Fund Pool", ONE_STRK * 50, USER1_ADDR());
+    let pool_address = contract_address
+        .create_pool("Crowd Fund Pool", ONE_STRK * 50, USER1_ADDR(), "hey");
     stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance after a pool creation
@@ -204,7 +205,8 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
 
     // create a pool with target amount of 8 STRK
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    let pool_address = contract_address.create_pool("Crowd Fund Pool2", ONE_STRK * 8, USER1_ADDR());
+    let pool_address = contract_address
+        .create_pool("Crowd Fund Pool2", ONE_STRK * 8, USER1_ADDR(), "hey");
     stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance after a pool creation
@@ -308,7 +310,7 @@ fn test_paymesh_donate() {
     // create a pool with target amount of 10 STRK
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
     let pool_address = contract_address
-        .create_pool("Crowd Fund Pool3", ONE_STRK * 10, USER1_ADDR());
+        .create_pool("Crowd Fund Pool3", ONE_STRK * 10, USER1_ADDR(), "hey");
     stop_cheat_caller_address(contract_address.contract_address);
 
     // donate
@@ -360,13 +362,13 @@ fn test_get_all_pools() {
     // create a pool with target amount of 10 STRK
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
     let pool_address0 = contract_address
-        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR(), "kelv");
     stop_cheat_caller_address(contract_address.contract_address);
 
     // create another pool with target amount of 10 STRK
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
     let pool_address1 = contract_address
-        .create_pool("Crowd Fund Pool5", ONE_STRK * 10, USER1_ADDR());
+        .create_pool("Crowd Fund Pool5", ONE_STRK * 10, USER1_ADDR(), "visa application");
     stop_cheat_caller_address(contract_address.contract_address);
 
     // the names of the pools
@@ -424,7 +426,7 @@ fn test_multitoken_donation() {
     // create a pool with target amount of 10 USDC
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
     let pool_address0 = contract_address
-        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR(), "pet");
     stop_cheat_caller_address(contract_address.contract_address);
 
     // donate
@@ -474,7 +476,7 @@ fn test_donate_to_non_exixting_pool() {
 
     // create a pool with target amount of 10 USDC
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    let _ = contract_address.create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+    let _ = contract_address.create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR(), "indigo");
     stop_cheat_caller_address(contract_address.contract_address);
 
     start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
@@ -512,7 +514,7 @@ fn test_error_donating_to_end_pool() {
     // create a pool with target amount of 10 USDC
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
     let pool_address0 = contract_address
-        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR(), "long wire");
     stop_cheat_caller_address(contract_address.contract_address);
 
     // donate
@@ -575,7 +577,7 @@ fn test_error_paymesh_caller_not_auth() {
     // create a pool with target amount of 10 USDC
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
     let pool_address0 = contract_address
-        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR());
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR(), "india");
     stop_cheat_caller_address(contract_address.contract_address);
 
     // donate

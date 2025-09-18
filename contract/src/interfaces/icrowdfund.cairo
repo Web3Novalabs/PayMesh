@@ -8,7 +8,7 @@ pub trait ICrowdFund<TContractState> {
         name: ByteArray,
         target_amount: u256,
         beneficiary: ContractAddress,
-        description:ByteArray,
+        description: ByteArray,
     ) -> ContractAddress;
     // upgrade the contract
     fn upgrade(ref self: TContractState, new_class_hash: ClassHash);
