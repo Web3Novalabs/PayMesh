@@ -1,12 +1,12 @@
 export const POOL_ABI = [
   {
-    name: "crowdfund",
     type: "impl",
+    name: "crowdfund",
     interface_name: "contract::interfaces::icrowdfund::ICrowdFund",
   },
   {
-    name: "core::byte_array::ByteArray",
     type: "struct",
+    name: "core::byte_array::ByteArray",
     members: [
       {
         name: "data",
@@ -23,8 +23,8 @@ export const POOL_ABI = [
     ],
   },
   {
-    name: "core::integer::u256",
     type: "struct",
+    name: "core::integer::u256",
     members: [
       {
         name: "low",
@@ -37,8 +37,8 @@ export const POOL_ABI = [
     ],
   },
   {
-    name: "core::bool",
     type: "enum",
+    name: "core::bool",
     variants: [
       {
         name: "False",
@@ -51,8 +51,8 @@ export const POOL_ABI = [
     ],
   },
   {
-    name: "contract::base::crowd_fund_type::Pool",
     type: "struct",
+    name: "contract::base::crowd_fund_type::Pool",
     members: [
       {
         name: "id",
@@ -94,11 +94,15 @@ export const POOL_ABI = [
         name: "is_complete",
         type: "core::bool",
       },
+      {
+        name: "description",
+        type: "core::byte_array::ByteArray",
+      },
     ],
   },
   {
-    name: "contract::base::crowd_fund_type::Token",
     type: "struct",
+    name: "contract::base::crowd_fund_type::Token",
     members: [
       {
         name: "pool_address",
@@ -123,12 +127,12 @@ export const POOL_ABI = [
     ],
   },
   {
-    name: "contract::interfaces::icrowdfund::ICrowdFund",
     type: "interface",
+    name: "contract::interfaces::icrowdfund::ICrowdFund",
     items: [
       {
-        name: "create_pool",
         type: "function",
+        name: "create_pool",
         inputs: [
           {
             name: "name",
@@ -142,6 +146,10 @@ export const POOL_ABI = [
             name: "beneficiary",
             type: "core::starknet::contract_address::ContractAddress",
           },
+          {
+            name: "description",
+            type: "core::byte_array::ByteArray",
+          },
         ],
         outputs: [
           {
@@ -151,8 +159,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "upgrade",
         type: "function",
+        name: "upgrade",
         inputs: [
           {
             name: "new_class_hash",
@@ -163,8 +171,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "paymesh",
         type: "function",
+        name: "paymesh",
         inputs: [
           {
             name: "pool_address",
@@ -175,8 +183,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "get_all_pools",
         type: "function",
+        name: "get_all_pools",
         inputs: [],
         outputs: [
           {
@@ -186,8 +194,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "get_pool",
         type: "function",
+        name: "get_pool",
         inputs: [
           {
             name: "pool_id",
@@ -202,8 +210,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "paymesh_donate",
         type: "function",
+        name: "paymesh_donate",
         inputs: [
           {
             name: "pool_address",
@@ -218,8 +226,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "get_donor_count",
         type: "function",
+        name: "get_donor_count",
         inputs: [
           {
             name: "pool_id",
@@ -234,8 +242,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "get_pool_balance",
         type: "function",
+        name: "get_pool_balance",
         inputs: [
           {
             name: "pool_address",
@@ -250,8 +258,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "get_pool_token_balance",
         type: "function",
+        name: "get_pool_token_balance",
         inputs: [
           {
             name: "pool_address",
@@ -266,8 +274,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "get_pool_target",
         type: "function",
+        name: "get_pool_target",
         inputs: [
           {
             name: "pool_id",
@@ -282,8 +290,19 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "is_pool_completed",
         type: "function",
+        name: "get_pool_creation_fee",
+        inputs: [],
+        outputs: [
+          {
+            type: "core::integer::u256",
+          },
+        ],
+        state_mutability: "view",
+      },
+      {
+        type: "function",
+        name: "is_pool_completed",
         inputs: [
           {
             name: "pool_id",
@@ -298,8 +317,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "set_platform_percentage",
         type: "function",
+        name: "set_platform_percentage",
         inputs: [
           {
             name: "value",
@@ -310,8 +329,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "get_platform_percentage",
         type: "function",
+        name: "get_platform_percentage",
         inputs: [],
         outputs: [
           {
@@ -321,8 +340,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "set_supported_token",
         type: "function",
+        name: "set_supported_token",
         inputs: [
           {
             name: "new_token_address",
@@ -333,8 +352,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "get_supported_token",
         type: "function",
+        name: "get_supported_token",
         inputs: [],
         outputs: [
           {
@@ -344,8 +363,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "upgrade_child",
         type: "function",
+        name: "upgrade_child",
         inputs: [
           {
             name: "new_class_hash",
@@ -358,17 +377,17 @@ export const POOL_ABI = [
     ],
   },
   {
-    name: "OwnableMixinImpl",
     type: "impl",
+    name: "OwnableMixinImpl",
     interface_name: "openzeppelin_access::ownable::interface::OwnableABI",
   },
   {
-    name: "openzeppelin_access::ownable::interface::OwnableABI",
     type: "interface",
+    name: "openzeppelin_access::ownable::interface::OwnableABI",
     items: [
       {
-        name: "owner",
         type: "function",
+        name: "owner",
         inputs: [],
         outputs: [
           {
@@ -378,8 +397,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "transfer_ownership",
         type: "function",
+        name: "transfer_ownership",
         inputs: [
           {
             name: "new_owner",
@@ -390,15 +409,15 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "renounce_ownership",
         type: "function",
+        name: "renounce_ownership",
         inputs: [],
         outputs: [],
         state_mutability: "external",
       },
       {
-        name: "transferOwnership",
         type: "function",
+        name: "transferOwnership",
         inputs: [
           {
             name: "newOwner",
@@ -409,8 +428,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "renounceOwnership",
         type: "function",
+        name: "renounceOwnership",
         inputs: [],
         outputs: [],
         state_mutability: "external",
@@ -418,18 +437,18 @@ export const POOL_ABI = [
     ],
   },
   {
-    name: "AccessControlImpl",
     type: "impl",
+    name: "AccessControlImpl",
     interface_name:
       "openzeppelin_access::accesscontrol::interface::IAccessControl",
   },
   {
-    name: "openzeppelin_access::accesscontrol::interface::IAccessControl",
     type: "interface",
+    name: "openzeppelin_access::accesscontrol::interface::IAccessControl",
     items: [
       {
-        name: "has_role",
         type: "function",
+        name: "has_role",
         inputs: [
           {
             name: "role",
@@ -448,8 +467,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
-        name: "get_role_admin",
         type: "function",
+        name: "get_role_admin",
         inputs: [
           {
             name: "role",
@@ -464,8 +483,8 @@ export const POOL_ABI = [
         state_mutability: "view",
       },
       {
+        type: "function",
         name: "grant_role",
-        type: "function",
         inputs: [
           {
             name: "role",
@@ -480,8 +499,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
+        type: "function",
         name: "revoke_role",
-        type: "function",
         inputs: [
           {
             name: "role",
@@ -496,8 +515,8 @@ export const POOL_ABI = [
         state_mutability: "external",
       },
       {
-        name: "renounce_role",
         type: "function",
+        name: "renounce_role",
         inputs: [
           {
             name: "role",
@@ -514,17 +533,17 @@ export const POOL_ABI = [
     ],
   },
   {
-    name: "SRC5Impl",
     type: "impl",
+    name: "SRC5Impl",
     interface_name: "openzeppelin_introspection::interface::ISRC5",
   },
   {
-    name: "openzeppelin_introspection::interface::ISRC5",
     type: "interface",
+    name: "openzeppelin_introspection::interface::ISRC5",
     items: [
       {
-        name: "supports_interface",
         type: "function",
+        name: "supports_interface",
         inputs: [
           {
             name: "interface_id",
@@ -541,8 +560,8 @@ export const POOL_ABI = [
     ],
   },
   {
-    name: "constructor",
     type: "constructor",
+    name: "constructor",
     inputs: [
       {
         name: "owner",
@@ -563,272 +582,272 @@ export const POOL_ABI = [
     ],
   },
   {
-    kind: "struct",
-    name: "contract::base::events::PoolCreated",
     type: "event",
+    name: "contract::base::events::PoolCreated",
+    kind: "struct",
     members: [
       {
-        kind: "key",
         name: "pool_address",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "key",
       },
       {
-        kind: "data",
         name: "pool_id",
         type: "core::integer::u256",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "creator",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "pool_name",
         type: "core::byte_array::ByteArray",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "target_amount",
         type: "core::integer::u256",
+        kind: "data",
       },
     ],
   },
   {
-    kind: "struct",
-    name: "contract::base::events::PoolPaid",
     type: "event",
+    name: "contract::base::events::PoolPaid",
+    kind: "struct",
     members: [
       {
+        name: "pool_address",
+        type: "core::starknet::contract_address::ContractAddress",
         kind: "key",
-        name: "pool_id",
-        type: "core::integer::u256",
       },
       {
-        kind: "data",
         name: "amount",
         type: "core::integer::u256",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "paid_by",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "paid_at",
         type: "core::integer::u64",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "token_address",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "data",
       },
     ],
   },
   {
-    kind: "struct",
-    name: "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
     type: "event",
+    name: "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
+    kind: "struct",
     members: [
       {
-        kind: "data",
         name: "class_hash",
         type: "core::starknet::class_hash::ClassHash",
+        kind: "data",
       },
     ],
   },
   {
-    kind: "enum",
-    name: "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
     type: "event",
+    name: "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
+    kind: "enum",
     variants: [
       {
-        kind: "nested",
         name: "Upgraded",
         type: "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Upgraded",
+        kind: "nested",
       },
     ],
   },
   {
-    kind: "struct",
+    type: "event",
     name: "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferred",
-    type: "event",
-    members: [
-      {
-        kind: "key",
-        name: "previous_owner",
-        type: "core::starknet::contract_address::ContractAddress",
-      },
-      {
-        kind: "key",
-        name: "new_owner",
-        type: "core::starknet::contract_address::ContractAddress",
-      },
-    ],
-  },
-  {
     kind: "struct",
-    name: "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferStarted",
-    type: "event",
     members: [
       {
-        kind: "key",
         name: "previous_owner",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "key",
       },
       {
-        kind: "key",
         name: "new_owner",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "key",
       },
     ],
   },
   {
-    kind: "enum",
-    name: "openzeppelin_access::ownable::ownable::OwnableComponent::Event",
     type: "event",
+    name: "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferStarted",
+    kind: "struct",
+    members: [
+      {
+        name: "previous_owner",
+        type: "core::starknet::contract_address::ContractAddress",
+        kind: "key",
+      },
+      {
+        name: "new_owner",
+        type: "core::starknet::contract_address::ContractAddress",
+        kind: "key",
+      },
+    ],
+  },
+  {
+    type: "event",
+    name: "openzeppelin_access::ownable::ownable::OwnableComponent::Event",
+    kind: "enum",
     variants: [
       {
-        kind: "nested",
         name: "OwnershipTransferred",
         type: "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferred",
+        kind: "nested",
       },
       {
-        kind: "nested",
         name: "OwnershipTransferStarted",
         type: "openzeppelin_access::ownable::ownable::OwnableComponent::OwnershipTransferStarted",
+        kind: "nested",
       },
     ],
   },
   {
-    kind: "struct",
+    type: "event",
     name: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
-    type: "event",
+    kind: "struct",
     members: [
       {
-        kind: "data",
         name: "role",
         type: "core::felt252",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "account",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "sender",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "data",
       },
     ],
   },
   {
-    kind: "struct",
+    type: "event",
     name: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
-    type: "event",
+    kind: "struct",
     members: [
       {
-        kind: "data",
         name: "role",
         type: "core::felt252",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "account",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "sender",
         type: "core::starknet::contract_address::ContractAddress",
+        kind: "data",
       },
     ],
   },
   {
-    kind: "struct",
-    name: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
     type: "event",
+    name: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
+    kind: "struct",
     members: [
       {
-        kind: "data",
         name: "role",
         type: "core::felt252",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "previous_admin_role",
         type: "core::felt252",
+        kind: "data",
       },
       {
-        kind: "data",
         name: "new_admin_role",
         type: "core::felt252",
+        kind: "data",
       },
     ],
   },
   {
-    kind: "enum",
-    name: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
     type: "event",
+    name: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
+    kind: "enum",
     variants: [
       {
-        kind: "nested",
         name: "RoleGranted",
         type: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
+        kind: "nested",
       },
       {
-        kind: "nested",
         name: "RoleRevoked",
         type: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
+        kind: "nested",
       },
       {
-        kind: "nested",
         name: "RoleAdminChanged",
         type: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
+        kind: "nested",
       },
     ],
   },
   {
-    kind: "enum",
-    name: "openzeppelin_introspection::src5::SRC5Component::Event",
     type: "event",
+    name: "openzeppelin_introspection::src5::SRC5Component::Event",
+    kind: "enum",
     variants: [],
   },
   {
-    kind: "enum",
-    name: "contract::crowd_fund::CrowdFund::Event",
     type: "event",
+    name: "contract::crowd_fund::CrowdFund::Event",
+    kind: "enum",
     variants: [
       {
-        kind: "nested",
         name: "PoolCreated",
         type: "contract::base::events::PoolCreated",
+        kind: "nested",
       },
       {
-        kind: "nested",
         name: "PoolPaid",
         type: "contract::base::events::PoolPaid",
+        kind: "nested",
       },
       {
-        kind: "flat",
         name: "UpgradeableEvent",
         type: "openzeppelin_upgrades::upgradeable::UpgradeableComponent::Event",
+        kind: "flat",
       },
       {
-        kind: "flat",
         name: "OwnableEvent",
         type: "openzeppelin_access::ownable::ownable::OwnableComponent::Event",
+        kind: "flat",
       },
       {
-        kind: "flat",
         name: "AccessControlEvent",
         type: "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
+        kind: "flat",
       },
       {
-        kind: "flat",
         name: "SRC5Event",
         type: "openzeppelin_introspection::src5::SRC5Component::Event",
+        kind: "flat",
       },
     ],
   },

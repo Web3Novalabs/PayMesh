@@ -247,6 +247,7 @@ export function useGetAllPools() {
         create_at: epocTime(data?.create_at?.toString()),
         creator: `0x0${data["creator"]?.toString(16)}`,
         target: +data?.target?.toString() / ONE_STK,
+        description: data.description,
       });
     });
     setCreatedPool(poolData);

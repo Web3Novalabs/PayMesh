@@ -8,8 +8,8 @@ import {
 import { mainnet, sepolia } from "@starknet-react/chains";
 import { jsonRpcProvider } from "@starknet-react/core";
 
-const chains = [sepolia];
-// const chains = [mainnet];
+// const chains = [sepolia];
+const chains = [mainnet];
 const connectors = [
   new InjectedConnector({ options: { id: "braavos" } }),
   new InjectedConnector({ options: { id: "argentX" } }),
@@ -21,7 +21,7 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
       paymasterProvider={paymasterRpcProvider({
         rpc: () => {
           return {
-            nodeUrl: "https://sepolia.paymaster.avnu.fi",
+            nodeUrl: "https://starknet.paymaster.avnu.fi",
             headers: {
               "x-paymaster-api-key":
                 process.env.NEXT_PUBLIC_PAYMASTER_API ?? "",

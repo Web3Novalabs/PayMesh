@@ -1,5 +1,5 @@
 import { FormData } from "@/app/dashboard/crowd-fund/components/CreateCrowdFundForm";
-import { myProvider, ONE_STK } from "@/utils/contract";
+import { myProvider, ONE_STK, strkTokenAddress } from "@/utils/contract";
 import { TyphoonSDK } from "typhoon-sdk";
 import toast from "react-hot-toast";
 import {
@@ -11,9 +11,9 @@ import {
 } from "starknet";
 
 export const CROWDFUNDINGADDRESS =
-  "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0";
-// "0x045018b1c2eaf173faf6ca864b5d6badf8fd86d1945215eee0bb0fa3b133f5e8"; // sepolia
-// "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d";
+  // "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0";
+  // "0x045018b1c2eaf173faf6ca864b5d6badf8fd86d1945215eee0bb0fa3b133f5e8"; // sepolia
+  "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d";
 // "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; // mainnet
 // "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; //sepolia
 type SetIsSubmitting = (isSubmitting: boolean) => void;
@@ -235,8 +235,8 @@ export const donate = async (
 ): Promise<void> => {
   const sdk = new TyphoonSDK();
   const STRK_ADDR =
-    "0x52aecc8358313bd9bce6303b3152f8951723654d7e8dc2a6d55b291b8989976";
-  // "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+    // "0x52aecc8358313bd9bce6303b3152f8951723654d7e8dc2a6d55b291b8989976";
+    "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
   try {
     console.log("Blockchain function - Starting donation");
@@ -246,7 +246,7 @@ export const donate = async (
       if (isAnonymous) {
         const calls = await sdk.generate_approve_and_deposit_calls(
           BigInt(+amount * ONE_STK),
-          STRK_ADDR
+          strkTokenAddress
         );
         console.log(calls);
         const multicall = await account.execute(calls);
@@ -271,37 +271,34 @@ export const donate = async (
             amount: cairo.uint256(amount * ONE_STK),
           }),
         };
-        console.log(Call, "input");
+        console.log(Call, "input", amount * ONE_STK);
         const approveCall = {
-          contractAddress:
-            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d", // strk address
+          contractAddress: strkTokenAddress, // strk address
           entrypoint: "approve",
-          calldata: [
-            CROWDFUNDINGADDRESS, // spender
-            cairo.uint256(amount * ONE_STK),
-            // "1000000000000000000",
-            // "0",
-          ],
+          calldata: CallData.compile({
+            spender: CROWDFUNDINGADDRESS,
+            amount: cairo.uint256(amount * ONE_STK),
+          }),
         };
         console.log();
         const multicallData = [approveCall, Call];
-        // const feeDetails: PaymasterDetails = {
-        //   feeMode: {
-        //     mode: "sponsored",
-        //   },
-        // };
+        const feeDetails: PaymasterDetails = {
+          feeMode: {
+            mode: "sponsored",
+          },
+        };
 
-        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
-        //   [...multicallData],
-        //   feeDetails
-        // );
+        const feeEstimation = await account?.estimatePaymasterTransactionFee(
+          [...multicallData],
+          feeDetails
+        );
 
-        // const result = await account?.executePaymasterTransaction(
-        //   [...multicallData],
-        //   feeDetails,
-        //   feeEstimation?.suggested_max_fee_in_gas_token
-        // );
-        const result = await account.execute(multicallData);
+        const result = await account?.executePaymasterTransaction(
+          [...multicallData],
+          feeDetails,
+          feeEstimation?.suggested_max_fee_in_gas_token
+        );
+        // const result = await account.execute(multicallData);
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
         );

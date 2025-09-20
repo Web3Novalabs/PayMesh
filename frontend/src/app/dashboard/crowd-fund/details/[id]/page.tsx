@@ -14,11 +14,13 @@ import { useRouter, useParams } from "next/navigation";
 import { useGetPool } from "@/hooks/useContractInteraction";
 import { useAccount } from "@starknet-react/core";
 import WalletConnect from "@/app/components/WalletConnect";
-import { donate } from "@/hooks/blockchainWriteFunction";
+import { CROWDFUNDINGADDRESS, donate } from "@/hooks/blockchainWriteFunction";
 import { toast } from "react-hot-toast";
 import QRcodeCrowdfund from "@/app/dashboard/components/QRcodeCrowdfund";
 import { poolAddrQr } from "@/hooks/blockchainWriteFunction";
 import QRCode from "react-qr-code";
+import { CallData } from "starknet";
+import { myProvider } from "@/utils/contract";
 
 interface ContributeModalProps {
   isOpen: boolean;
@@ -191,7 +193,8 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
 const FundingDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
-  const { address } = useAccount();
+  const [isSbumitting, setIsSubmitting] = useState(false);
+  const { address, account } = useAccount();
   const isWalletConnected = !!address;
   const { id } = useParams();
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
@@ -225,6 +228,65 @@ const FundingDetailsPage = () => {
       // setFunding(foundFunding || null);
     }
   }, [fundingId]);
+
+  const handlePayment = async () => {
+    try {
+      setIsSubmitting(true);
+
+      if (account) {
+        const swiftpayCall = {
+          contractAddress: CROWDFUNDINGADDRESS,
+          entrypoint: "paymesh",
+          calldata: CallData.compile({
+            pool_address: crowdFundingAddr,
+          }),
+        };
+
+        // const approveCall = {
+        //   contractAddress: strkTokenAddress,
+        //   entrypoint: "approve",
+        //   calldata: [
+        //     PAYMESH_ADDRESS, // spender
+        //     cairo.uint256(ONE_STK),
+        //   ],
+        // };
+
+        const multicallData = [swiftpayCall];
+        const result = await account.execute(multicallData);
+
+        // const feeDetails: PaymasterDetails = {
+        //   feeMode: {
+        //     mode: "sponsored",
+        //   },
+        // };
+
+        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        //   [...multicallData],
+        //   feeDetails
+        // );
+
+        // const result = await account?.executePaymasterTransaction(
+        //   [...multicallData],
+        //   feeDetails,
+        //   feeEstimation?.suggested_max_fee_in_gas_token
+        // );
+
+        const status = await myProvider.waitForTransaction(
+          result?.transaction_hash as string
+        );
+
+        console.log(result);
+
+        // setResultHash(result.transaction_hash);
+        console.log(status);
+        toast.success("payment succesfull");
+      }
+    } catch (error) {
+      toast.error("Failed to split funds, top up subscription. and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!isWalletConnected) {
     return (
@@ -400,6 +462,12 @@ const FundingDetailsPage = () => {
             <p className="text-[#8398AD] text-sm mb-4">
               Every contribution helps us get closer to our goal.
             </p>
+            <button
+              onClick={() => handlePayment()}
+              className="w-full bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium mb-2"
+            >
+              {isSbumitting ? "resolving....." : "resolve pool"}
+            </button>
             <button
               onClick={() => setIsContributeModalOpen(true)}
               className="w-full bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium"
