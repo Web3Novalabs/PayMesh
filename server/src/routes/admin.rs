@@ -7,10 +7,7 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::{
-    Extension, Json,
-    extract::State,
-    http::{Response, header},
-    response::IntoResponse,
+    extract::State, http::{header, Response, StatusCode}, response::IntoResponse, Extension, Json
 };
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{EncodingKey, Header, encode};
@@ -84,9 +81,8 @@ pub async fn register_user_handler(
         })
         .map(|hash| hash.to_string())?;
 
-    let user: RegisterUserRes = sqlx::query_as!(
-        RegisterUserRes,
-        "INSERT INTO users ( email, password) VALUES ($1, $2) RETURNING email, password, verified",
+    sqlx::query!(
+        "INSERT INTO users ( email, password) VALUES ($1, $2)",
         email,
         hashed_password
     )
@@ -94,7 +90,7 @@ pub async fn register_user_handler(
     .await
     .map_err(|e| map_sqlx_error(&e))?;
 
-    Ok(Json(user))
+    Ok(StatusCode::OK)
 }
 
 pub async fn login_user_handler(
