@@ -1,4 +1,5 @@
 pub mod libs {
+    pub mod auth;
     pub mod cache;
     pub mod config;
     pub mod db;
@@ -8,6 +9,7 @@ pub mod libs {
 }
 
 pub mod routes {
+    pub mod admin;
     pub mod group;
     pub mod health;
     pub mod pay_group;
@@ -21,13 +23,17 @@ pub mod util {
     pub mod util_types;
 }
 
-use crate::libs::cache::Cache;
+use crate::{
+    libs::{auth::auth, cache::Cache, config::Env},
+    routes::admin,
+};
 use axum::{
     Router,
     http::{
         HeaderName, Method, StatusCode,
         header::{AUTHORIZATION, CONTENT_TYPE},
     },
+    middleware,
     routing::{get, post},
 };
 use sqlx::PgPool;
@@ -37,6 +43,7 @@ use tower_http::cors::CorsLayer;
 pub struct AppState {
     pub db: PgPool,
     pub cache: Cache,
+    pub env: Env,
 }
 
 use crate::routes::{group, health, pay_group, subscription_topped};
@@ -67,6 +74,18 @@ pub fn router(state: AppState) -> Router {
             post(pay_group::store_payment_distribution_history),
         )
         .route("/all_group_addresses", get(group::get_all_group_addresses))
+        .route("/api/auth/register", post(admin::register_user_handler))
+        .route("/api/auth/login", post(admin::login_user_handler))
+        .route(
+            "/api/auth/logout",
+            get(admin::logout_handler)
+                .route_layer(middleware::from_fn_with_state(state.clone(), auth)),
+        )
+        .route(
+            "/api/users/me",
+            get(admin::get_me_handler)
+                .route_layer(middleware::from_fn_with_state(state.clone(), auth)),
+        )
         .with_state(state)
         .layer(cors)
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })

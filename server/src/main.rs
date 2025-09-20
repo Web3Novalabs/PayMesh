@@ -1,6 +1,6 @@
 use server::{
     AppState,
-    libs::{cache::init_cache, db::Db, logging::init_tracing},
+    libs::{cache::init_cache, config::Env, db::Db, logging::init_tracing},
     router,
 };
 use tokio::net::TcpListener;
@@ -16,9 +16,13 @@ async fn main() {
 
     let cache = init_cache(&db.pool.clone()).await;
 
+    tracing::debug!("loading env vars");
+    let env = Env::init();
+
     let config = AppState {
         db: db.pool.clone(),
         cache,
+        env,
     };
 
     {

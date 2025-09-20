@@ -17,7 +17,7 @@ tokio = { version = "1.45.1", features = ["full"] }
 starknet = "0.16.0"
 dotenvy = "0.15.7"
 tower-http = {version="0.6.6", features=["cors","trace"]}
-sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio-rustls", "chrono", "bigdecimal", "time"] }
+sqlx = { version = "0.8.6", features = ["postgres", "runtime-tokio-rustls", "chrono", "bigdecimal", "time", "uuid"] }
 thiserror = "2.0.16"
 anyhow = "1.0.99"
 serde_json = "1.0.143"
@@ -26,3 +26,6 @@ tracing = "0.1.41"
 time = { version = "0.3.36", features = ["formatting", "parsing", "serde", "macros"] }
 bigdecimal = { version = "0.4.8", features = ["serde"] }
 validator = { version = "0.19", features = ["derive"] }
+jsonwebtoken = "9.3.1"
+axum-extra = { version = "0.10.1", features = ["cookie"] }
+argon2 = "0.5.3"
