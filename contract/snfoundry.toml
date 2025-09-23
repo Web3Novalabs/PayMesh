@@ -2,3 +2,11 @@
 account = "mock-deploy"
 accounts-file = "/Users/admin/.starknet_accounts/starknet_open_zeppelin_accounts.json"
 url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_8/l3W2omp97bsZzhe8YXQOU"
+
+[sncast.vibes]
+account = "vestor"
+accounts-file = "/Users/admin/.starknet_accounts/starknet_open_zeppelin_accounts.json"
+url = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_8/l3W2omp97bsZzhe8YXQOU"
+
+[sncast.default]
+account = "vestor"

@@ -101,7 +101,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
         {pools?.map((funding) => (
           <div
             key={funding.id}
-            className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 hover:bg-[#282e38] transition-colors duration-200"
+            className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 hover:bg-[#282e3883] transition-colors duration-200"
           >
             {/* Header with Title and Progress */}
             <div className="flex justify-between items-start mb-4 border-b border-[#FFFFFF0D] pb-4">
@@ -135,12 +135,13 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                 <div
                   className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
                   style={{
-                    width: `${
+                    width: `${Math.min(
                       (Number.parseFloat(funding.balance.toString()) /
                         1e18 /
                         Number.parseFloat(funding.target.toString())) *
+                        100,
                       100
-                    }%`,
+                    )}%`,
                   }}
                 ></div>
               </div>

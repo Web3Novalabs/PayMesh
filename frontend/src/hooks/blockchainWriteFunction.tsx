@@ -1,5 +1,6 @@
 import { FormData } from "@/app/dashboard/crowd-fund/components/CreateCrowdFundForm";
 import { myProvider, ONE_STK, strkTokenAddress } from "@/utils/contract";
+// @ts-expect-error typhoon-sdk has incorrect type declarations
 import { TyphoonSDK } from "typhoon-sdk";
 import toast from "react-hot-toast";
 import {
@@ -11,9 +12,10 @@ import {
 } from "starknet";
 
 export const CROWDFUNDINGADDRESS =
-  // "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0";
-  // "0x045018b1c2eaf173faf6ca864b5d6badf8fd86d1945215eee0bb0fa3b133f5e8"; // sepolia
-  "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d";
+  "0x05a053e25702bb5202ee4f52fdc4cd7f7f94ce57b590f0258d144d82436cd9a9"; // sepolia
+// "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0";
+// "0x045018b1c2eaf173faf6ca864b5d6badf8fd86d1945215eee0bb0fa3b133f5e8"; // sepolia
+// "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d";
 // "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; // mainnet
 // "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; //sepolia
 type SetIsSubmitting = (isSubmitting: boolean) => void;
@@ -79,9 +81,9 @@ export const create_pool = async (
         entrypoint: "approve",
         calldata: [
           CROWDFUNDINGADDRESS, // spender
-          cairo.uint256(ONE_STK),
-          // "1000000000000000000",
-          // "0",
+          // cairo.uint256(ONE_STK),
+          "1000000000000000000",
+          "0",
         ],
       };
       const multicallData = [approveCall, Call];
@@ -109,7 +111,7 @@ export const create_pool = async (
       );
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const poolAddress = (status as any)?.events?.[3]?.data?.[0];
+      const poolAddress = (status as any)?.events?.[3]?.keys?.[1];
       poolAddrQr = poolAddress as string;
 
       console.log("Pool address extracted:", poolAddress);
@@ -262,7 +264,11 @@ export const donate = async (
         ]);
         console.log("widthdraw", withdraw);
       } else {
-        console.log("hello mate");
+        console.log(
+          "main-addressc",
+          "0x06921613abdd80028144c8df3be64646d1291377f3ff1bcaf126617821d60e40"
+        );
+        console.log("pool_address", pool_address);
         const Call = {
           contractAddress: CROWDFUNDINGADDRESS,
           entrypoint: "paymesh_donate",

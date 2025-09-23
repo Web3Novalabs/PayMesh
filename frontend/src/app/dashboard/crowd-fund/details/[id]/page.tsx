@@ -9,6 +9,8 @@ import {
   Target,
   Heart,
   X,
+  Copy,
+  Check,
 } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { useGetPool } from "@/hooks/useContractInteraction";
@@ -16,11 +18,10 @@ import { useAccount } from "@starknet-react/core";
 import WalletConnect from "@/app/components/WalletConnect";
 import { CROWDFUNDINGADDRESS, donate } from "@/hooks/blockchainWriteFunction";
 import { toast } from "react-hot-toast";
-import QRcodeCrowdfund from "@/app/dashboard/components/QRcodeCrowdfund";
-import { poolAddrQr } from "@/hooks/blockchainWriteFunction";
 import QRCode from "react-qr-code";
 import { CallData } from "starknet";
 import { myProvider } from "@/utils/contract";
+import { copyToClipboard } from "@/lib/utils";
 
 interface ContributeModalProps {
   isOpen: boolean;
@@ -31,12 +32,10 @@ interface ContributeModalProps {
 const ContributeModal: React.FC<ContributeModalProps> = ({
   isOpen,
   onClose,
-  isSuccess: isSuccessProp,
 }) => {
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [, setIsSuccessT] = useState(isSuccessProp || false);
   const { id } = useParams();
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   const { account } = useAccount();
@@ -194,6 +193,7 @@ const FundingDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
   const [isSbumitting, setIsSubmitting] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
   const { address, account } = useAccount();
   const isWalletConnected = !!address;
   const { id } = useParams();
@@ -209,6 +209,13 @@ const FundingDetailsPage = () => {
     crowdFundingAddr,
     pool?.pool_address
   );
+
+  const handleCopyToClipboard = async (text: string) => {
+    await copyToClipboard(text, () => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    });
+  };
 
   // const targetReached = pool
   //   ? Number.parseFloat(pool.balance.toString()) / 1e18 >=
@@ -281,7 +288,7 @@ const FundingDetailsPage = () => {
         console.log(status);
         toast.success("payment succesfull");
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to split funds, top up subscription. and try again.");
     } finally {
       setIsSubmitting(false);
@@ -345,6 +352,20 @@ const FundingDetailsPage = () => {
         </p>
       </div>
 
+      <div className="flex items-center gap-2 mb-5">
+        <span className="text-[#cad4dd]">{crowdFundingAddr}</span>
+        <button
+          onClick={() => handleCopyToClipboard(crowdFundingAddr)}
+          className="text-gray-400 hover:text-white transition-colors cursor-pointer"
+        >
+          {copySuccess ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Copy className="w-4 h-4" />
+          )}
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
@@ -400,7 +421,7 @@ const FundingDetailsPage = () => {
               Description
             </h3>
             <p className="text-[#8398AD] text-sm leading-relaxed">
-              {pool?.description} No description
+              {pool?.description ? pool?.description : "No description"}
             </p>
           </div>
         </div>
