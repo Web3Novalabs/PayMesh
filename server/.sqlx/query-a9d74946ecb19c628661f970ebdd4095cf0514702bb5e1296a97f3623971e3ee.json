@@ -1,28 +1,27 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO users ( email, password) VALUES ($1, $2) RETURNING email, password, verified",
+  "query": "SELECT id, wallet_address, password FROM users WHERE wallet_address = $1",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "email",
-        "type_info": "Varchar"
+        "name": "id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 1,
-        "name": "password",
+        "name": "wallet_address",
         "type_info": "Varchar"
       },
       {
         "ordinal": 2,
-        "name": "verified",
+        "name": "password",
         "type_info": "Varchar"
       }
     ],
     "parameters": {
       "Left": [
-        "Varchar",
-        "Varchar"
+        "Text"
       ]
     },
     "nullable": [
@@ -31,5 +30,5 @@
       false
     ]
   },
-  "hash": "f788e75a9138c65e532728909d87903a544150602af39bfd1ad7f2d8bec9ab63"
+  "hash": "a9d74946ecb19c628661f970ebdd4095cf0514702bb5e1296a97f3623971e3ee"
 }

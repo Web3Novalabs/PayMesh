@@ -7,15 +7,23 @@ use argon2::{
     password_hash::{SaltString, rand_core::OsRng},
 };
 use axum::{
-    extract::State, http::{header, Response, StatusCode}, response::IntoResponse, Extension, Json
+    Extension, Json,
+    extract::State,
+    http::{Response, StatusCode, header},
+    response::IntoResponse,
 };
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{EncodingKey, Header, encode};
 use serde_json::json;
 use sqlx::types::chrono;
+use validator::Validate;
 
 use crate::{
-    libs::{auth::User, error::{map_sqlx_error, ApiError}}, AppState
+    AppState,
+    libs::{
+        auth::User,
+        error::{ApiError, map_sqlx_error},
+    },
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,29 +33,31 @@ pub struct TokenClaims {
     pub exp: usize,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Validate)]
 pub struct RegisterUserReq {
-    pub email: String,
+    #[validate(custom(function = "crate::routes::types::validate_address"))]
+    pub wallet_address: String,
     pub password: String,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct UserDetails {
     pub id: String,
-    pub email: String,
+    pub wallet_address: String,
     pub password: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct RegisterUserRes {
-    pub email: String,
+    pub wallet_address: String,
     pub password: String,
     verified: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Validate)]
 pub struct LoginUserReq {
-    pub email: String,
+    #[validate(custom(function = "crate::routes::types::validate_address"))]
+    pub wallet_address: String,
     pub password: String,
 }
 
@@ -55,10 +65,10 @@ pub async fn register_user_handler(
     State(data): State<AppState>,
     Json(payload): Json<RegisterUserReq>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let email = &payload.email.to_owned().to_ascii_lowercase();
+    let wallet_address = &payload.wallet_address.to_owned().to_ascii_lowercase();
     let user_exists: Option<bool> =
-        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
-            .bind(email)
+        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE wallet_address = $1)")
+            .bind(wallet_address)
             .fetch_one(&data.db)
             .await
             .map_err(|e| {
@@ -68,7 +78,7 @@ pub async fn register_user_handler(
 
     if let Some(exists) = user_exists {
         if exists {
-            return Err(ApiError::Conflict("User with that email already exists"));
+            return Err(ApiError::Conflict("User with that wallet_address already exists"));
         }
     }
 
@@ -82,8 +92,8 @@ pub async fn register_user_handler(
         .map(|hash| hash.to_string())?;
 
     sqlx::query!(
-        "INSERT INTO users ( email, password) VALUES ($1, $2)",
-        email,
+        "INSERT INTO users ( wallet_address, password) VALUES ($1, $2)",
+        wallet_address,
         hashed_password
     )
     .fetch_one(&data.db)
@@ -97,17 +107,17 @@ pub async fn login_user_handler(
     State(data): State<AppState>,
     Json(payload): Json<LoginUserReq>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let email = &payload.email.to_ascii_lowercase();
+    let wallet_address = &payload.wallet_address.to_ascii_lowercase();
 
     let user: UserDetails = sqlx::query_as!(
         UserDetails,
-        "SELECT id, email, password FROM users WHERE email = $1",
-        email
+        "SELECT id, wallet_address, password FROM users WHERE wallet_address = $1",
+        wallet_address
     )
     .fetch_optional(&data.db)
     .await
     .map_err(|e| map_sqlx_error(&e))?
-    .ok_or_else(|| ApiError::BadRequest("Invalid email or password"))?;
+    .ok_or_else(|| ApiError::BadRequest("Invalid wallet_address or password"))?;
 
     let is_valid = match PasswordHash::new(&user.password) {
         Ok(parsed_hash) => Argon2::default()
@@ -117,7 +127,7 @@ pub async fn login_user_handler(
     };
 
     if !is_valid {
-        return Err(ApiError::BadRequest("Invalid email or password"));
+        return Err(ApiError::BadRequest("Invalid wallet_address or password"));
     }
 
     let now = chrono::Utc::now();

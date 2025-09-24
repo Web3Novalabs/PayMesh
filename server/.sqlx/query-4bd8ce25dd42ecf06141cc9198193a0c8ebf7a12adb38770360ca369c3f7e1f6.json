@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT email, role FROM users WHERE id = $1",
+  "query": "SELECT wallet_address, role FROM users WHERE id = $1",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "email",
+        "name": "wallet_address",
         "type_info": "Varchar"
       },
       {
@@ -24,5 +24,5 @@
       false
     ]
   },
-  "hash": "dc8096dfcb8edd6fb60c9ca0f931ff341beac085d70a6132dbe84e1dc4f45398"
+  "hash": "4bd8ce25dd42ecf06141cc9198193a0c8ebf7a12adb38770360ca369c3f7e1f6"
 }

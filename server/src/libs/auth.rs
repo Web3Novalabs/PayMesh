@@ -15,7 +15,7 @@ use crate::{AppState, libs::error::ApiError, routes::admin::TokenClaims};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct User {
-    pub email: String,
+    pub wallet_address: String,
     pub role: String,
 }
 
@@ -58,7 +58,7 @@ pub async fn auth(
     let user_id = uuid::Uuid::parse_str(&claims.sub)
         .map_err(|_| return ApiError::Unauthorized("Invalid token"))?;
 
-    let user = sqlx::query_as!(User, "SELECT email, role FROM users WHERE id = $1", user_id)
+    let user = sqlx::query_as!(User, "SELECT wallet_address, role FROM users WHERE id = $1", user_id)
         .fetch_optional(&data.db)
         .await
         .map_err(|_| {

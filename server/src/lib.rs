@@ -58,34 +58,44 @@ pub fn router(state: AppState) -> Router {
             HeaderName::from_static("x-requested-with"),
         ]);
 
-    Router::new()
-        .route("/health", get(health::health_check))
-        .route("/group", get(group::get_group).post(group::create_group))
+    // admin routes
+    let admin_routes = Router::new()
+        .route("/all_groups", get(group::get_groups))
+        .route("/history", get(group::get_groups_metrics))
+        .route("/transfer_metrics", get(group::get_payments_totals));
+
+    // indexer routes
+    let indexer_routes = Router::new()
+        .route(
+            "/store_payment_distribution_history",
+            post(pay_group::store_payment_distribution_history),
+        )
         .route("/pay_group", post(pay_group::pay_group))
         .route(
             "/subscription_topped",
             post(subscription_topped::subscription_topped),
         )
-        .route("/all_groups", get(group::get_groups))
-        .route("/history", get(group::get_groups_metrics))
-        .route("/transfer_metrics", get(group::get_payments_totals))
+        .route("/group", post(group::create_group))
+        .route("/all_group_addresses", get(group::get_all_group_addresses));
+
+    // main router
+    Router::new()
+        .route("/health", get(health::health_check))
+         .route("/auth/register", post(admin::register_user_handler))
+        .route("/auth/login", post(admin::login_user_handler))
         .route(
-            "/store_payment_distribution_history",
-            post(pay_group::store_payment_distribution_history),
-        )
-        .route("/all_group_addresses", get(group::get_all_group_addresses))
-        .route("/api/auth/register", post(admin::register_user_handler))
-        .route("/api/auth/login", post(admin::login_user_handler))
-        .route(
-            "/api/auth/logout",
+            "/logout",
             get(admin::logout_handler)
                 .route_layer(middleware::from_fn_with_state(state.clone(), auth)),
         )
         .route(
-            "/api/users/me",
+            "/me",
             get(admin::get_me_handler)
                 .route_layer(middleware::from_fn_with_state(state.clone(), auth)),
         )
+        // nested routes for admin and indexer functions
+        .nest("/indexer", indexer_routes)
+        .nest("/admin", admin_routes)
         .with_state(state)
         .layer(cors)
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })
