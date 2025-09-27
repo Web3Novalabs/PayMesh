@@ -266,7 +266,6 @@ export function useGetPool(id: string) {
   );
   useEffect(() => {
     if (!pool) return;
-
     setCreatedPool({
       balance: +pool.balance?.toString(),
       beneficiary: `0x0${pool["beneficiary"]?.toString(16)}`,
@@ -274,7 +273,7 @@ export function useGetPool(id: string) {
       name: pool?.name,
       id: +pool?.id.toString(),
       donors: +pool?.donors.toString(),
-      is_completed: pool?.is_completed,
+      is_completed: pool?.is_complete,
       create_at: epocTime(pool?.create_at?.toString()),
       creator: `0x0${pool["creator"]?.toString(16)}`,
       target: +pool?.target?.toString() / ONE_STK,

@@ -19,8 +19,8 @@ import WalletConnect from "@/app/components/WalletConnect";
 import { CROWDFUNDINGADDRESS, donate } from "@/hooks/blockchainWriteFunction";
 import { toast } from "react-hot-toast";
 import QRCode from "react-qr-code";
-import { CallData } from "starknet";
-import { myProvider } from "@/utils/contract";
+import { CallData, PaymasterDetails } from "starknet";
+import { myProvider, ONE_STK } from "@/utils/contract";
 import { copyToClipboard } from "@/lib/utils";
 
 interface ContributeModalProps {
@@ -259,24 +259,24 @@ const FundingDetailsPage = () => {
         // };
 
         const multicallData = [swiftpayCall];
-        const result = await account.execute(multicallData);
+        // const result = await account.execute(multicallData);
 
-        // const feeDetails: PaymasterDetails = {
-        //   feeMode: {
-        //     mode: "sponsored",
-        //   },
-        // };
+        const feeDetails: PaymasterDetails = {
+          feeMode: {
+            mode: "sponsored",
+          },
+        };
 
-        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
-        //   [...multicallData],
-        //   feeDetails
-        // );
+        const feeEstimation = await account?.estimatePaymasterTransactionFee(
+          [...multicallData],
+          feeDetails
+        );
 
-        // const result = await account?.executePaymasterTransaction(
-        //   [...multicallData],
-        //   feeDetails,
-        //   feeEstimation?.suggested_max_fee_in_gas_token
-        // );
+        const result = await account?.executePaymasterTransaction(
+          [...multicallData],
+          feeDetails,
+          feeEstimation?.suggested_max_fee_in_gas_token
+        );
 
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
@@ -386,13 +386,17 @@ const FundingDetailsPage = () => {
                   <div
                     className={`bg-blue-600 h-2.5 rounded-full transition-all duration-300`}
                     style={{
-                      width: `${Math.min(
-                        (Number.parseFloat(pool.balance.toString()) /
-                          1e18 /
-                          Number.parseFloat(pool.target.toString())) *
-                          100,
-                        100
-                      )}%`,
+                      width: `${
+                        !pool.is_completed
+                          ? Math.min(
+                              (Number.parseFloat(pool.balance.toString()) /
+                                1e18 /
+                                Number.parseFloat(pool.target.toString())) *
+                                100,
+                              100
+                            )
+                          : 100
+                      }%`,
                     }}
                   >
                     {" "}
@@ -476,26 +480,30 @@ const FundingDetailsPage = () => {
           </div>
 
           {/* Contribute Button */}
-          <div className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6">
-            <h3 className="text-[#DFDFE0] font-medium text-lg mb-4">
-              Support This Campaign
-            </h3>
-            <p className="text-[#8398AD] text-sm mb-4">
-              Every contribution helps us get closer to our goal.
-            </p>
-            <button
-              onClick={() => handlePayment()}
-              className="w-full bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium mb-2"
-            >
-              {isSbumitting ? "resolving....." : "resolve pool"}
-            </button>
-            <button
-              onClick={() => setIsContributeModalOpen(true)}
-              className="w-full bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium"
-            >
-              Contribute Now
-            </button>
-          </div>
+          {!pool.is_completed && (
+            <div className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6">
+              <h3 className="text-[#DFDFE0] font-medium text-lg mb-4">
+                Support This Campaign
+              </h3>
+              <p className="text-[#8398AD] text-sm mb-4">
+                Every contribution helps us get closer to our goal.
+              </p>
+              {pool.balance >= pool.target * ONE_STK && (
+                <button
+                  onClick={() => handlePayment()}
+                  className="w-full bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium mb-2"
+                >
+                  {isSbumitting ? "resolving....." : "resolve pool"}
+                </button>
+              )}
+              <button
+                onClick={() => setIsContributeModalOpen(true)}
+                className="w-full bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium"
+              >
+                Contribute Now
+              </button>
+            </div>
+          )}
 
           <div className="mb-4 sm:mb-6 text-center bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 flex flex-col items-center justify-center">
             <div className="inline-block w-full p-2 sm:p-3 bg-[#fffffffe] border-2 border-[#434672d8] rounded-lg">
