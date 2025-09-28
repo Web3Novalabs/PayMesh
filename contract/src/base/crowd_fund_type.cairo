@@ -13,6 +13,7 @@ pub struct Pool {
     pub pool_address: ContractAddress,
     pub is_complete: bool,
     pub description: ByteArray,
+    pub total_token_recieved:u256,
 }
 
 #[derive(Serde, Drop, Debug, Clone, starknet::Store, PartialEq)]

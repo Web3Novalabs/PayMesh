@@ -169,6 +169,7 @@ pub mod CrowdFund {
                 pool_address: caller,
                 is_complete: false,
                 description,
+                total_token_recieved:0,
             };
 
             // Collect pool creation fee based on how much we are charging for the pool usage
@@ -249,6 +250,7 @@ pub mod CrowdFund {
             let mut pool: Pool = self.pools.read(pool_id);
             let balance = self.get_pool_balance(pool.pool_address);
             pool.balance = balance;
+            pool.total_token_recieved += balance;
             pool
         }
 
@@ -276,17 +278,15 @@ pub mod CrowdFund {
             let mut pool = self.pools.read(pool_id);
             let is_complete = self.is_pool_completed(pool_id);
             assert(!is_complete, 'pool is completed');
-            let current_balance = self._check_token_balance_of_child(pool_address);
+            // let current_balance = self._check_token_balance_of_child(pool_address);
             self._check_token_allowance(get_caller_address(), get_contract_address(), amount);
-            assert(current_balance < pool.target, 'target reach');
+            // assert(current_balance < pool.target, 'target reach');
 
-            // Add this transfer:
             let token = IERC20Dispatcher { contract_address: self.token_address.read() };
             token.transfer_from(get_caller_address(), pool_address, amount);
             let new_balance = self._check_token_balance_of_child(pool_address);
             pool.balance = new_balance;
             pool.donors = pool.donors + 1;
-
             let donate = self.donors_count.read() + 1;
             self.donors_count.write(donate);
             self.pools.write(pool_id, pool);
@@ -349,13 +349,15 @@ pub mod CrowdFund {
             let caller = get_caller_address();
 
             let is_authorized = pool.beneficiary == caller
-                || caller == pool.creator
+                || caller == pool.creator || caller == pool.beneficiary
                 || self.accesscontrol.has_role(ADMIN_ROLE, caller);
-            assert(is_authorized, 'not creator, member or admin');
+            assert(is_authorized, 'not creator, benef.. or admin');
 
             let len = self.token_count.read();
             let current_balance = self._check_token_balance_of_child(pool_address);
-            assert(current_balance >= pool.target, 'target not reach yet');
+            // checker for when target is reach or when it completed already 
+            assert(current_balance >= pool.target || pool.is_complete,  'target not reach yet');
+            assert(current_balance != 0 , 'pool balance is zero');
 
             for i in 1..=len {
                 let token_address: ContractAddress = self.supported_tokens.read(i);
@@ -363,10 +365,9 @@ pub mod CrowdFund {
                     ._check_token_balance_of_pool_by_tokens(pool_address, token_address);
 
                 if balance > 0 {
+                    println!("token balance {}--",balance);
                     let token = IERC20Dispatcher { contract_address: token_address };
 
-                    // Method 2: Alternative - multiply first, then divide (more precise for other
-                    // percentages)
                     let platform_percentage = balance * self.platform_percentage.read();
                     let platform_fee = platform_percentage / 100;
 

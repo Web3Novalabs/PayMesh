@@ -432,17 +432,29 @@ fn test_multitoken_donation() {
     // donate
     start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
     erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 10);
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance is {}", strk_balance);
     stop_cheat_caller_address(erc20_dispatcher.contract_address);
 
-    let balance = usdc_dispatcher.balance_of(USER2_ADDR());
-    println!("balance user 1 {}", balance);
+    start_cheat_caller_address(usdc_dispatcher.contract_address, USER2_ADDR());
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance before {}", usdc_balance);
+    usdc_dispatcher.transfer(pool_address0, ONE_STRK * 10);
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance after {}", usdc_balance);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    let strk_balance = erc20_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial strk balance before {}", strk_balance);
+
+    let usdc_balance = usdc_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial usdc balance before {}", usdc_balance);
 
     start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
     contract_address.paymesh_donate(pool_address0, ONE_STRK * 10);
     stop_cheat_caller_address(contract_address.contract_address);
-
-    let balance = usdc_dispatcher.balance_of(USER2_ADDR());
-    println!("balance user 2 {}", balance);
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance after {}", strk_balance);
 
     // get pool balance
     let get_pool = contract_address.get_pool(1);
@@ -450,6 +462,21 @@ fn test_multitoken_donation() {
     assert(get_pool.balance == ONE_STRK * 10, 'wrong pool balance');
     let balance = contract_address.get_pool_balance(pool_address0);
     assert(balance == ONE_STRK * 10, 'balance not up to date');
+
+    start_cheat_caller_address(contract_address.contract_address,CREATOR_ADDR());
+    contract_address.paymesh(pool_address0);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance final {}", strk_balance);
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance final {}", usdc_balance);
+
+    let strk_balance = erc20_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial strk balance after {}", strk_balance);
+
+    let usdc_balance = usdc_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial usdc balance after {}", usdc_balance);
 }
 
 #[test]
