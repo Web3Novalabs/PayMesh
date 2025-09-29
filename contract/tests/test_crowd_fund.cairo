@@ -463,7 +463,7 @@ fn test_multitoken_donation() {
     let balance = contract_address.get_pool_balance(pool_address0);
     assert(balance == ONE_STRK * 10, 'balance not up to date');
 
-    start_cheat_caller_address(contract_address.contract_address,CREATOR_ADDR());
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
     contract_address.paymesh(pool_address0);
     stop_cheat_caller_address(contract_address.contract_address);
 
@@ -575,7 +575,7 @@ fn test_error_donating_to_end_pool() {
 }
 
 #[test]
-#[should_panic(expected: ('not creator, member or admin',))]
+#[should_panic(expected: ('not creator, benef.. or admin',))]
 fn test_error_paymesh_caller_not_auth() {
     let (contract_address, erc20_dispatcher, usdc_dispatcher, _) = deploy_crowdfund_contract();
 
