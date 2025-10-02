@@ -103,6 +103,7 @@ pub struct GroupsMetricsResponse {
     pub share_usdt: Option<String>,
     pub share_eth: Option<String>,
     pub share_strk: Option<String>,
+    pub share_wbtc: Option<String>,
 }
 #[derive(Debug, FromRow)]
 pub struct GroupTokenTransfer {
