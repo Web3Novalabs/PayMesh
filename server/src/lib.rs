@@ -1,4 +1,5 @@
 pub mod libs {
+    pub mod auth;
     pub mod cache;
     pub mod config;
     pub mod db;
@@ -21,7 +22,7 @@ pub mod util {
     pub mod util_types;
 }
 
-use crate::libs::cache::Cache;
+use crate::libs::{cache::Cache, config::Env};
 use axum::{
     Router,
     http::{
@@ -37,6 +38,7 @@ use tower_http::cors::CorsLayer;
 pub struct AppState {
     pub db: PgPool,
     pub cache: Cache,
+    pub env: Env,
 }
 
 use crate::routes::{group, health, pay_group, subscription_topped};

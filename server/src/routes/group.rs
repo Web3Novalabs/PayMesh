@@ -1,7 +1,7 @@
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use sqlx::types::BigDecimal;
-use tokio::sync::RwLockReadGuard;
 use std::collections::HashMap;
+use tokio::sync::RwLockReadGuard;
 
 use crate::{
     AppState,
@@ -300,10 +300,7 @@ pub async fn get_groups(
 pub async fn get_all_group_addresses(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<String>>, ApiError> {
-    let cache = RwLockReadGuard::map(
-        state.cache.read().await, 
-        |f| f 
-    ).clone();
+    let cache = RwLockReadGuard::map(state.cache.read().await, |f| f).clone();
     let vec_cache: Vec<String> = cache.into_iter().collect();
 
     Ok(Json(vec_cache))
