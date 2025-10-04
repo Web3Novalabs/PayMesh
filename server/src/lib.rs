@@ -81,6 +81,7 @@ pub fn router(state: AppState) -> Router {
             post(pay_group::store_payment_distribution_history),
         )
         .route("/all_group_addresses", get(group::get_all_group_addresses))
+        .nest("/user", user)
         .with_state(state)
         .layer(cors)
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })
