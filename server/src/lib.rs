@@ -9,11 +9,13 @@ pub mod libs {
 }
 
 pub mod routes {
+    pub mod admin;
     pub mod group;
     pub mod health;
     pub mod pay_group;
     pub mod subscription_topped;
     pub mod types;
+    pub mod user;
 }
 
 pub mod util {
@@ -22,7 +24,10 @@ pub mod util {
     pub mod util_types;
 }
 
-use crate::libs::{cache::Cache, config::Env};
+use crate::{
+    libs::{cache::Cache, config::Env},
+    routes::user,
+};
 use axum::{
     Router,
     http::{
@@ -52,6 +57,13 @@ pub fn router(state: AppState) -> Router {
             AUTHORIZATION,
             HeaderName::from_static("x-requested-with"),
         ]);
+
+    let user = Router::new()
+        .route("/profile", get(user::get_profile))
+        .route("/register", post(user::register))
+        .route("/login", post(user::login))
+        .route("/refresh", post(user::refresh_token))
+        .route("/logout", post(user::logout));
 
     Router::new()
         .route("/health", get(health::health_check))

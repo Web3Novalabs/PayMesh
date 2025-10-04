@@ -15,6 +15,8 @@ pub struct User {
 pub struct TokenClaims {
     pub sub: String,
     pub role: String,
+    pub exp: usize,
+    pub iat: usize,
 }
 
 pub struct AuthenticatedUser(pub TokenClaims);
