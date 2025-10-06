@@ -4,12 +4,17 @@ use axum::{
         HeaderName, Method, StatusCode,
         header::{AUTHORIZATION, CONTENT_TYPE},
     },
-    routing::get,
 };
 use tower_http::cors::CorsLayer;
+use utoipa::OpenApi;
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::routes;
+use utoipa_scalar::{Scalar, Servable};
+use utoipa_swagger_ui::SwaggerUi;
 
 use crate::{
     AppState,
+    libs::utopia::ApiDoc,
     routes::{self, health},
 };
 
@@ -23,8 +28,8 @@ pub fn router(state: AppState) -> Router {
             HeaderName::from_static("x-requested-with"),
         ]);
 
-    Router::new()
-        .route("/health", get(health::health_check))
+    let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        .routes(routes!(health::health_check))
         .nest("/users", routes::user::router())
         .nest("/groups", routes::groups::router())
         .nest("/admin", routes::admin::router())
@@ -32,4 +37,11 @@ pub fn router(state: AppState) -> Router {
         .with_state(state)
         .layer(cors)
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })
+        .split_for_parts();
+
+    let router = router
+        .merge(SwaggerUi::new("/swagger-ui").url("/apidoc/openapi.json", api.clone()))
+        .merge(Scalar::with_url("/scalar", api));
+
+    router
 }

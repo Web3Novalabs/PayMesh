@@ -1,7 +1,11 @@
-use axum::{extract::State, Json};
+use axum::{Json, extract::State};
 use bigdecimal::BigDecimal;
 
-use crate::{libs::error::ApiError, routes::admin::admin_types::{GroupsMetricsResponse, PaymentsTotalsResponse}, AppState};
+use crate::{
+    AppState,
+    libs::error::ApiError,
+    routes::admin::admin_types::{GroupsMetricsResponse, PaymentsTotalsResponse},
+};
 
 // Get all groups metrics with token shares
 pub async fn get_groups_metrics(
@@ -43,8 +47,6 @@ pub async fn get_groups_metrics(
 
     Ok(Json(response))
 }
-
-
 
 pub async fn get_payments_totals(
     State(state): State<AppState>,
@@ -91,5 +93,3 @@ pub async fn get_payments_totals(
 
     Ok(Json(response))
 }
-
-

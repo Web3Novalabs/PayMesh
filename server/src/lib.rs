@@ -7,6 +7,7 @@ pub mod libs {
     pub mod logging;
     pub mod middleware;
     pub mod router;
+    pub mod utopia;
 }
 
 pub mod routes {

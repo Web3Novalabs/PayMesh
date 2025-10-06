@@ -22,7 +22,6 @@ pub struct OverviewResponse {
     pub total_admins: i64,
 }
 
-
 #[derive(Debug, Serialize)]
 pub struct GroupsMetricsResponse {
     pub group_address: String,
@@ -32,7 +31,6 @@ pub struct GroupsMetricsResponse {
     pub share_strk: Option<String>,
     pub share_wbtc: Option<String>,
 }
-
 
 #[derive(Debug, Serialize)]
 pub struct PaymentsTotalsResponse {

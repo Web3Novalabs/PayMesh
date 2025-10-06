@@ -2,6 +2,14 @@
 name = "server"
 version = "0.1.0"
 edition = "2024"
+authors = ["Akinshola Akinniyi <akinniyishola@gmail.com>", "Yunus Abdulmajid <example@example.com>"]
+description = "A backend API server for Paymesh"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/web3Novalabs/paymesh"
+readme = "readme.md"
+homepage = "https://paymesh.app"
+keywords = ["api", "backend", "web", "starknet", "defi", "paymesh"]
+categories = ["web-programming"]
 
 [[bin]]
 name = "server"
@@ -28,3 +36,7 @@ validator = { version = "0.19", features = ["derive"] }
 jsonwebtoken = { version = "10.0.0", features = ["rust_crypto"] }
 axum-extra = { version = "0.10.3", features = ["cookie"] }
 argon2 = "0.5.3"
+utoipa = { version = "5.4.0", features = ["axum_extras"] }
+utoipa-swagger-ui = { version = "9.0.2", features = ["axum", "vendored"] }
+utoipa-axum = "0.2.0"
+utoipa-scalar = { version = "0.3.0", features = ["axum"] }

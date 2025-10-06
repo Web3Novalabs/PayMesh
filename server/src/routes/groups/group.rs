@@ -9,7 +9,7 @@ use crate::{
     routes::groups::groups_types::{
         GetGroupDetailsRequest, GetGroupDetailsResponse, GroupFullDetailResponse,
         GroupMemberResponse, GroupMemberWithAddress, GroupRequest, GroupTokenTransfer,
-        GroupsResponse
+        GroupsResponse,
     },
     util::connector::is_valid_address,
 };
@@ -115,7 +115,6 @@ pub async fn get_group(
         members,
     }))
 }
-
 
 // Get all groups with full details including token transfer amount
 // for admin usage
