@@ -17,12 +17,13 @@ pub fn router() -> Router<AppState> {
             post(subscription_topped::subscription_topped),
         )
         .route("/all_groups", get(group::get_groups))
-        .route("/history", get(group::get_groups_metrics))
-        .route("/transfer_metrics", get(group::get_payments_totals))
+
         .route(
             "/store_payment_distribution_history",
             post(pay_group::store_payment_distribution_history),
         )
-        .route("/all_group_addresses", get(group::get_all_group_addresses));
+                        .route("/all_group_addresses", get(group::get_all_group_addresses))
+;
+
     group
 }

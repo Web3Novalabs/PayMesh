@@ -1,6 +1,7 @@
+use serde::{Deserialize, Serialize};
 use validator::Validate;
 
-#[derive(serde::Serialize, serde::Deserialize, Debug, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
 pub struct User {
     pub id: String,
     pub email: String,
@@ -9,14 +10,36 @@ pub struct User {
     pub created_at: String,
 }
 
-#[derive(serde::Deserialize, Validate)]
+#[derive(Deserialize, Validate)]
 pub struct UserEmailRequest {
     #[validate(email)]
     pub email: String,
 }
 
-#[derive(serde::Deserialize, serde::Serialize)]
+#[derive(Deserialize, Serialize)]
 pub struct OverviewResponse {
     pub total_users: i64,
     pub total_admins: i64,
+}
+
+
+#[derive(Debug, Serialize)]
+pub struct GroupsMetricsResponse {
+    pub group_address: String,
+    pub share_usdc: Option<String>,
+    pub share_usdt: Option<String>,
+    pub share_eth: Option<String>,
+    pub share_strk: Option<String>,
+    pub share_wbtc: Option<String>,
+}
+
+
+#[derive(Debug, Serialize)]
+pub struct PaymentsTotalsResponse {
+    pub total_groups: i64,
+    pub total_payments: i64,
+    pub total_usdc_paid: String,
+    pub total_usdt_paid: String,
+    pub total_eth_paid: String,
+    pub total_strk_paid: String,
 }

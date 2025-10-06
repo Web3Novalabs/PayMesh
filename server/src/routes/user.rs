@@ -185,7 +185,7 @@ pub async fn login(
         &claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .unwrap();
+    .map_err(|_| ApiError::Internal("Couldnt provide token"))?;
 
     let refresh_exp = (now + Duration::from_secs(60 * 60 * 24 * 7)).timestamp() as usize;
 
@@ -201,7 +201,7 @@ pub async fn login(
         &refresh_claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .unwrap();
+    .map_err(|_| ApiError::Internal("Couldnt provide token"))?;
 
     let refresh_cookie = Cookie::build(("refresh_token", refresh_token.clone()))
         .path("/")
@@ -218,10 +218,10 @@ pub async fn login(
     let mut response = Response::new(json!({"status": "success", "token": token}).to_string());
     response
         .headers_mut()
-        .append(header::SET_COOKIE, cookie.to_string().parse().unwrap());
+        .append(header::SET_COOKIE, cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt set cookie"))?);
     response.headers_mut().append(
         header::SET_COOKIE,
-        refresh_cookie.to_string().parse().unwrap(),
+        refresh_cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt set cookie"))?,
     );
     Ok(response)
 }
@@ -274,7 +274,7 @@ pub async fn refresh_token(
         &new_claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .unwrap();
+    .map_err(|_| ApiError::Internal("Login Error Occured"))?;
 
     let access_cookie = Cookie::build(("token", new_token.clone()))
         .path("/")
@@ -285,7 +285,7 @@ pub async fn refresh_token(
     let mut response = Response::new(json!({"token": new_token}).to_string());
     response.headers_mut().insert(
         header::SET_COOKIE,
-        access_cookie.to_string().parse().unwrap(),
+        access_cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt add cookie"))?,
     );
 
     Ok(response)
@@ -303,6 +303,6 @@ pub async fn logout(
     let mut response = Response::new(json!({"status": "success"}).to_string());
     response
         .headers_mut()
-        .insert(header::SET_COOKIE, cookie.to_string().parse().unwrap());
+        .insert(header::SET_COOKIE, cookie.to_string().parse().map_err(|_| ApiError::Internal("Log Out"))?);
     Ok(response)
 }

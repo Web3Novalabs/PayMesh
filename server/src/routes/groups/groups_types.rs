@@ -96,15 +96,6 @@ pub struct GroupFullDetailResponse {
     pub share_strk: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
-pub struct GroupsMetricsResponse {
-    pub group_address: String,
-    pub share_usdc: Option<String>,
-    pub share_usdt: Option<String>,
-    pub share_eth: Option<String>,
-    pub share_strk: Option<String>,
-    pub share_wbtc: Option<String>,
-}
 #[derive(Debug, FromRow)]
 pub struct GroupTokenTransfer {
     pub group_address: String,
@@ -120,15 +111,6 @@ pub struct GroupMemberWithAddress {
     pub added_at: String,
 }
 
-#[derive(Debug, Serialize)]
-pub struct PaymentsTotalsResponse {
-    pub total_groups: i64,
-    pub total_payments: i64,
-    pub total_usdc_paid: String,
-    pub total_usdt_paid: String,
-    pub total_eth_paid: String,
-    pub total_strk_paid: String,
-}
 #[derive(Debug, Serialize, Clone)]
 pub struct GroupMemberResponse {
     pub member_address: String,
