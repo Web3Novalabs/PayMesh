@@ -1,25 +1,33 @@
-use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::get};
+use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 
 use crate::{
-    AppState,
-    libs::{auth::AdminUser, error::ApiError},
-    routes::admin::admin_types::{OverviewResponse, User, UserEmailRequest},
+    libs::{auth::AdminUser, error::ApiError, utopia::ADMIN_TAG}, routes::admin::admin_types::{OverviewResponse, User, UserEmailRequest}, AppState
 };
 
-pub fn router() -> Router<AppState> {
-    let user_admin = Router::new()
-        // .route("/overview", get(user::get_overview))
-        // .route("/promote_to_admin", post(user::promote_to_admin))
-        // .route("/demote_from_admin", post(user::demote_from_admin))
-        .route("/all_users", get(get_all_users))
-        // .route("/change_role", post(user::change_role))
-        // .route("/delete_user", post(user::delete_user))
-        // .route("/all_wallet_addresses", get(user::get_all_wallet_addresses))
-        // .route("/all_emails", get(user::get_all_emails));
-    ;
-    user_admin
-}
+// pub fn router() -> Router<AppState> {
+//     let user_admin = Router::new()
+//         // .route("/overview", get(user::get_overview))
+//         // .route("/promote_to_admin", post(user::promote_to_admin))
+//         // .route("/demote_from_admin", post(user::demote_from_admin))
+//         .route("/all_users", get(get_all_users))
+//         // .route("/change_role", post(user::change_role))
+//         // .route("/delete_user", post(user::delete_user))
+//         // .route("/all_wallet_addresses", get(user::get_all_wallet_addresses))
+//         // .route("/all_emails", get(user::get_all_emails));
+//     ;
+//     user_admin
+// }
 
+#[utoipa::path(
+    method(get),
+    path = "/all_users",
+    responses(
+        (status = OK, description = "Success", body = Vec<User>),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to fetch users", body = ApiError),
+    ),
+    tag = ADMIN_TAG,
+    security(("bearer" = [])),
+)]
 pub async fn get_all_users(
     State(state): State<AppState>,
     AdminUser(_user): AdminUser,
@@ -34,6 +42,18 @@ pub async fn get_all_users(
     Ok((StatusCode::OK, Json(users)))
 }
 
+#[utoipa::path(
+    method(patch),
+    path = "/promote_to_admin",
+    responses(
+        (status = OK, description = "Success", body = String),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to promote user", body = ApiError),
+        (status = NOT_FOUND, description = "User not found", body = ApiError),
+    ),
+    tag = ADMIN_TAG,
+    security(("bearer" = [])),
+    request_body = UserEmailRequest,
+)]
 pub async fn promote_to_admin(
     State(state): State<AppState>,
     AdminUser(_user): AdminUser,
@@ -60,6 +80,18 @@ pub async fn promote_to_admin(
     Ok((StatusCode::OK, "User promoted to admin"))
 }
 
+#[utoipa::path(
+    method(patch),
+    path = "/demote_from_admin",
+    responses(
+        (status = OK, description = "Success", body = String),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to demote user", body = ApiError),
+        (status = NOT_FOUND, description = "User not found", body = ApiError),
+    ),
+    tag = ADMIN_TAG,
+    security(("bearer" = [])),
+    request_body = UserEmailRequest,
+)]
 pub async fn demote_from_admin(
     State(state): State<AppState>,
     AdminUser(_user): AdminUser,
@@ -86,6 +118,18 @@ pub async fn demote_from_admin(
     Ok((StatusCode::OK, "User demoted from admin"))
 }
 
+#[utoipa::path(
+    method(delete),
+    path = "/delete_user",
+    responses(
+        (status = OK, description = "Success", body = String),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to delete user", body = ApiError),
+        (status = NOT_FOUND, description = "User not found", body = ApiError),
+    ),
+    tag = ADMIN_TAG,
+    security(("bearer" = [])),
+    request_body = UserEmailRequest,
+)]
 pub async fn delete_user(
     State(state): State<AppState>,
     AdminUser(_user): AdminUser,
@@ -106,6 +150,16 @@ pub async fn delete_user(
     Ok((StatusCode::OK, "User deleted"))
 }
 
+#[utoipa::path(
+    method(get),
+    path = "/overview",
+    responses(
+        (status = OK, description = "Success", body = OverviewResponse),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error", body = ApiError),
+    ),
+    tag = ADMIN_TAG,
+    security(("bearer" = [])),
+)]
 pub async fn get_overview(
     State(state): State<AppState>,
     AdminUser(_user): AdminUser,

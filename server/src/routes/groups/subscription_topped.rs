@@ -1,11 +1,23 @@
 use crate::{
-    AppState, libs::error::ApiError, routes::groups::groups_types::SubscriptionToppedReq,
-    util::starknet::call_paymesh_contract_function,
+    libs::{error::ApiError, utopia::GROUP_TAG}, routes::groups::groups_types::SubscriptionToppedReq, util::starknet::call_paymesh_contract_function, AppState
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bigdecimal::BigDecimal;
 use starknet::core::types::Felt;
 
+
+#[utoipa::path(
+    method(post),
+    path = "/subscription_topped",
+    responses(
+        (status = OK, description = "Success", body = String),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to update group usage remaining", body = ApiError),
+        (status = BAD_REQUEST, description = "Invalid Request Payload", body = ApiError),
+    ),
+    tag = GROUP_TAG,
+    security(("api_key" = [])),
+    request_body = SubscriptionToppedReq,
+)]
 pub async fn subscription_topped(
     State(state): State<AppState>,
     Json(payload): Json<SubscriptionToppedReq>,
@@ -35,6 +47,7 @@ pub async fn subscription_topped(
     let address = Felt::from_hex(group_address.as_str())
         .map_err(|_| ApiError::BadRequest("TOKEN ADDRESS NOT VALID"))?;
 
+    // todo check contract before calling this function
     call_paymesh_contract_function(address)
         .await
         .map_err(|_| ApiError::BadRequest("Failed to call paymesh contract"))?;

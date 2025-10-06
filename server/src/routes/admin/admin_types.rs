@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
 use validator::Validate;
+use utoipa::ToSchema;
 
-#[derive(Serialize, Deserialize, Debug, sqlx::FromRow)]
+#[derive(Serialize, Deserialize, Debug, sqlx::FromRow, ToSchema)]
 pub struct User {
     pub id: String,
     pub email: String,
@@ -10,19 +11,19 @@ pub struct User {
     pub created_at: String,
 }
 
-#[derive(Deserialize, Validate)]
+#[derive(Deserialize, Validate, ToSchema)]
 pub struct UserEmailRequest {
     #[validate(email)]
     pub email: String,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, ToSchema)]
 pub struct OverviewResponse {
     pub total_users: i64,
     pub total_admins: i64,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct GroupsMetricsResponse {
     pub group_address: String,
     pub share_usdc: Option<String>,
@@ -32,7 +33,7 @@ pub struct GroupsMetricsResponse {
     pub share_wbtc: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PaymentsTotalsResponse {
     pub total_groups: i64,
     pub total_payments: i64,
