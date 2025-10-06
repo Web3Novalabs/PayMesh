@@ -1,7 +1,6 @@
 use server::{
     AppState,
-    libs::{cache::init_cache, config::Env, db::Db, logging::init_tracing},
-    router,
+    libs::{cache::init_cache, config::Env, db::Db, logging::init_tracing, router::router},
 };
 use tokio::net::TcpListener;
 
@@ -42,6 +41,11 @@ async fn main() {
 
     tracing::debug!("Running Migrations");
     db.run_migrations().await.expect("Failed to run migrations");
+
+    tracing::debug!("Creating genesis admin");
+    db.create_genesis_admin()
+        .await
+        .expect("Failed to create genesis admin");
 
     let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
     tracing::info!("listening on {}", listener.local_addr().unwrap());

@@ -14,7 +14,7 @@ impl Env {
     pub fn init() -> Env {
         let database_url = std::env::var("DATABASE_URL").expect("Database url must be set");
         let rpc_url = std::env::var("RPC_URL").expect("RPC url must be set");
-        let private_key = std::env::var("private_key").expect("Private key must be set");
+        let private_key = std::env::var("PRIVATE_KEY").expect("Private key must be set");
         let public_key = std::env::var("PUBLIC_KEY").expect("public key must be set");
         let contract_address =
             std::env::var("CONTRACT_ADDRESS").expect("contract address must be set");

@@ -1,7 +1,7 @@
+use crate::util::validate_address::validate_address;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use validator::{Validate, ValidationError};
-
+use validator::Validate;
 #[derive(Debug, Deserialize, Validate)]
 pub struct GroupRequest {
     #[validate(custom(function = "validate_address"))]
@@ -141,5 +141,3 @@ pub struct GroupMemberResponse {
 pub struct GetGroupUsageRemaining {
     pub usage_remaining: bigdecimal::BigDecimal,
 }
-
-

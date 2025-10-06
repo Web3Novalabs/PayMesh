@@ -3,7 +3,7 @@ use std::str::FromStr;
 use crate::{
     AppState,
     libs::error::ApiError,
-    routes::types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest},
+    routes::groups::groups_types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest},
     util::starknet::call_paymesh_contract_function,
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};

@@ -6,7 +6,7 @@ use tokio::sync::RwLockReadGuard;
 use crate::{
     AppState,
     libs::error::{ApiError, map_sqlx_error},
-    routes::types::{
+    routes::groups::groups_types::{
         GetGroupDetailsRequest, GetGroupDetailsResponse, GroupFullDetailResponse,
         GroupMemberResponse, GroupMemberWithAddress, GroupRequest, GroupTokenTransfer,
         GroupsMetricsResponse, GroupsResponse, PaymentsTotalsResponse,
