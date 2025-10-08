@@ -4,11 +4,17 @@ use std::collections::HashMap;
 use tokio::sync::RwLockReadGuard;
 
 use crate::{
-    libs::{error::{map_sqlx_error, ApiError}, utopia::GROUP_TAG}, routes::groups::groups_types::{
+    AppState,
+    libs::{
+        error::{ApiError, map_sqlx_error},
+        utopia::GROUP_TAG,
+    },
+    routes::groups::groups_types::{
         GetGroupDetailsRequest, GetGroupDetailsResponse, GroupFullDetailResponse,
         GroupMemberResponse, GroupMemberWithAddress, GroupRequest, GroupTokenTransfer,
         GroupsResponse,
-    }, util::connector::is_valid_address, AppState
+    },
+    util::connector::is_valid_address,
 };
 
 #[utoipa::path(
@@ -34,14 +40,10 @@ pub async fn create_group(
 
     tracing::info!("Creating group: {}", group_address);
 
-    let mut tx = state
-        .db
-        .begin()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to begin transaction: {}", e);
-            ApiError::Internal("Failed to begin transaction")
-        })?;
+    let mut tx = state.db.begin().await.map_err(|e| {
+        tracing::error!("Failed to begin transaction: {}", e);
+        ApiError::Internal("Failed to begin transaction")
+    })?;
 
     sqlx::query!(
         r#"INSERT INTO groups (group_address, group_name, created_by, usage_remaining) VALUES ($1, $2, $3, $4)"#,
@@ -78,16 +80,13 @@ pub async fn create_group(
             })?;
     }
 
-    tx.commit()
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to commit transaction: {}", e);
-            ApiError::Internal("Failed to commit transaction")
-        })?;
+    tx.commit().await.map_err(|e| {
+        tracing::error!("Failed to commit transaction: {}", e);
+        ApiError::Internal("Failed to commit transaction")
+    })?;
 
     Ok(StatusCode::CREATED)
 }
-
 
 #[utoipa::path(
     method(get),
@@ -167,9 +166,7 @@ pub async fn get_group(
     ),
     tag = GROUP_TAG,
 )]
-pub async fn get_groups(
-    State(state): State<AppState>,
-) -> Result<impl IntoResponse, ApiError> {
+pub async fn get_groups(State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
     // Get all groups
     let groups = sqlx::query_as!(
         GroupsResponse,
@@ -304,7 +301,6 @@ pub async fn get_groups(
 
     Ok((StatusCode::OK, Json(response)))
 }
-
 
 #[utoipa::path(
     method(get),

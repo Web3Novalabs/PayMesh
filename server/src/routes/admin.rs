@@ -7,7 +7,6 @@ pub mod group_admin;
 pub mod user_admin;
 
 pub fn router() -> OpenApiRouter<AppState> {
-
     let user_admin = OpenApiRouter::new()
         .routes(routes!(user_admin::get_overview))
         .routes(routes!(user_admin::promote_to_admin))

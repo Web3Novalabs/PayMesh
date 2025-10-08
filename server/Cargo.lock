@@ -2541,6 +2541,7 @@ dependencies = [
  "jsonwebtoken",
  "serde",
  "serde_json",
+ "sha2",
  "sqlx",
  "starknet",
  "thiserror 2.0.16",

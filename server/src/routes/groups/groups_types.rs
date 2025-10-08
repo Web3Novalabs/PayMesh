@@ -1,8 +1,8 @@
 use crate::util::validate_address::validate_address;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
-use validator::Validate;
 use utoipa::ToSchema;
+use validator::Validate;
 #[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct GroupRequest {
     #[validate(custom(function = "validate_address"))]
@@ -97,7 +97,7 @@ pub struct GroupFullDetailResponse {
     pub share_strk: Option<String>,
 }
 
-#[derive(Debug, FromRow, ToSchema )]
+#[derive(Debug, FromRow, ToSchema)]
 pub struct GroupTokenTransfer {
     pub group_address: String,
     pub token_symbol: String,

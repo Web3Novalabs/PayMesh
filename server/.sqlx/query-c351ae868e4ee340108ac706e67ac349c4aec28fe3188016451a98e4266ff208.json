@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT api_key_hash, num_of_usages FROM api_keys WHERE api_key_hash = $1 ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "api_key_hash",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "num_of_usages",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "c351ae868e4ee340108ac706e67ac349c4aec28fe3188016451a98e4266ff208"
+}

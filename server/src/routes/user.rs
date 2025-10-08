@@ -26,11 +26,11 @@ use validator::Validate;
 
 pub fn router() -> OpenApiRouter<AppState> {
     let user: OpenApiRouter<AppState> = OpenApiRouter::new()
-    .routes(routes!(get_profile))
-    .routes(routes!(register))
-    .routes(routes!(login))
-    .routes(routes!(refresh_token))
-    .routes( routes!(logout));
+        .routes(routes!(get_profile))
+        .routes(routes!(register))
+        .routes(routes!(login))
+        .routes(routes!(refresh_token))
+        .routes(routes!(logout));
 
     user
 }
@@ -111,10 +111,10 @@ pub async fn register(
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let wallet_address = payload
-    .wallet_address
-    .unwrap_or_default()
-    .to_ascii_lowercase();
-let email = payload.email.to_ascii_lowercase();
+        .wallet_address
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    let email = payload.email.to_ascii_lowercase();
 
     let salt = password_hash::SaltString::generate(&mut password_hash::rand_core::OsRng);
     let hashed_password = Argon2::default()
@@ -322,7 +322,6 @@ pub async fn refresh_token(
 
     Ok(response)
 }
-
 
 #[utoipa::path(
     method(post),
