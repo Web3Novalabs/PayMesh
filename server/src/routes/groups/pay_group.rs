@@ -1,10 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    AppState,
-    libs::{error::ApiError, utopia::GROUP_TAG},
-    routes::groups::groups_types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest},
-    util::starknet::call_paymesh_contract_function,
+    libs::{auth::AuthApiKey, error::ApiError, utopia::GROUP_TAG}, routes::groups::groups_types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest}, util::starknet::call_paymesh_contract_function, AppState
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bigdecimal::BigDecimal;
@@ -31,6 +28,7 @@ struct Amount {
 )]
 pub async fn pay_group(
     State(state): State<AppState>,
+    AuthApiKey(_hello): AuthApiKey,
     Json(payload): Json<CallContractRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let group_address = payload.group_address;
@@ -111,6 +109,7 @@ pub async fn pay_group(
 )]
 pub async fn store_payment_distribution_history(
     State(state): State<AppState>,
+    AuthApiKey(_hello): AuthApiKey,
     Json(payload): Json<PayGroupRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let group_address = payload.group_address;

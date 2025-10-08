@@ -6,6 +6,7 @@ use tokio::sync::RwLockReadGuard;
 use crate::{
     AppState,
     libs::{
+        auth::{AuthApiKey},
         error::{ApiError, map_sqlx_error},
         utopia::GROUP_TAG,
     },
@@ -32,6 +33,7 @@ use crate::{
 )]
 pub async fn create_group(
     State(state): State<AppState>,
+    AuthApiKey(_hello): AuthApiKey,
     Json(payload): Json<GroupRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let usage_remaining: BigDecimal = payload.usage_remaining.into();

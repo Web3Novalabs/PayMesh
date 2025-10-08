@@ -3,11 +3,9 @@ use axum::{
     http::{header, request::Parts},
 };
 use jsonwebtoken::{DecodingKey, Validation};
-    use sha2::{Sha256, Digest};
 
 use crate::{
-    AppState,
-    libs::error::{ApiError, map_sqlx_error},
+    libs::error::{map_sqlx_error, ApiError}, util::hash_api_key::hash_api_key, AppState
 };
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
@@ -83,9 +81,9 @@ where
     }
 }
 
-pub struct ApiKey();
+pub struct AuthApiKey(pub String);
 
-impl FromRequestParts<AppState> for ApiKey {
+impl FromRequestParts<AppState> for AuthApiKey {
     type Rejection = ApiError;
 
     async fn from_request_parts(
@@ -98,7 +96,6 @@ impl FromRequestParts<AppState> for ApiKey {
         };
 
         let hashed_api_key = hash_api_key(api_key);
-
 
         let api_key_details: ApiDetails = sqlx::query_as!(
             ApiDetails,
@@ -124,7 +121,7 @@ impl FromRequestParts<AppState> for ApiKey {
             map_sqlx_error(&e)
         })?;
 
-        Ok(ApiKey())
+        Ok(AuthApiKey(String::new()))
     }
 }
 #[derive(Debug)]
@@ -133,8 +130,3 @@ pub struct ApiDetails {
 }
 
 
-fn hash_api_key(input: &str) -> String {
-    let mut hasher = Sha256::new();
-    hasher.update(input.as_bytes());
-    format!("{:x}", hasher.finalize())
-}
