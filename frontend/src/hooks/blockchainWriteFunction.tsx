@@ -12,13 +12,9 @@ import {
 } from "starknet";
 
 export const CROWDFUNDINGADDRESS =
-  // "0x02625bd794f2e623270c244b9871306747addee48c2b449f6a6dce75120e0841"; // mainnet
-  "0x05a053e25702bb5202ee4f52fdc4cd7f7f94ce57b590f0258d144d82436cd9a9"; // sepolia
-// "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0";
-// "0x045018b1c2eaf173faf6ca864b5d6badf8fd86d1945215eee0bb0fa3b133f5e8"; // sepolia
-// "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d";
-// "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; // mainnet
-// "0x026ac4c4946d2b3c66c17012b6dd92f8f3f8f859dd3a152ebdd7930e58357bd0"; //sepolia
+  "0x05371e167ec1a1884734895bd25aa66765829d1b040f66fc757d1f4ce13aa401";
+// "0x02625bd794f2e623270c244b9871306747addee48c2b449f6a6dce75120e0841"; // mainnet
+// "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d"; // mainnet
 type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
 type SetPoolAddress = (address: string) => void;
@@ -89,22 +85,22 @@ export const create_pool = async (
       };
       const multicallData = [approveCall, Call];
       console.log(multicallData);
-      //   const feeDetails: PaymasterDetails = {
-      //     feeMode: {
-      //       mode: "sponsored",
-      //     },
-      //   };
+      // const feeDetails: PaymasterDetails = {
+      //   feeMode: {
+      //     mode: "sponsored",
+      //   },
+      // };
 
-      //   const feeEstimation = await account?.estimatePaymasterTransactionFee(
-      //     [...multicallData],
-      //     feeDetails
-      //   );
+      // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+      //   [...multicallData],
+      //   feeDetails
+      // );
 
-      //   const result = await account?.executePaymasterTransaction(
-      //     [...multicallData],
-      //     feeDetails,
-      //     feeEstimation?.suggested_max_fee_in_gas_token
-      //   );
+      // const result = await account?.executePaymasterTransaction(
+      //   [...multicallData],
+      //   feeDetails,
+      //   feeEstimation?.suggested_max_fee_in_gas_token
+      // );
       const result = await account.execute(multicallData);
 
       const status = await myProvider.waitForTransaction(
@@ -196,7 +192,8 @@ export const donate = async (
         };
         console.log(Call, "input", amount * ONE_STK);
         const approveCall = {
-          contractAddress: strkTokenAddress, // strk address
+          contractAddress:
+            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d", // strk address
           entrypoint: "approve",
           calldata: CallData.compile({
             spender: CROWDFUNDINGADDRESS,
@@ -222,6 +219,7 @@ export const donate = async (
         //   feeEstimation?.suggested_max_fee_in_gas_token
         // );
         const result = await account.execute(multicallData);
+
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
         );

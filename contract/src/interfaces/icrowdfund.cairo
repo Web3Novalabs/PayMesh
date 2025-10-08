@@ -41,4 +41,9 @@ pub trait ICrowdFund<TContractState> {
     fn get_supported_token(self: @TContractState) -> Array<ContractAddress>;
 
     fn upgrade_child(ref self: TContractState, new_class_hash: ClassHash);
+
+    // pool donation token
+    fn get_donation_token(self: @TContractState) -> ContractAddress;
+    fn set_donation_token(ref self: TContractState, new_donation_token: ContractAddress);
+    fn withdraw(ref self: TContractState);
 }

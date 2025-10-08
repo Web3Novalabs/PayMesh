@@ -278,10 +278,14 @@ pub mod CrowdFund {
             let is_complete = self.is_pool_completed(pool_id);
             assert(!is_complete, 'pool is completed');
             // let current_balance = self._check_token_balance_of_child(pool_address);
-            self._check_token_allowance(get_caller_address(), get_contract_address(), amount);
+            self
+                ._check_token_allowance(
+                    get_caller_address(), get_contract_address(), amount, self.token_address.read(),
+                );
             // assert(current_balance < pool.target, 'target reach');
 
             let token = IERC20Dispatcher { contract_address: self.token_address.read() };
+            assert(token.balance_of(get_caller_address()) >= amount, 'INSUFFICIENT_BALANCE');
             token.transfer_from(get_caller_address(), pool_address, amount);
             let new_balance = self._check_token_balance_of_child(pool_address);
             pool.balance = new_balance;
@@ -297,7 +301,9 @@ pub mod CrowdFund {
         fn is_pool_completed(self: @ContractState, pool_id: u256) -> bool {
             self.is_pool_paid.read(pool_id)
         }
-
+        fn get_donation_token(self: @ContractState) -> ContractAddress{
+            self.token_address.read()
+        }
         fn set_platform_percentage(ref self: ContractState, value: u256) {
             let caller = get_caller_address();
             let is_admin = self.accesscontrol.has_role(ADMIN_ROLE, caller);
@@ -307,6 +313,13 @@ pub mod CrowdFund {
 
         fn get_platform_percentage(self: @ContractState) -> u256 {
             self.platform_percentage.read()
+        }
+        fn set_donation_token(ref self: ContractState, new_donation_token: ContractAddress){
+            let caller = get_caller_address();
+            let caller = self.accesscontrol.has_role(ADMIN_ROLE, caller);
+            assert(caller, 'Unauthorize caller');
+            self.token_address.write(new_donation_token);
+
         }
         fn set_supported_token(ref self: ContractState, new_token_address: ContractAddress) {
             let caller = get_caller_address();
@@ -324,7 +337,7 @@ pub mod CrowdFund {
             let id = self.token_count.read() + 1;
             self.token_count.write(id);
             self.supported_tokens.write(id, new_token_address);
-            let len = self.donors_count.read();
+            let len = self.pool_count.read();
             for i in 1..=len {
                 let pool_address = self.pool_addresses.read(i);
                 let child_contract = ICrowdFundChildDispatcher { contract_address: pool_address };
@@ -425,6 +438,22 @@ pub mod CrowdFund {
             self.accesscontrol.assert_only_role(ADMIN_ROLE);
             self.upgradeable.upgrade(new_class_hash);
         }
+        fn withdraw(ref self: ContractState) {
+            let current_caller = get_caller_address();
+            let is_admin = self.accesscontrol.has_role(ADMIN_ROLE, current_caller);
+            let emergency_address = self.emergency_withdraw_address.read();
+
+            assert(
+                current_caller == emergency_address || is_admin, 'caller not admin or EMG admin',
+            );
+            let contract_address = get_contract_address();
+
+            // check contract balance
+            let amount = self._check_token_balance_of_child(contract_address);
+
+            let token = IERC20Dispatcher { contract_address: self.token_address.read() };
+            token.transfer(current_caller, amount);
+        }
     }
 
     #[generate_trait]
@@ -464,20 +493,14 @@ pub mod CrowdFund {
         }
 
         fn _check_token_allowance(
-            ref self: ContractState, owner: ContractAddress, spender: ContractAddress, amount: u256,
+            ref self: ContractState,
+            owner: ContractAddress,
+            spender: ContractAddress,
+            amount: u256,
+            token_address: ContractAddress,
         ) {
-            let supported_tokens_count = self.token_count.read();
-
-            // accumulate all token allowance
-            // this will help in test mode and in production
-
-            //ps: allowawance will be give to the contract on the client
-            let mut allowance = 0;
-            for i in 1..=supported_tokens_count {
-                let token_address: ContractAddress = self.supported_tokens.read(i);
-                let token = IERC20Dispatcher { contract_address: token_address };
-                allowance += token.allowance(owner, spender);
-            }
+            let token = IERC20Dispatcher { contract_address: token_address };
+            let allowance = token.allowance(owner, spender);
             assert(allowance >= amount, 'insufficient allowance');
         }
     }

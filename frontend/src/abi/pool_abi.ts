@@ -98,6 +98,10 @@ export const POOL_ABI = [
         name: "description",
         type: "core::byte_array::ByteArray",
       },
+      {
+        name: "total_token_recieved",
+        type: "core::integer::u256",
+      },
     ],
   },
   {
@@ -369,6 +373,29 @@ export const POOL_ABI = [
           {
             name: "new_class_hash",
             type: "core::starknet::class_hash::ClassHash",
+          },
+        ],
+        outputs: [],
+        state_mutability: "external",
+      },
+      {
+        type: "function",
+        name: "get_donation_token",
+        inputs: [],
+        outputs: [
+          {
+            type: "core::starknet::contract_address::ContractAddress",
+          },
+        ],
+        state_mutability: "view",
+      },
+      {
+        type: "function",
+        name: "set_donation_token",
+        inputs: [
+          {
+            name: "new_donation_token",
+            type: "core::starknet::contract_address::ContractAddress",
           },
         ],
         outputs: [],
