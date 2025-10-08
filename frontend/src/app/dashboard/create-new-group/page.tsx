@@ -42,6 +42,7 @@ import { useContractFetch } from "@/hooks/useContractInteraction";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import WalletConnect from "@/app/components/WalletConnect";
 import { useGetBalance } from "@/utils/contract";
+import { checkAddressNetwork } from "@/utils/contract";
 
 interface GroupMember {
   addr: string;
@@ -98,6 +99,18 @@ const CreateNewGroup = () => {
   const [hasProcessedTransaction, setHasProcessedTransaction] = useState(false);
   const { address } = useAccount();
   const balance = useGetBalance(address || "0x0");
+
+  useEffect(() => {
+    async function checkNetwork() {
+      const resultNetwork = await checkAddressNetwork(
+        "0x00163317a670ad6d7a28b96b0b46930d36a88ade4765e9646fa64b7d7c0884ed"
+      );
+
+      console.log(resultNetwork, "RESULT NETWORK");
+    }
+
+    checkNetwork();
+  }, []);
 
   const { data, error } = useTransactionReceipt({
     hash: resultHash,
