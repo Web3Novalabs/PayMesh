@@ -33,7 +33,7 @@ pub fn router(state: AppState) -> Router {
         .nest("/users", routes::user::router())
         .nest("/groups", routes::groups::router())
         .nest("/admin", routes::admin::router())
-        // .nest("/crowdfunding", handlers::crowdfunding::router())
+        .nest("/crowdfunding", routes::crowd_funding::router())
         .with_state(state)
         .layer(cors)
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })

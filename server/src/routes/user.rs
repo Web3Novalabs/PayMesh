@@ -18,12 +18,12 @@ use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, encode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::types::{chrono};
-use uuid::Uuid;
+use sqlx::types::chrono;
 use std::time::Duration;
 use utoipa::ToSchema;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
+use uuid::Uuid;
 use validator::Validate;
 
 pub fn router() -> OpenApiRouter<AppState> {
@@ -232,7 +232,8 @@ pub async fn login(
         .same_site(SameSite::Lax)
         .http_only(true);
 
-    let mut response: Response<String> = Response::new(json!({"status": "success", "token": token}).to_string());
+    let mut response: Response<String> =
+        Response::new(json!({"status": "success", "token": token}).to_string());
     response.headers_mut().append(
         header::SET_COOKIE,
         cookie
@@ -394,4 +395,3 @@ async fn generate_api_key(
 
     Ok((StatusCode::OK, Json(api_key)))
 }
-

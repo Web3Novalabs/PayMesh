@@ -20,6 +20,7 @@ pub mod routes {
 
 pub mod util {
     pub mod connector;
+    pub mod crowd_funding_resolve;
     pub mod hash_api_key;
     pub mod starknet;
     pub mod util_types;
