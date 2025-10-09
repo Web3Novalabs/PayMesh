@@ -12,7 +12,7 @@ import {
 } from "starknet";
 
 export const CROWDFUNDINGADDRESS =
-  "0x06b6e7c18854219fb6c8e342c7af4a81bfd8c21c0fce6a2c9cc412cab66e1e1d";
+  "0x05371e167ec1a1884734895bd25aa66765829d1b040f66fc757d1f4ce13aa401";
 // "0x02625bd794f2e623270c244b9871306747addee48c2b449f6a6dce75120e0841"; // mainnet
 // "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d"; // mainnet
 type SetIsSubmitting = (isSubmitting: boolean) => void;
@@ -177,9 +177,13 @@ export const donate = async (
           pool_address,
         ]);
         console.log("widthdraw", withdraw);
+
+        // Set success state for anonymous donations
+        console.log("Anonymous donation isSuccess true");
+        setIsSuccess(true);
       } else {
         console.log(
-          "main-addressc",
+          "main-address",
           "0x06921613abdd80028144c8df3be64646d1291377f3ff1bcaf126617821d60e40"
         );
         console.log("pool_address", pool_address);
@@ -224,13 +228,10 @@ export const donate = async (
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
         );
-        console.log("Blockchain function - Setting isSuccess to true");
+        console.log("Regular donation isSuccess true");
         console.log(status);
-        console.log("Blockchain function - Successfully completed");
         setIsSuccess(true);
       }
-      console.log("Blockchain function - Setting isSuccess to true");
-      console.log("Blockchain function - Successfully completed");
     }
   } catch (error) {
     console.error("Blockchain function - Error occurred:", error);

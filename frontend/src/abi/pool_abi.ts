@@ -401,6 +401,13 @@ export const POOL_ABI = [
         outputs: [],
         state_mutability: "external",
       },
+      {
+        type: "function",
+        name: "withdraw",
+        inputs: [],
+        outputs: [],
+        state_mutability: "external",
+      },
     ],
   },
   {
