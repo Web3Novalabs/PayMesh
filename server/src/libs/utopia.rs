@@ -8,6 +8,7 @@ pub const USER_TAG: &str = "user";
 pub const ADMIN_TAG: &str = "admin";
 pub const GROUP_TAG: &str = "group";
 pub const CROWD_FUNDING_TAG: &str = "crowd_funding";
+pub const CROWD_FUNDING_ADMIN_TAG: &str = "crowd_funding_admin";
 
 #[derive(OpenApi)]
 #[openapi(
@@ -17,6 +18,7 @@ pub const CROWD_FUNDING_TAG: &str = "crowd_funding";
         (name = ADMIN_TAG, description = "Admin API endpoints"),
         (name = GROUP_TAG, description = "Group API endpoints"),
         (name = CROWD_FUNDING_TAG, description = "Crowd Funding API endpoints"),
+        (name = CROWD_FUNDING_ADMIN_TAG, description = "Crowd Funding Admin API endpoints"),
     )
 )]
 pub struct ApiDoc;

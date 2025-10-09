@@ -66,6 +66,11 @@ CREATE TABLE withdrawals (
         ON DELETE CASCADE
 );
 
+CREATE TABLE supported_crowd_funding_tokens (
+    token_address VARCHAR(66) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT FALSE
+);
+
 CREATE INDEX idx_withdrawals_crowd_funding_id ON withdrawals(crowd_funding_id);
 CREATE INDEX idx_withdrawals_withdrawn_by ON withdrawals(withdrawn_by);
 

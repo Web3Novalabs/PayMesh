@@ -7,23 +7,19 @@ use axum::{
 use bigdecimal::BigDecimal;
 
 use crate::{
-    AppState,
     libs::{
         auth::AuthApiKey,
-        error::{ApiError, map_sqlx_error},
+        error::{map_sqlx_error, ApiError},
         utopia::CROWD_FUNDING_TAG,
-    },
-    routes::crowd_funding::crowd_funding_types::{
+    }, routes::crowd_funding::crowd_funding_types::{
         CreateCrowdFundingRequest, CrowdFunding, DonateToCrowdFundingRequest, Donation,
         PreviousBalance, ResolveCrowdFundingRequest,
-    },
-    util::{
-        crowd_funding_resolve::resolve_crowd_funding_address,
-        validate_address::validate_address_api_err,
-    },
+    }, util::{
+        paymesh_crowd_funding::paymesh_crowd_funding, validate_address::validate_address_api_err
+    }, AppState
 };
 
-const USDC_TOKEN: &str = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const STRK_TOKEN: &str = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
 #[utoipa::path(
     method(get),
@@ -113,6 +109,8 @@ pub async fn create_crowd_funding(
         tracing::error!("Failed to commit transaction: {}", e);
         ApiError::Internal("Failed to commit transaction")
     })?;
+
+    tracing::info!("Crowd funding created: {}", pool_address);
 
     Ok(StatusCode::CREATED)
 }
@@ -222,24 +220,44 @@ pub async fn donate_to_crowd_funding(
         ApiError::Internal("Failed to commit transaction")
     })?;
 
-    let usdc_token_balance = sqlx::query_as!(
+    if crowd_funding.is_complete {
+        paymesh_crowd_funding(crowd_funding_address.clone(), state.env.crowd_funding_contract_address.clone()).await?;
+    }
+
+    let active_token = sqlx::query_scalar(
+        "SELECT token_address FROM supported_crowd_funding_tokens WHERE is_active = true"
+    )
+    .fetch_optional(&state.db)
+    .await
+    .map_err(|e| map_sqlx_error(&e))?
+    .unwrap_or(String::from(STRK_TOKEN));
+
+    dbg!(format!("active token: {}", active_token));
+
+    let active_token_balance = sqlx::query_as!(
         PreviousBalance,
         r#"SELECT total_amount FROM crowd_funding_token_balances WHERE crowd_funding_id = $1 AND token_address = $2"#,
         crowd_funding.id,
-        USDC_TOKEN
+        active_token
     )
     .fetch_optional(&state.db)
     .await
     .map_err(|e| map_sqlx_error(&e))?;
 
-    if let Some(balance) = usdc_token_balance {
+    dbg!(format!("active token balance: {:?}", active_token_balance));
+
+    if let Some(balance) = active_token_balance {
         let target_amount = match crowd_funding.target_amount.parse::<BigDecimal>() {
             Ok(val) => val,
             Err(_) => return Err(ApiError::Internal("Invalid target amount")),
         };
 
+        dbg!(format!("balance: {:?}", balance.total_amount.to_string()));
+        dbg!(format!("target amount: {:?}", target_amount.to_string()));
+
         if balance.total_amount >= target_amount {
-            resolve_crowd_funding_address(crowd_funding_address)?;
+            paymesh_crowd_funding(crowd_funding_address.clone(), state.env.crowd_funding_contract_address.clone()).await?;
+            tracing::info!("Crowd funding resolved: {}", crowd_funding_address);
         }
     }
 
