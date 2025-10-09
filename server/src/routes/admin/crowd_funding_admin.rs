@@ -1,6 +1,6 @@
 use axum::{extract::{Path, State}, http::StatusCode, response::IntoResponse};
 
-use crate::{libs::{auth::{AdminUser}, error::{map_sqlx_error, ApiError}, utopia::CROWD_FUNDING_ADMIN_TAG}, AppState};
+use crate::{libs::{auth::{AdminUser}, error::{map_sqlx_error, ApiError}, utopia::ADMIN_TAG}, AppState};
 
 #[utoipa::path(
     method(post),
@@ -10,7 +10,7 @@ use crate::{libs::{auth::{AdminUser}, error::{map_sqlx_error, ApiError}, utopia:
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to set active token", body = ApiError),
         (status = NOT_FOUND, description = "Token not found", body = ApiError),
     ),
-    tag = CROWD_FUNDING_ADMIN_TAG,
+    tag = ADMIN_TAG,
     security(("bearer" = [])),
 )]
 pub async fn set_active_token(
@@ -49,7 +49,7 @@ pub async fn set_active_token(
         (status = OK, description = "Success"),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Duplicate Token | Failed to add token", body = ApiError),
     ),
-    tag = CROWD_FUNDING_ADMIN_TAG,
+    tag = ADMIN_TAG,
     security(("bearer" = [])),
 )]
 pub async fn add_token(
@@ -76,7 +76,7 @@ pub async fn add_token(
         (status = OK, description = "Success"),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to remove token", body = ApiError),
     ),
-    tag = CROWD_FUNDING_ADMIN_TAG,
+    tag = ADMIN_TAG,
     security(("bearer" = [])),
 )]
 pub async fn remove_token(
@@ -108,7 +108,7 @@ pub async fn remove_token(
         (status = OK, description = "Success", body = String),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to get active token", body = ApiError),
     ),
-    tag = CROWD_FUNDING_ADMIN_TAG,
+    tag = ADMIN_TAG,
     security(("bearer" = [])),
 )]
 pub async fn get_active_token(

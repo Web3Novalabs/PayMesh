@@ -24,7 +24,7 @@ use crate::{
 
 #[utoipa::path(
     method(post),
-    path = "",
+    path = "/",
     responses(
         (status = CREATED, description = "Success"),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to create group", body = ApiError),
