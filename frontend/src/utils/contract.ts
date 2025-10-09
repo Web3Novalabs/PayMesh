@@ -121,13 +121,7 @@ export const compareAddresses = (addr1: string, addr2: string): boolean => {
 export const checkAddressNetwork = async (address: string) => {
   const mainnetProvider = new RpcProvider({
     nodeUrl:
-      // "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_9/Z-bu_aTuwBtbfy7YQ4vOS2ZPQgWJpZdw",
       "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_8/l3W2omp97bsZzhe8YXQOU",
-  });
-
-  const sepoliaProvider = new RpcProvider({
-    nodeUrl:
-      "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_8/Z-bu_aTuwBtbfy7YQ4vOS2ZPQgWJpZdw",
   });
 
   try {
@@ -136,90 +130,44 @@ export const checkAddressNetwork = async (address: string) => {
       ? address
       : `0x${address}`;
 
-    // Check MAINNET
-    let onMainnet = false;
-    let mainnetNonce = "0x0";
-    let mainnetClassHash = null;
+    // Try to get nonce - if it works, address exists on mainnet
+    const nonce = await mainnetProvider.getNonceForAddress(formattedAddress);
 
-    try {
-      // Method 1: Check nonce (transaction count)
-      mainnetNonce = await mainnetProvider.getNonceForAddress(formattedAddress);
+    console.log(`Mainnet nonce for ${formattedAddress}:`, nonce);
 
-      // Method 2: Check if wallet is deployed (class hash)
-      try {
-        mainnetClassHash = await mainnetProvider.getClassHashAt(
-          formattedAddress
-        );
-        // If we can get a classHash without error, the wallet is deployed on mainnet
-        onMainnet = true;
-        console.log(
-          `✅ Mainnet - Nonce: ${mainnetNonce}, ClassHash: ${mainnetClassHash}`
-        );
-      } catch (classError: any) {
-        // If getClassHashAt throws "Contract not found", wallet is not deployed on mainnet
-        console.log(
-          `🔍 Mainnet - Nonce: ${mainnetNonce}, Not deployed (${classError.message})`
-        );
-        // But if nonce > 0, it has been used (though rare without deployment)
-        onMainnet = mainnetNonce !== "0x0";
-      }
-    } catch (e: any) {
-      console.log(`❌ Mainnet check error:`, e.message);
-      onMainnet = false;
-    }
-
-    // Check SEPOLIA
-    let onSepolia = false;
-    let sepoliaNonce = "0x0";
-    let sepoliaClassHash = null;
-
-    try {
-      // Method 1: Check nonce (transaction count)
-      sepoliaNonce = await sepoliaProvider.getNonceForAddress(formattedAddress);
-
-      // Method 2: Check if wallet is deployed (class hash)
-      try {
-        sepoliaClassHash = await sepoliaProvider.getClassHashAt(
-          formattedAddress
-        );
-        // If we can get a classHash without error, the wallet is deployed on sepolia
-        onSepolia = true;
-        console.log(
-          `✅ Sepolia - Nonce: ${sepoliaNonce}, ClassHash: ${sepoliaClassHash}`
-        );
-      } catch (classError: any) {
-        // If getClassHashAt throws "Contract not found", wallet is not deployed on sepolia
-        console.log(
-          `🔍 Sepolia - Nonce: ${sepoliaNonce}, Not deployed (${classError.message})`
-        );
-        // But if nonce > 0, it has been used (though rare without deployment)
-        onSepolia = sepoliaNonce !== "0x0";
-      }
-    } catch (e: any) {
-      console.log(`❌ Sepolia check error:`, e.message);
-      onSepolia = false;
-    }
-
-    // Determine network based on findings
-    if (onMainnet && !onSepolia) {
-      console.log("🎯 RESULT: This wallet is deployed/active on MAINNET");
-      return "mainnet";
-    } else if (onSepolia && !onMainnet) {
-      console.log(
-        "🎯 RESULT: This wallet is deployed/active on SEPOLIA (testnet)"
-      );
-      return "sepolia";
-    } else if (onMainnet && onSepolia) {
-      console.log("🎯 RESULT: This wallet is deployed/active on BOTH networks");
-      return "both";
+    // If nonce is not "0x0", address exists on mainnet
+    if (nonce && nonce !== "0x0") {
+      return nonce; // Return the nonce value (like 0x26)
     } else {
-      console.log(
-        "🎯 RESULT: Address has no activity on either network (not deployed/new wallet)"
-      );
-      return "none";
+      return null; // Address doesn't exist or has no transactions
     }
   } catch (error) {
-    console.error("❌ Error checking address network:", error);
-    return null;
+    if (error instanceof Error) {
+      console.log("Address not found on mainnet:", error.message);
+    } else {
+      console.log("Address not found on mainnet:", error);
+    }
+    return null; // Address doesn't exist on mainnet
   }
 };
+
+// export const checkAddressNetwork = async (address: string) => {
+//   const ress = await fetch(
+//     "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_8/l3W2omp97bsZzhe8YXQOU",
+//     {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         jsonrpc: "2.0",
+//         method: "starknet_getNonce",
+//         params: ["latest", address],
+//         id: 0,
+//       }),
+//     }
+//   );
+//   const data = await ress.json();
+//   console.log("DATA FROM NONCE", data);
+//   return data;
+// };
