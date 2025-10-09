@@ -12,7 +12,7 @@ import {
 } from "starknet";
 
 export const CROWDFUNDINGADDRESS =
-  "0x05371e167ec1a1884734895bd25aa66765829d1b040f66fc757d1f4ce13aa401";
+  "0x06b6e7c18854219fb6c8e342c7af4a81bfd8c21c0fce6a2c9cc412cab66e1e1d";
 // "0x02625bd794f2e623270c244b9871306747addee48c2b449f6a6dce75120e0841"; // mainnet
 // "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d"; // mainnet
 type SetIsSubmitting = (isSubmitting: boolean) => void;
@@ -108,7 +108,7 @@ export const create_pool = async (
       );
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const poolAddress = (status as any)?.events?.[3]?.keys?.[1];
+      const poolAddress = (status as any)?.events?.[3]?.data?.[0];
       poolAddrQr = poolAddress as string;
 
       console.log("Pool address extracted:", poolAddress);
@@ -143,7 +143,8 @@ export const donate = async (
   amount: number,
   account: AccountInterface | undefined,
   setIsLoading: SetIsLoading,
-  isAnonymous: boolean
+  isAnonymous: boolean,
+  setIsSuccess: SetIsSuccess
   // setIsSuccess: SetIsSuccess,
   // onSuccess: OnSuccess,
   // onError: OnError
@@ -226,6 +227,7 @@ export const donate = async (
         console.log("Blockchain function - Setting isSuccess to true");
         console.log(status);
         console.log("Blockchain function - Successfully completed");
+        setIsSuccess(true);
       }
       console.log("Blockchain function - Setting isSuccess to true");
       console.log("Blockchain function - Successfully completed");
@@ -234,8 +236,17 @@ export const donate = async (
     console.error("Blockchain function - Error occurred:", error);
     const errorMessage =
       error instanceof Error ? error.message : "Unknown error occurred";
-    // onError(errorMessage);
-    toast.error("Error making donation");
+
+    // Provide more specific error messages
+    if (errorMessage.includes("insufficient")) {
+      toast.error("Insufficient balance. Please check your wallet balance.");
+    } else if (errorMessage.includes("rejected")) {
+      toast.error("Transaction was rejected. Please try again.");
+    } else if (errorMessage.includes("network")) {
+      toast.error("Network error. Please check your connection and try again.");
+    } else {
+      toast.error("Failed to process donation. Please try again.");
+    }
   } finally {
     console.log(
       "Blockchain function - Finally block, setting isLoading to false"

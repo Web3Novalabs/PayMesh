@@ -36,34 +36,51 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const { id } = useParams();
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   const { account } = useAccount();
   console.log(pool);
+
+  // Handle success state - close modal and show success toast
+  useEffect(() => {
+    if (isSuccess) {
+      toast.success("🎉 Donation successful! Thank you for your contribution!");
+      // Reset form state
+      setAmount("");
+      setIsAnonymous(false);
+      setIsSuccess(false);
+      // Close modal after a short delay
+      setTimeout(() => {
+        onClose();
+      }, 1500);
+    }
+  }, [isSuccess, onClose]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const numAmount = parseFloat(amount);
-    if (numAmount > 0) {
-      donate(
-        typeof pool?.pool_address === "string" ? pool.pool_address : "",
-        numAmount,
-        account,
-        setIsLoading,
-        isAnonymous
-        // setIsSuccessT,
-        // () => {
-        //   // onSuccess callback
-        //   toast.success("Contribution successful!");
-        //   setAmount("");
-        //   setIsAnonymous(false);
-        //   onClose();
-        // },
-        // (errorMessage) => {
-        //   // onError callback
-        //   toast.error(`Donation failed: ${errorMessage}`);
-        // }
-      );
+
+    // Validation: If anonymous is selected, amount must be more than 10
+    if (isAnonymous && numAmount <= 10) {
+      toast.error("Anonymous donations must be more than 10 STRK or 10 USDC");
+      return;
     }
+
+    // Validation: Amount must be positive
+    if (numAmount <= 0) {
+      toast.error("Please enter a valid donation amount");
+      return;
+    }
+
+    donate(
+      typeof pool?.pool_address === "string" ? pool.pool_address : "",
+      numAmount,
+      account,
+      setIsLoading,
+      isAnonymous,
+      setIsSuccess
+    );
   };
 
   if (!isOpen) return null;
@@ -78,9 +95,9 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
           </h2>
           <button
             onClick={onClose}
-            disabled={isLoading}
+            disabled={isLoading || isSuccess}
             className={`transition-colors duration-200 ${
-              isLoading
+              isLoading || isSuccess
                 ? "text-[#8398AD] cursor-not-allowed opacity-50"
                 : "text-[#8398AD] hover:text-[#DFDFE0] cursor-pointer"
             }`}
@@ -91,6 +108,24 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          {/* Success State */}
+          {/* {isSuccess && (
+            <div className="bg-[#064E3B] border border-[#10B981] rounded-sm p-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-5 h-5 bg-[#10B981] rounded-full flex items-center justify-center">
+                  <Check className="w-3 h-3 text-white" />
+                </div>
+                <p className="text-[#10B981] text-sm font-medium">
+                  Donation successful! 🎉
+                </p>
+              </div>
+              <p className="text-[#6EE7B7] text-xs mt-2">
+                Your contribution has been recorded on the blockchain. Thank
+                you!
+              </p>
+            </div>
+          )} */}
+
           {/* Loading State */}
           {isLoading && (
             <div className="bg-[#10273E] border border-[#0073E6] rounded-sm p-4 mb-4">
@@ -154,33 +189,55 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                 <span className="text-[#DFDFE0]">Anonymous donation</span>
               </label>
             </div>
+
+            {/* Anonymous donation requirement notice */}
+            {isAnonymous && (
+              <div className="bg-[#1F2937] border border-[#F59E0B] rounded-sm p-3">
+                <p className="text-[#F59E0B] text-sm">
+                  ⚠️ Anonymous donations require a minimum of{" "}
+                  <strong>10.01 STRK</strong>
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
           <div className="flex gap-4 pt-4">
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={
+                isLoading ||
+                isSuccess ||
+                (isAnonymous && parseFloat(amount) <= 10) ||
+                parseFloat(amount) <= 0
+              }
               className={`flex-1 bg-gradient-to-r from-[#434672] to-[#755a5a] text-white py-3 px-4 rounded-sm transition-opacity duration-200 font-medium ${
-                isLoading
+                isLoading ||
+                isSuccess ||
+                (isAnonymous && parseFloat(amount) <= 10) ||
+                parseFloat(amount) <= 0
                   ? "cursor-not-allowed opacity-50"
                   : "cursor-pointer hover:opacity-90"
               }`}
             >
-              {isLoading ? "Processing Transaction..." : "Contribute Now"}
+              {isLoading
+                ? "Processing Transaction..."
+                : isSuccess
+                ? "Donation Successful!"
+                : "Contribute Now"}
             </button>
 
             <button
               type="button"
               onClick={onClose}
-              disabled={isLoading}
+              disabled={isLoading || isSuccess}
               className={`flex-1 border border-[#FFFFFF0D] text-[#DFDFE0] py-3 px-4 rounded-sm transition-colors duration-200 ${
-                isLoading
+                isLoading || isSuccess
                   ? "bg-[#282e38] cursor-not-allowed opacity-50"
                   : "bg-[#FFFFFF0D] cursor-pointer hover:bg-[#282e38]"
               }`}
             >
-              Cancel
+              {isSuccess ? "Closing..." : "Cancel"}
             </button>
           </div>
         </form>
@@ -336,9 +393,58 @@ const FundingDetailsPage = () => {
   }
 
   return (
-    <div className="min-h-screen mb-10">
+    <div className="min-h-screen mb-10 relative">
+      {/* Pool Completed Overlay */}
+      {pool.is_completed && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000036] bg-opacity-50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#1F2937] border border-[#10B981] rounded-lg p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <Check className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-[#10B981] mb-2">
+              Campaign Completed! 🎉
+            </h2>
+            <p className="text-[#DFDFE0] mb-4">
+              This funding campaign has reached its target goal and is now
+              closed.
+            </p>
+            <div className="bg-[#064E3B] border border-[#10B981] rounded-sm p-4 mb-6">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-[#6EE7B7]">Final Amount Raised:</span>
+                <span className="text-[#10B981] font-bold">
+                  {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
+                    2
+                  )}{" "}
+                  STRK
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-[#6EE7B7]">Target Goal:</span>
+                <span className="text-[#DFDFE0]">
+                  {Number.parseFloat(pool.target.toString()).toFixed(2)} STRK
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-[#51be58]">Donors:</span>
+                <span className="text-[#DFDFE0]">{pool.donors}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push("/dashboard/crowd-fund")}
+              className="w-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium cursor-pointer"
+            >
+              Back to All Campaigns
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
-      <div className="mb-8 border-b border-[#FFFFFF0D] pb-8">
+      <div
+        className={`mb-8 border-b border-[#FFFFFF0D] pb-8 ${
+          pool.is_completed ? "blur-sm pointer-events-none" : ""
+        }`}
+      >
         <button
           onClick={() => router.push("/dashboard/crowd-fund")}
           className="flex items-center cursor-pointer gap-2 text-[#8398AD] hover:text-[#DFDFE0] transition-colors duration-200 mb-4"
@@ -352,7 +458,11 @@ const FundingDetailsPage = () => {
         </p>
       </div>
 
-      <div className="flex items-center gap-2 mb-5">
+      <div
+        className={`flex items-center gap-2 mb-5 ${
+          pool.is_completed ? "blur-sm pointer-events-none" : ""
+        }`}
+      >
         <span className="text-[#cad4dd]">{crowdFundingAddr}</span>
         <button
           onClick={() => handleCopyToClipboard(crowdFundingAddr)}
@@ -366,7 +476,11 @@ const FundingDetailsPage = () => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div
+        className={`grid grid-cols-1 lg:grid-cols-3 gap-8 ${
+          pool.is_completed ? "blur-sm pointer-events-none" : ""
+        }`}
+      >
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           {/* Progress Section */}
