@@ -1,242 +1,231 @@
-import { defineIndexer } from "apibara/indexer";
-import { useLogger } from "apibara/plugins";
+// import { defineIndexer } from "apibara/indexer";
+// import { useLogger } from "apibara/plugins";
 
-import { StarknetStream, getSelector, FieldElement, decodeEvent } from "@apibara/starknet";
-import type { ApibaraRuntimeConfig } from "apibara/types";
-import { myAbi } from "../abi";
-import { strk_abi } from "../strk_abi";
+// import { StarknetStream, getSelector, FieldElement, decodeEvent } from "@apibara/starknet";
+// import type { ApibaraRuntimeConfig } from "apibara/types";
+// import { myAbi } from "../abi";
+// import { strk_abi } from "../strk_abi";
+// import { 
+//   STRK_TOKEN_ADDRESS, 
+//   ETH_TOKEN_ADDRESS, 
+//   USDT_TOKEN_ADDRESS, 
+//   USDC_TOKEN_ADDRESS, 
+//   WBTC_TOKEN_ADDRESS, 
+//   TRANSFER_SELECTOR
+// } from "../constants";
 
-export default function (runtimeConfig: ApibaraRuntimeConfig) {
-  const { startingBlock: configStartingBlock, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
+// export default function (runtimeConfig: ApibaraRuntimeConfig) {
+//   const { startingBlock: configStartingBlock, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
 
-  const TRANSFER_SELECTOR = getSelector("Transfer");
-  const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
-  const SUBSCRIPTION_TOPPED_SELECTOR = getSelector("SubscriptionTopped");
-  const GROUP_PAID_SELECTOR = getSelector("GroupPaid");
-  const STRK_TOKEN_ADDRESS = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
-  const ETH_TOKEN_ADDRESS = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
-  const USDT_TOKEN_ADDRESS = "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
-  const USDC_TOKEN_ADDRESS = "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
-  const WBTC_TOKEN_ADDRESS = "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
-  const groupCache: string[] = [...group_address_cache];
-  console.log(` the group cache is ${groupCache}`);
+//   const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
+//   const SUBSCRIPTION_TOPPED_SELECTOR = getSelector("SubscriptionTopped");
+//   const GROUP_PAID_SELECTOR = getSelector("GroupPaid");
 
-  return defineIndexer(StarknetStream)({
-    streamUrl,
-    finality: "accepted",
-    startingBlock: BigInt(startingBlock), 
-    filter: {
-      events: [
-        {
-          address: contractAddress as FieldElement,
-          keys: [],
-        },
-        {
-          address: STRK_TOKEN_ADDRESS,
-          keys: [TRANSFER_SELECTOR]
-        },
-        {
-          address: ETH_TOKEN_ADDRESS,
-          keys: [TRANSFER_SELECTOR]
-        },
-        {
-          address: USDT_TOKEN_ADDRESS,
-          keys: [TRANSFER_SELECTOR]
-        },
-        {
-          address: USDC_TOKEN_ADDRESS,
-          keys: [TRANSFER_SELECTOR]
-        },
-        {
-          address: WBTC_TOKEN_ADDRESS,
-          keys: [TRANSFER_SELECTOR]
-        },
-      ],
-    },
-    plugins: [],
-    async transform({ block }) {
-      const logger = useLogger();
-      const { events: blockEvents, header } = block;
-      logger.info(`Received mainnet block ${header.blockNumber}`);
+  
+//   const groupCache: string[] = [...group_address_cache];
+//   console.log(` the group cache is ${groupCache}`);
 
-      for (const event of blockEvents) {
-        const eventKey = event.keys[0];
+//   return defineIndexer(StarknetStream)({
+//     streamUrl,
+//     finality: "accepted",
+//     startingBlock: BigInt(configStartingBlock), 
+//     filter: {
+//       events: [
+//         {
+//           address: contractAddress as FieldElement,
+//           keys: [],
+//         },
+//         {
+//           address: STRK_TOKEN_ADDRESS,
+//           keys: [TRANSFER_SELECTOR]
+//         },
+//         {
+//           address: ETH_TOKEN_ADDRESS,
+//           keys: [TRANSFER_SELECTOR]
+//         },
+//         {
+//           address: USDT_TOKEN_ADDRESS,
+//           keys: [TRANSFER_SELECTOR]
+//         },
+//         {
+//           address: USDC_TOKEN_ADDRESS,
+//           keys: [TRANSFER_SELECTOR]
+//         },
+//         {
+//           address: WBTC_TOKEN_ADDRESS,
+//           keys: [TRANSFER_SELECTOR]
+//         },
+//       ],
+//     },
+//     plugins: [],
+//     async transform({ block }) {
+//       const logger = useLogger();
+//       const { events: blockEvents, header } = block;
+//       logger.info(`Received mainnet block ${header.blockNumber}`);
+
+//       for (const event of blockEvents) {
+//         const eventKey = event.keys[0];
         
-        if (eventKey === GROUP_CREATED_SELECTOR) {
-          logger.info(`\n💡 Group created event`); 
-          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupCreated" });
+//         if (eventKey === GROUP_CREATED_SELECTOR) {
+//           logger.info(`\n💡 Group created event`); 
+//           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupCreated" });
           
-          const safeArgs = JSON.stringify(args, (_, v) =>
-            typeof v === "bigint" ? v.toString() : v
-        );
+//           const safeArgs = JSON.stringify(args, (_, v) =>
+//             typeof v === "bigint" ? v.toString() : v
+//         );
         
-        const {group_address, _, creator, name, usage_count, members} = JSON.parse(safeArgs);
+//         const {group_address, _, creator, name, usage_count, members} = JSON.parse(safeArgs);
 
-        if (!groupCache.includes(group_address)) {
-          groupCache.push(group_address);
-          console.log(`✅ Added group ${group_address} to cache`);
-        }
+//         if (!groupCache.includes(group_address)) {
+//           groupCache.push(group_address);
+//           console.log(`✅ Added group ${group_address} to cache`);
+//         }
         
-          create_group(group_address, creator, name, usage_count, members);
-        } 
-        else if (eventKey === TRANSFER_SELECTOR) {
+//           create_group(group_address, creator, name, usage_count, members);
+//         } 
+//         else if (eventKey === TRANSFER_SELECTOR) {
 
-          const { args } = decodeEvent({ strict: true, event, abi: strk_abi, eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer" });
+//           const { args } = decodeEvent({ strict: true, event, abi: strk_abi, eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer" });
 
-          const safeArgs = JSON.stringify(args, (_, v) =>
-            typeof v === "bigint" ? v.toString() : v
-          );
+//           const safeArgs = JSON.stringify(args, (_, v) =>
+//             typeof v === "bigint" ? v.toString() : v
+//           );
 
-          let tx_hash = event.transactionHash;
+//           let tx_hash = event.transactionHash;
 
-          if (groupCache.includes(args.to)) {
-            console.log(`💰 Transfer to group ${args.to}, processing payment...`);
-            pay(args.to, args.from, tx_hash, String(args.value), event.address);
-          }         
-        }
-        else if (eventKey === GROUP_PAID_SELECTOR) {
+//           if (groupCache.includes(args.to)) {
+//             console.log(`💰 Transfer to group ${args.to}, processing payment...`);
+//             pay(args.to, args.from, tx_hash, String(args.value), event.address);
+//           }         
+//         }
+//         else if (eventKey === GROUP_PAID_SELECTOR) {
           
-          logger.info("Group Paid Occurred")
+//           logger.info("Group Paid Occurred")
 
-          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupPaid" });
+//           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupPaid" });
           
-          const safeArgs = JSON.stringify(args, (_, v) =>
-            typeof v === "bigint" ? v.toString() : v
-          );
+//           const safeArgs = JSON.stringify(args, (_, v) =>
+//             typeof v === "bigint" ? v.toString() : v
+//           );
 
-          const {group_address, amount, paid_by, paid_at, members, usage_count, token_address} = JSON.parse(safeArgs);
+//           const {group_address, amount, paid_by, paid_at, members, usage_count, token_address} = JSON.parse(safeArgs);
 
-          logger.info(`\n💡 Group paid event ${group_address}`);
+//           logger.info(`\n💡 Group paid event ${group_address}`);
 
-          let tx_hash = event.transactionHash;
+//           let tx_hash = event.transactionHash;
 
-          store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
-        }
-        else if (eventKey === SUBSCRIPTION_TOPPED_SELECTOR) {
+//           store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
+//         }
+//         else if (eventKey === SUBSCRIPTION_TOPPED_SELECTOR) {
 
-          logger.info(`\n💡 Group top up subsribed`);
+//           logger.info(`\n💡 Group top up subsribed`);
 
-          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::SubscriptionTopped" });
+//           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::SubscriptionTopped" });
 
-          const safeArgs = JSON.stringify(args, (_, v) =>
-            typeof v === "bigint" ? v.toString() : v
-          );
+//           const safeArgs = JSON.stringify(args, (_, v) =>
+//             typeof v === "bigint" ? v.toString() : v
+//           );
 
-          const {group_address, usage_count} = JSON.parse(safeArgs);
+//           const {group_address, usage_count} = JSON.parse(safeArgs);
 
 
-          subsciption_topped(group_address, Number(usage_count));
-        }
-      }
-    },
-  });
-}
+//           subsciption_topped(group_address, Number(usage_count));
+//         }
+//       }
+//     },
+//   });
+// }
 
-const store_distribution_history = (group_address: string, token_address: string, tx_hash: string, usage_remaining: number, 
-  token_amount: string, members: Array<{ addr: string; share: string; }>) => {
-  let members_decoupled = members.map(member => ({
-    member_address: member.addr,
-    member_amount: member.share
-  }));
-  let body = JSON.stringify({
-      "group_address": group_address,
-      "token_address": token_address,
-      "tx_hash": tx_hash,
-      "usage_remaining": Number(usage_remaining),
-      "token_amount": token_amount,
-      "members": [
-          ...members_decoupled
-        ]
-    });
-  fetch(`${process.env.API_URL}/store_payment_distribution_history`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: body
-  });
-}
+// const store_distribution_history = (group_address: string, token_address: string, tx_hash: string, usage_remaining: number, 
+//   token_amount: string, members: Array<{ addr: string; share: string; }>) => {
+//   let members_decoupled = members.map(member => ({
+//     member_address: member.addr,
+//     member_amount: member.share
+//   }));
+//   let body = JSON.stringify({
+//       "group_address": group_address,
+//       "token_address": token_address,
+//       "tx_hash": tx_hash,
+//       "usage_remaining": Number(usage_remaining),
+//       "token_amount": token_amount,
+//       "members": [
+//           ...members_decoupled
+//         ]
+//     });
+//   fetch(`${process.env.API_URL}/store_payment_distribution_history`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: body
+//   });
+// }
 
-const pay = (address: string, from_address: string, tx_hash: string, amount: string, token_address: string) => {
-  const body = JSON.stringify({
-    "group_address": address,
-    "from_address": from_address,
-    "tx_hash": tx_hash,
-    "token_amount": amount,
-    "token_address": token_address
-  });
+// const pay = (address: string, from_address: string, tx_hash: string, amount: string, token_address: string) => {
+//   const body = JSON.stringify({
+//     "group_address": address,
+//     "from_address": from_address,
+//     "tx_hash": tx_hash,
+//     "token_amount": amount,
+//     "token_address": token_address
+//   });
 
-  console.log(`payment data ${body}`);
-  fetch(`${process.env.API_URL}/pay_group`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: body
-  })
-  .catch((err) => {
-    console.error(`Payment error for ${address}:`, err);
-  });
-};
+//   console.log(`payment data ${body}`);
+//   fetch(`${process.env.API_URL}/pay_group`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: body
+//   })
+//   .catch((err) => {
+//     console.error(`Payment error for ${address}:`, err);
+//   });
+// };
 
-const subsciption_topped = (group_address: string, usage_count: number) => {
-  let body = JSON.stringify({
-      "group_address": group_address,
-      "usage_count": usage_count,
-    });
-  console.log(`subscription topped data ${body}`)
+// const subsciption_topped = (group_address: string, usage_count: number) => {
+//   let body = JSON.stringify({
+//       "group_address": group_address,
+//       "usage_count": usage_count,
+//     });
+//   console.log(`subscription topped data ${body}`)
 
-  fetch(`${process.env.API_URL}/subscription_topped`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: body
-  }).catch((err) => {
-    console.error(`Subscription top up error for ${group_address}:`, err);
-  });
-};
+//   fetch(`${process.env.API_URL}/subscription_topped`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: body
+//   }).catch((err) => {
+//     console.error(`Subscription top up error for ${group_address}:`, err);
+//   });
+// };
 
-const create_group = (address: string, creatorAddress: string, groupName: string, usageCount: number, members: Array<{ addr: string; percentage: number; }>) => {
-  let members_decoupled = members.map(member => ({
-    addr: member.addr,
-    percentage: Number(member.percentage)
-  }));
-  let body = JSON.stringify({
-    "group_address": address,
-    "group_name": groupName,
-    "created_by": creatorAddress,
-    "usage_remaining": Number(usageCount),
-    "members": [
-        ...members_decoupled
-      ]
-    })
-  fetch(`${process.env.API_URL}/group`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: body, 
-  }).catch((err) => {
-    console.error(`Create group error ${address}:`, err);
-  });
-};
+// const create_group = (address: string, creatorAddress: string, groupName: string, usageCount: number, members: Array<{ addr: string; percentage: number; }>) => {
+//   let members_decoupled = members.map(member => ({
+//     addr: member.addr,
+//     percentage: Number(member.percentage)
+//   }));
+//   let body = JSON.stringify({
+//     "group_address": address,
+//     "group_name": groupName,
+//     "created_by": creatorAddress,
+//     "usage_remaining": Number(usageCount),
+//     "members": [
+//         ...members_decoupled
+//       ]
+//     })
+//   fetch(`${process.env.API_URL}/group`, {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: body, 
+//   }).catch((err) => {
+//     console.error(`Create group error ${address}:`, err);
+//   });
+// };
 
-export const startingBlock = await fetch(
-  "https://starknet-mainnet.public.blastapi.io",
-  {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      jsonrpc: "2.0",
-      id: 0,
-      method: "starknet_blockNumber",
-    }),
-  },
-)
-  .then((response) => response.json())
-  .then((data: any) => data.result);
-
-export const group_address_cache = await fetch(
-  `${process.env.API_URL}/all_group_addresses`,
-  {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  },
-)
-  .then((response) => response.json())
-  .then((data: any) => data);
+// export const group_address_cache = await fetch(
+//   `${process.env.API_URL}/all_group_addresses`,
+//   {
+//     method: "GET",
+//     headers: { "Content-Type": "application/json" },
+//   },
+// )
+//   .then((response) => response.json())
+//   .then((data: any) => data);
 
 
