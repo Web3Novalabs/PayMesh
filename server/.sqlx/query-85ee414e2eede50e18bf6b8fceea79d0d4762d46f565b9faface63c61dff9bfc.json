@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT total_amount FROM crowd_funding_token_balances WHERE crowd_funding_id = $1 AND token_address = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "total_amount",
+        "type_info": "Numeric"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "85ee414e2eede50e18bf6b8fceea79d0d4762d46f565b9faface63c61dff9bfc"
+}

@@ -1,9 +1,17 @@
 use std::str::FromStr;
 
 use crate::{
-    libs::{auth::AuthApiKey, error::ApiError, utopia::GROUP_TAG}, routes::groups::groups_types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest}, util::starknet::call_paymesh_contract_function, AppState
+    AppState,
+    libs::{auth::AuthApiKey, error::ApiError, utopia::GROUP_TAG},
+    routes::groups::groups_types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest},
+    util::{starknet::call_paymesh_contract_function, validate_address::validate_address_api_err},
 };
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use bigdecimal::BigDecimal;
 use serde::Serialize;
 use starknet::core::types::Felt;
@@ -15,7 +23,7 @@ struct Amount {
 
 #[utoipa::path(
     method(post),
-    path = "/pay_group",
+    path = "/{group_address}/pay",
     responses(
         (status = OK, description = "Success", body = String),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to pay group", body = ApiError),
@@ -29,9 +37,11 @@ struct Amount {
 pub async fn pay_group(
     State(state): State<AppState>,
     AuthApiKey(_hello): AuthApiKey,
+    Path(group_address): Path<String>,
     Json(payload): Json<CallContractRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let group_address = payload.group_address;
+    validate_address_api_err(&group_address)?;
+    let group_address = group_address;
     let from_address = payload.from_address;
     let tx_hash = payload.tx_hash;
     let token_amount = BigDecimal::from_str(&payload.token_amount).map_err(|e| {
@@ -97,7 +107,7 @@ pub async fn pay_group(
 
 #[utoipa::path(
     method(post),
-    path = "/store_payment_distribution_history",
+    path = "/{group_address}/payment-distributions",
     responses(
         (status = OK, description = "History added successfully"),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to store payment distribution history", body = ApiError),
@@ -110,9 +120,11 @@ pub async fn pay_group(
 pub async fn store_payment_distribution_history(
     State(state): State<AppState>,
     AuthApiKey(_hello): AuthApiKey,
+    Path(group_address): Path<String>,
     Json(payload): Json<PayGroupRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let group_address = payload.group_address;
+    validate_address_api_err(&group_address)?;
+    let group_address = group_address;
     let usage_remaining = BigDecimal::from(payload.usage_remaining);
     let token_address = payload.token_address;
     let token_amount = BigDecimal::from_str(&payload.token_amount).map_err(|e| {

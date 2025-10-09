@@ -5,7 +5,9 @@ use axum::{
 use jsonwebtoken::{DecodingKey, Validation};
 
 use crate::{
-    libs::error::{map_sqlx_error, ApiError}, util::hash_api_key::hash_api_key, AppState
+    AppState,
+    libs::error::{ApiError, map_sqlx_error},
+    util::hash_api_key::hash_api_key,
 };
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
@@ -128,5 +130,3 @@ impl FromRequestParts<AppState> for AuthApiKey {
 pub struct ApiDetails {
     num_of_usages: i32,
 }
-
-
