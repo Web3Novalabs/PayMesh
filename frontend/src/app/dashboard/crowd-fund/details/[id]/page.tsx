@@ -22,6 +22,7 @@ import QRCode from "react-qr-code";
 import { CallData, PaymasterDetails } from "starknet";
 import { myProvider, ONE_STK } from "@/utils/contract";
 import { copyToClipboard } from "@/lib/utils";
+import { useGetBalance } from "@/utils/contract";
 
 interface ContributeModalProps {
   isOpen: boolean;
@@ -41,7 +42,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   const { account } = useAccount();
   console.log(pool);
-
+  const balance = useGetBalance(account?.address || "0x0");
   // Handle success state - close modal and show success toast
   useEffect(() => {
     if (isSuccess) {
@@ -64,6 +65,11 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
     // Validation: If anonymous is selected, amount must be more than 10
     if (isAnonymous && numAmount <= 10) {
       toast.error("Anonymous donations must be more than 10 STRK or 10 USDC");
+      return;
+    }
+
+    if (isAnonymous && balance?.formatted && +balance.formatted < 12) {
+      toast.error("Insufficient balance, Top Up!");
       return;
     }
 
