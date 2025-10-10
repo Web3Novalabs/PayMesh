@@ -1,0 +1,55 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, crowd_funding_id, donor_address, amount::text as \"amount!\", token_address, transaction_hash FROM donations WHERE crowd_funding_id = $1 AND donor_address = $2 AND token_address = $3 AND transaction_hash = $4",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "crowd_funding_id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "donor_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "amount!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "token_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "transaction_hash",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      null,
+      false,
+      false
+    ]
+  },
+  "hash": "04dcea8fe1e261a4f4908b5827350f13060be137a79a14e54ac34ca01377bab8"
+}

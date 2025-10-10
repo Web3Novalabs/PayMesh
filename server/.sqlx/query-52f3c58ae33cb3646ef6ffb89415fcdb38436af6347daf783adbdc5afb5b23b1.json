@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE supported_crowd_funding_tokens SET is_active = true WHERE token_address = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "52f3c58ae33cb3646ef6ffb89415fcdb38436af6347daf783adbdc5afb5b23b1"
+}

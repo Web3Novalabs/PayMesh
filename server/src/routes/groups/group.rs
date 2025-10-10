@@ -1,4 +1,9 @@
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use sqlx::types::BigDecimal;
 use std::collections::HashMap;
 use tokio::sync::RwLockReadGuard;
@@ -6,21 +11,20 @@ use tokio::sync::RwLockReadGuard;
 use crate::{
     AppState,
     libs::{
-        auth::{AuthApiKey},
+        auth::AuthApiKey,
         error::{ApiError, map_sqlx_error},
         utopia::GROUP_TAG,
     },
     routes::groups::groups_types::{
-        GetGroupDetailsRequest, GetGroupDetailsResponse, GroupFullDetailResponse,
-        GroupMemberResponse, GroupMemberWithAddress, GroupRequest, GroupTokenTransfer,
-        GroupsResponse,
+        GetGroupDetailsResponse, GroupFullDetailResponse, GroupMemberResponse,
+        GroupMemberWithAddress, GroupRequest, GroupTokenTransfer, GroupsResponse,
     },
-    util::connector::is_valid_address,
+    util::validate_address::validate_address_api_err,
 };
 
 #[utoipa::path(
     method(post),
-    path = "/group",
+    path = "/",
     responses(
         (status = CREATED, description = "Success"),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to create group", body = ApiError),
@@ -92,7 +96,7 @@ pub async fn create_group(
 
 #[utoipa::path(
     method(get),
-    path = "/group",
+    path = "/{group_address}",
     responses(
         (status = OK, description = "Success", body = GetGroupDetailsResponse),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to fetch group details", body = ApiError),
@@ -100,18 +104,13 @@ pub async fn create_group(
         (status = BAD_REQUEST, description = "Invalid Group Address", body = ApiError),
     ),
     tag = GROUP_TAG,
-    request_body = GetGroupDetailsRequest,
 )]
 pub async fn get_group(
     State(state): State<AppState>,
-    Json(params): Json<GetGroupDetailsRequest>,
+    Path(group_address): Path<String>,
 ) -> Result<Json<GetGroupDetailsResponse>, ApiError> {
-    let group_address = params.group_address;
-
-    is_valid_address(&group_address).map_err(|e| {
-        tracing::error!("Invalid group address: {}", e);
-        ApiError::BadRequest("INVALID GROUP ADDRESS")
-    })?;
+    validate_address_api_err(&group_address)?;
+    let group_address = group_address;
 
     let group = sqlx::query_as!(
         GroupsResponse,
@@ -161,7 +160,7 @@ pub async fn get_group(
 
 #[utoipa::path(
     method(get),
-    path = "/all_groups",
+    path = "/",
     responses(
         (status = OK, description = "Success", body = Vec<GroupFullDetailResponse>),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to fetch groups", body = ApiError),
@@ -306,7 +305,7 @@ pub async fn get_groups(State(state): State<AppState>) -> Result<impl IntoRespon
 
 #[utoipa::path(
     method(get),
-    path = "/all_group_addresses",
+    path = "/addresses",
     responses(
         (status = OK, description = "Success", body = Vec<String>),
     ),

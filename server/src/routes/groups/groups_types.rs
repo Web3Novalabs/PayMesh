@@ -23,11 +23,6 @@ pub struct GroupMembersRequest {
     pub percentage: u8,
 }
 
-#[derive(Debug, Deserialize, Validate, ToSchema)]
-pub struct GetGroupDetailsRequest {
-    #[validate(custom(function = "validate_address"))]
-    pub group_address: String,
-}
 #[derive(Debug, Serialize, ToSchema)]
 pub struct GetGroupDetailsResponse {
     pub group_address: String,
@@ -42,8 +37,6 @@ pub struct GetGroupDetailsResponse {
 #[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct PayGroupRequest {
     #[validate(custom(function = "validate_address"))]
-    pub group_address: String,
-    #[validate(custom(function = "validate_address"))]
     pub token_address: String,
     #[validate(custom(function = "validate_address"))]
     pub tx_hash: String,
@@ -55,8 +48,6 @@ pub struct PayGroupRequest {
 #[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CallContractRequest {
     #[validate(custom(function = "validate_address"))]
-    pub group_address: String,
-    #[validate(custom(function = "validate_address"))]
     pub from_address: String,
     #[validate(custom(function = "validate_address"))]
     pub tx_hash: String,
@@ -66,8 +57,6 @@ pub struct CallContractRequest {
 
 #[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct SubscriptionToppedReq {
-    #[validate(custom(function = "validate_address"))]
-    pub group_address: String,
     pub usage_count: u32,
 }
 

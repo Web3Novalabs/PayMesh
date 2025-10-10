@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO supported_crowd_funding_tokens (token_address) VALUES ($1)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fc50d69fb16da9b155f0de0ebd319f846344bdd52f7206ae04262e54f05415ac"
+}

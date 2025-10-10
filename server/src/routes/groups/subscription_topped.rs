@@ -1,13 +1,21 @@
 use crate::{
-    libs::{auth::AuthApiKey, error::ApiError, utopia::GROUP_TAG}, routes::groups::groups_types::SubscriptionToppedReq, util::starknet::call_paymesh_contract_function, AppState
+    AppState,
+    libs::{auth::AuthApiKey, error::ApiError, utopia::GROUP_TAG},
+    routes::groups::groups_types::SubscriptionToppedReq,
+    util::{starknet::call_paymesh_contract_function, validate_address::validate_address_api_err},
 };
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use bigdecimal::BigDecimal;
 use starknet::core::types::Felt;
 
 #[utoipa::path(
     method(post),
-    path = "/subscription_topped",
+    path = "/{group_address}/subscription",
     responses(
         (status = OK, description = "Success", body = String),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to update group usage remaining", body = ApiError),
@@ -20,9 +28,11 @@ use starknet::core::types::Felt;
 pub async fn subscription_topped(
     State(state): State<AppState>,
     AuthApiKey(_hello): AuthApiKey,
+    Path(group_address): Path<String>,
     Json(payload): Json<SubscriptionToppedReq>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let group_address = payload.group_address;
+    validate_address_api_err(&group_address)?;
+    let group_address = group_address;
     let usage_count = BigDecimal::from(payload.usage_count);
 
     sqlx::query!(

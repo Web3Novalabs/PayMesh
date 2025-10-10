@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, name, pool_address, creator_address, target_amount::text as \"target_amount!\", is_complete FROM crowd_funding WHERE pool_address = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "pool_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "creator_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "target_amount!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "is_complete",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "5e97dc8fbae95a0dbae8ec9b03d6771826c74bf3646042d1974709f209ff7661"
+}
