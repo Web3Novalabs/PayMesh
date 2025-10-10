@@ -1,31 +1,30 @@
-import Link from "next/link";
 import QRCode from "react-qr-code";
 
-interface QRcodeProps {
-  groupAddress: string;
+interface QRcodeCrowdfundProps {
+  fundAddress: string;
   groupBalance: string;
   isLoadingBalance: boolean;
   copySuccess: boolean;
   copyToClipboard: () => void;
   resetForm: () => void;
-  closeModal: () => void;
 }
 
-export default function QRcode({
-  groupAddress,
-  isLoadingBalance,
+export default function QRcodeCrowdfund({
+  fundAddress,
   copySuccess,
   copyToClipboard,
   resetForm,
-  closeModal,
-}: QRcodeProps) {
+}: QRcodeCrowdfundProps) {
+  console.log(
+    "QRcodeCrowdfund component rendering with fundAddress:",
+    fundAddress
+  );
   return (
     <div className="fixed inset-0 bg-[#000000a3] bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
       <div className="bg-[#ffffff1e] border-gradient-modal rounded-lg shadow-xl w-full max-w-sm sm:max-w-xl max-h-[95vh] sm:max-h-[100vh] overflow-y-auto relative mx-2">
         {/* Close Button */}
         <button
           onClick={() => {
-            closeModal();
             resetForm();
           }}
           className="absolute top-2 sm:top-4 right-2 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 bg-[#434672] hover:bg-[#755A5A] text-[#E2E2E2] rounded-full flex items-center justify-center transition-colors cursor-pointer z-10"
@@ -71,26 +70,26 @@ export default function QRcode({
           <div className="mb-4 sm:mb-6">
             <div className="inline-block p-2 sm:p-3 bg-[#fffffffe] border-2 border-[#434672d8] rounded-lg">
               <QRCode
-                value={groupAddress}
+                value={fundAddress}
                 size={160}
                 level="H"
                 className="w-40 h-40 sm:w-48 sm:h-48 lg:w-50 lg:h-50"
               />
             </div>
             <p className="text-xs sm:text-sm text-[#e2e2e2] mt-2">
-              Scan this QR code to get the group address
+              Scan this QR code to get the fund address
             </p>
           </div>
 
           {/* Group Address Display */}
           <div className="mb-4 sm:mb-6 rounded-lg">
             <div className="!text-left text-xs sm:text-sm font-medium text-[#8398AD] mb-2">
-              Group Address
+              Fund Address
             </div>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
               <input
                 type="text"
-                value={groupAddress}
+                value={fundAddress}
                 readOnly
                 className="flex-1 px-2 sm:px-3 py-2 border-gradient font-mono text-xs sm:text-sm text-[#e2e2e2] break-all"
               />
@@ -109,20 +108,18 @@ export default function QRcode({
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full">
-            <Link
-              href="/dashboard/my-groups"
+            <button
               onClick={() => {
                 resetForm();
-                closeModal();
               }}
               className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#434672] cursor-pointer text-white w-full rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
-              Go to Groups
-            </Link>
+              Go to Crowd Fundings
+            </button>
             <button
               onClick={() =>
                 window.open(
-                  `https://mainnet.starkscan.co/contract/${groupAddress}`,
+                  `https://sepolia.starkscan.co/contract/${fundAddress}`,
                   "_blank"
                 )
               }

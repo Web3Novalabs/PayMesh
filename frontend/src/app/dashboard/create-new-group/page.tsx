@@ -640,6 +640,7 @@ const CreateNewGroup = () => {
               <p className="text-[#E2E2E2] text-xs sm:text-[15px]">
                 Total percentage must equal
               </p>
+
               <div className="text-[#E2E2E2] text-xs sm:text-[15px]">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-700"></span>
@@ -874,7 +875,18 @@ const CreateNewGroup = () => {
       </div>
 
       {/* Loading Overlay */}
-      {isSubmitting && <Loading />}
+      {isSubmitting && (
+        <Loading
+          title="Creating Your Group"
+          description="Please wait while we process your transaction on the blockchain..."
+          progressSteps={[
+            "Validating group data",
+            "Approving transaction",
+            "Deploying group contract",
+          ]}
+          estimatedTime="15-30 seconds"
+        />
+      )}
 
       {isSuccess && (
         <QRcode

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { StarknetProvider } from "./providers/StarknetProvider";
+import { QueryProvider } from "./providers/QueryProvider";
 import { Toaster } from "react-hot-toast";
 
 const geistSans = Geist({
@@ -88,20 +89,22 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
       >
-        <StarknetProvider>
-          {children}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: "#434672",
-                color: "#E2E2E2",
-                border: "1px solid #755A5A",
-              },
-            }}
-          />
-        </StarknetProvider>
+        <QueryProvider>
+          <StarknetProvider>
+            {children}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: "#434672",
+                  color: "#E2E2E2",
+                  border: "1px solid #755A5A",
+                },
+              }}
+            />
+          </StarknetProvider>
+        </QueryProvider>
       </body>
     </html>
   );
