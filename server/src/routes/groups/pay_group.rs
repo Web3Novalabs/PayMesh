@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use crate::{
-    libs::{error::ApiError, utopia::GROUP_TAG}, routes::groups::groups_types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest}, util::starknet::call_paymesh_contract_function, AppState
+    libs::{auth::AuthApiKey, error::ApiError, utopia::GROUP_TAG}, routes::groups::groups_types::{CallContractRequest, GetGroupUsageRemaining, PayGroupRequest}, util::starknet::call_paymesh_contract_function, AppState
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use bigdecimal::BigDecimal;
@@ -28,6 +28,7 @@ struct Amount {
 )]
 pub async fn pay_group(
     State(state): State<AppState>,
+    AuthApiKey(_hello): AuthApiKey,
     Json(payload): Json<CallContractRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let group_address = payload.group_address;
@@ -71,18 +72,15 @@ pub async fn pay_group(
     }
 
     // Convert address to felt
-    let address = Felt::from_hex(group_address.as_str())
-        .map_err(|e| {
-            tracing::error!("Failed to convert address to felt: {}", e);
-            ApiError::BadRequest("TOKEN ADDRESS NOT VALID")
-        })?;
+    let address = Felt::from_hex(group_address.as_str()).map_err(|e| {
+        tracing::error!("Failed to convert address to felt: {}", e);
+        ApiError::BadRequest("TOKEN ADDRESS NOT VALID")
+    })?;
 
-        call_paymesh_contract_function(address)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to call paymesh contract: {}", e);
-            ApiError::BadRequest("Failed to call paymesh contract")
-        })?;
+    call_paymesh_contract_function(address).await.map_err(|e| {
+        tracing::error!("Failed to call paymesh contract: {}", e);
+        ApiError::BadRequest("Failed to call paymesh contract")
+    })?;
 
     sqlx::query!(r#"INSERT INTO group_tx_hashes (group_address, from_address, tx_hash, token_amount, token_address) VALUES ($1, $2, $3, $4, $5)"#, 
     group_address, from_address, tx_hash, token_amount, token_address)
@@ -93,12 +91,9 @@ pub async fn pay_group(
             ApiError::Internal("Database Error Occurred")
         })?;
 
-
     tracing::info!("Payment hapened");
     Ok((StatusCode::OK, Json("TOKEN SPLIT SUCCESSFULLY")))
 }
-
-
 
 #[utoipa::path(
     method(post),
@@ -114,6 +109,7 @@ pub async fn pay_group(
 )]
 pub async fn store_payment_distribution_history(
     State(state): State<AppState>,
+    AuthApiKey(_hello): AuthApiKey,
     Json(payload): Json<PayGroupRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let group_address = payload.group_address;

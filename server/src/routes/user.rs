@@ -1,5 +1,6 @@
-use crate::libs::auth::TokenClaims;
+use crate::libs::auth::{AdminUser, TokenClaims};
 use crate::libs::utopia::USER_TAG;
+use crate::util::hash_api_key::hash_api_key;
 use crate::util::validate_address::validate_address;
 use crate::{
     AppState,
@@ -17,7 +18,8 @@ use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, encode};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::types::chrono;
+use sqlx::types::{chrono};
+use uuid::Uuid;
 use std::time::Duration;
 use utoipa::ToSchema;
 use utoipa_axum::router::OpenApiRouter;
@@ -26,11 +28,12 @@ use validator::Validate;
 
 pub fn router() -> OpenApiRouter<AppState> {
     let user: OpenApiRouter<AppState> = OpenApiRouter::new()
-    .routes(routes!(get_profile))
-    .routes(routes!(register))
-    .routes(routes!(login))
-    .routes(routes!(refresh_token))
-    .routes( routes!(logout));
+        .routes(routes!(get_profile))
+        .routes(routes!(register))
+        .routes(routes!(login))
+        .routes(routes!(generate_api_key))
+        .routes(routes!(refresh_token))
+        .routes(routes!(logout));
 
     user
 }
@@ -66,6 +69,11 @@ pub struct UserQueryResponse {
     pub wallet_address: Option<String>,
     pub password: String,
     pub role: String,
+}
+
+#[derive(Debug, Deserialize, Validate, ToSchema)]
+pub struct GenerateApiRequest {
+    pub name: String,
 }
 
 #[utoipa::path(
@@ -111,10 +119,10 @@ pub async fn register(
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let wallet_address = payload
-    .wallet_address
-    .unwrap_or_default()
-    .to_ascii_lowercase();
-let email = payload.email.to_ascii_lowercase();
+        .wallet_address
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    let email = payload.email.to_ascii_lowercase();
 
     let salt = password_hash::SaltString::generate(&mut password_hash::rand_core::OsRng);
     let hashed_password = Argon2::default()
@@ -145,7 +153,7 @@ let email = payload.email.to_ascii_lowercase();
     method(post),
     path = "/login",
     responses(
-        (status = OK, description = "Success"),
+        (status = OK, description = "Success", body = String),
         (status = BAD_REQUEST, description = "Invalid email or password", body = ApiError),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Login error", body = ApiError),
     ),
@@ -224,7 +232,7 @@ pub async fn login(
         .same_site(SameSite::Lax)
         .http_only(true);
 
-    let mut response = Response::new(json!({"status": "success", "token": token}).to_string());
+    let mut response: Response<String> = Response::new(json!({"status": "success", "token": token}).to_string());
     response.headers_mut().append(
         header::SET_COOKIE,
         cookie
@@ -323,7 +331,6 @@ pub async fn refresh_token(
     Ok(response)
 }
 
-
 #[utoipa::path(
     method(post),
     path = "/logout",
@@ -353,3 +360,38 @@ pub async fn logout(
     );
     Ok(response)
 }
+
+// generates an api key for admin
+#[utoipa::path(
+    method(post),
+    path = "/generate_api_key",
+    request_body = GenerateApiRequest,
+    responses(
+        (status = OK, description = "Success", body = String),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to generate api key", body = ApiError),
+    ),
+    tag = USER_TAG,
+    security(("bearer" = [])),
+)]
+async fn generate_api_key(
+    State(state): State<AppState>,
+    AdminUser(user): AdminUser,
+    Json(payload): Json<GenerateApiRequest>,
+) -> Result<impl IntoResponse, ApiError> {
+    let api_key = Uuid::new_v4().to_string();
+    let api_key_hash = hash_api_key(&api_key);
+    let name = payload.name.to_ascii_lowercase();
+
+    sqlx::query!(
+        "INSERT INTO api_keys (name, user_email, api_key_hash) VALUES ($1, $2, $3)",
+        name,
+        user.sub,
+        api_key_hash
+    )
+    .execute(&state.db)
+    .await
+    .map_err(|e| map_sqlx_error(&e))?;
+
+    Ok((StatusCode::OK, Json(api_key)))
+}
+

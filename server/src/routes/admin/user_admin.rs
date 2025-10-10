@@ -1,7 +1,9 @@
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 
 use crate::{
-    libs::{auth::AdminUser, error::ApiError, utopia::ADMIN_TAG}, routes::admin::admin_types::{OverviewResponse, User, UserEmailRequest}, AppState
+    AppState,
+    libs::{auth::AdminUser, error::ApiError, utopia::ADMIN_TAG},
+    routes::admin::admin_types::{OverviewResponse, User, UserEmailRequest},
 };
 
 // pub fn router() -> Router<AppState> {

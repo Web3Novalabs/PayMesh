@@ -2,7 +2,9 @@ use axum::{Json, extract::State};
 use bigdecimal::BigDecimal;
 
 use crate::{
-    libs::{error::ApiError, utopia::ADMIN_TAG}, routes::admin::admin_types::{GroupsMetricsResponse, PaymentsTotalsResponse}, AppState
+    AppState,
+    libs::{error::ApiError, utopia::ADMIN_TAG},
+    routes::admin::admin_types::{GroupsMetricsResponse, PaymentsTotalsResponse},
 };
 
 // Get all groups metrics with token shares

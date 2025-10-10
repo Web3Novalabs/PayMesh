@@ -4,7 +4,9 @@ use axum::{
 };
 use jsonwebtoken::{DecodingKey, Validation};
 
-use crate::libs::error::ApiError;
+use crate::{
+    libs::error::{map_sqlx_error, ApiError}, util::hash_api_key::hash_api_key, AppState
+};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
 pub struct TokenClaims {
@@ -78,3 +80,53 @@ where
         Ok(AdminUser(claims))
     }
 }
+
+pub struct AuthApiKey(pub String);
+
+impl FromRequestParts<AppState> for AuthApiKey {
+    type Rejection = ApiError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let api_key = match parts.headers.get("paymesh-api-key") {
+            Some(val) => val.to_str().unwrap_or_default(),
+            None => return Err(ApiError::Unauthorized("Missing Paymesh Api Key")),
+        };
+
+        let hashed_api_key = hash_api_key(api_key);
+
+        let api_key_details: ApiDetails = sqlx::query_as!(
+            ApiDetails,
+            "SELECT num_of_usages FROM api_keys WHERE api_key_hash = $1  AND revoked = false",
+            hashed_api_key
+        )
+        .fetch_optional(&state.db)
+        .await
+        .map_err(|e| map_sqlx_error(&e))?
+        .ok_or_else(|| ApiError::BadRequest("Invalid ApiKey"))?;
+
+        let new_usage_count = api_key_details.num_of_usages + 1;
+
+        sqlx::query!(
+            r#"UPDATE api_keys SET num_of_usages = $1, last_used = NOW() WHERE api_key_hash = $2"#,
+            new_usage_count,
+            hashed_api_key
+        )
+        .execute(&state.db)
+        .await
+        .map_err(|e| {
+            tracing::error!("Error while updating usage count");
+            map_sqlx_error(&e)
+        })?;
+
+        Ok(AuthApiKey(String::new()))
+    }
+}
+#[derive(Debug)]
+pub struct ApiDetails {
+    num_of_usages: i32,
+}
+
+

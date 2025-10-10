@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use validator::Validate;
 use utoipa::ToSchema;
+use validator::Validate;
 
 #[derive(Serialize, Deserialize, Debug, sqlx::FromRow, ToSchema)]
 pub struct User {

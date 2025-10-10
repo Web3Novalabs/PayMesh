@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT num_of_usages FROM api_keys WHERE api_key_hash = $1  AND revoked = false",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "num_of_usages",
+        "type_info": "Int4"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "9e5af9e6635afed6e72503bc39aa5fee01a4225c68e373d1503d2bbcd811914e"
+}
