@@ -59,12 +59,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.99"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0674a1ddeecb70197781e945de4b3b8ffb61fa939a5597bcf48503737663100"
-
-[[package]]
 name = "argon2"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -719,7 +713,7 @@ dependencies = [
  "sha2",
  "sha3",
  "thiserror 1.0.69",
- "uuid",
+ "uuid 0.8.2",
 ]
 
 [[package]]
@@ -2450,7 +2444,6 @@ dependencies = [
 name = "server"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "argon2",
  "axum",
  "axum-extra",
@@ -2651,6 +2644,7 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "url",
+ "uuid 1.18.1",
  "webpki-roots 0.26.11",
 ]
 
@@ -2734,6 +2728,7 @@ dependencies = [
  "thiserror 2.0.16",
  "time",
  "tracing",
+ "uuid 1.18.1",
  "whoami",
 ]
 
@@ -2775,6 +2770,7 @@ dependencies = [
  "thiserror 2.0.16",
  "time",
  "tracing",
+ "uuid 1.18.1",
  "whoami",
 ]
 
@@ -2802,6 +2798,7 @@ dependencies = [
  "time",
  "tracing",
  "url",
+ "uuid 1.18.1",
 ]
 
 [[package]]
@@ -3444,6 +3441,16 @@ checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
 dependencies = [
  "getrandom 0.2.16",
  "serde",
+]
+
+[[package]]
+name = "uuid"
+version = "1.18.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f87b8aa10b915a06587d0dec516c282ff295b475d94abf425d62b57710070a2"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
 ]
 
 [[package]]

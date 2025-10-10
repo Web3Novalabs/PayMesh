@@ -6,11 +6,6 @@ use jsonwebtoken::{DecodingKey, Validation};
 
 use crate::libs::error::ApiError;
 
-pub struct User {
-    pub email_address: String,
-    pub wallet_address: String,
-    pub role: String,
-}
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
 pub struct TokenClaims {
     pub sub: String,
@@ -62,5 +57,24 @@ where
                 .claims;
 
         Ok(AuthenticatedUser(claims))
+    }
+}
+
+pub struct AdminUser(pub TokenClaims);
+
+impl<S> FromRequestParts<S> for AdminUser
+where
+    S: Send + Sync,
+{
+    type Rejection = ApiError;
+
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        let AuthenticatedUser(claims) = AuthenticatedUser::from_request_parts(parts, state).await?;
+
+        if claims.role != "admin" {
+            return Err(ApiError::Unauthorized("Admin access required"));
+        }
+
+        Ok(AdminUser(claims))
     }
 }

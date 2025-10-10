@@ -1,23 +1,77 @@
 use crate::libs::auth::TokenClaims;
-use crate::routes::types::{GetProfileResponse, LoginRequest, UserQueryResponse};
+use crate::util::validate_address::validate_address;
 use crate::{
     AppState,
     libs::{
         auth::AuthenticatedUser,
         error::{ApiError, map_sqlx_error},
     },
-    routes::types::RegisterRequest,
 };
 use argon2::PasswordVerifier;
 use argon2::{Argon2, password_hash};
 use argon2::{PasswordHash, PasswordHasher};
+use axum::Router;
 use axum::http::{HeaderMap, Response, header};
+use axum::routing::{get, post};
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, encode};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::types::chrono;
 use std::time::Duration;
+use validator::Validate;
+
+pub fn router() -> Router<AppState> {
+    let user: Router<AppState> = Router::new()
+        .route("/profile", get(get_profile))
+        .route("/register", post(register))
+        .route("/login", post(login))
+        .route("/refresh", post(refresh_token))
+        .route("/logout", post(logout));
+
+    user
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct RegisterRequest {
+    #[validate(email)]
+    pub email: String,
+    #[validate(custom(function = "validate_address"))]
+    pub wallet_address: Option<String>,
+    #[validate(length(min = 8))]
+    pub password: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct GetProfileResponse {
+    pub email: String,
+    pub wallet_address: Option<String>,
+    pub role: String,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct LoginRequest {
+    #[validate(email)]
+    pub email: String,
+    #[validate(length(min = 8))]
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct RefreshTokenRequest {
+    #[validate(email)]
+    pub email: String,
+    pub refresh_token: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserQueryResponse {
+    pub email: String,
+    pub wallet_address: Option<String>,
+    pub password: String,
+    pub role: String,
+}
 
 pub async fn get_profile(
     State(state): State<AppState>,
@@ -39,7 +93,11 @@ pub async fn register(
     State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let wallet_address = &payload.wallet_address.to_owned().to_ascii_lowercase();
+    let wallet_address = &payload
+        .wallet_address
+        .unwrap_or_default()
+        .to_owned()
+        .to_ascii_lowercase();
     let email = &payload.email.to_owned().to_ascii_lowercase();
 
     let user_exists: Option<bool> =
@@ -75,9 +133,12 @@ pub async fn register(
         wallet_address,
         hashed_password
     )
-    .fetch_one(&state.db)
+    .execute(&state.db)
     .await
-    .map_err(|e| map_sqlx_error(&e))?;
+    .map_err(|e| {
+        tracing::error!("Error while inserting user to database {}", e.to_string());
+        map_sqlx_error(&e)
+    })?;
 
     Ok(StatusCode::OK)
 }
@@ -124,7 +185,7 @@ pub async fn login(
         &claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .unwrap();
+    .map_err(|_| ApiError::Internal("Couldnt provide token"))?;
 
     let refresh_exp = (now + Duration::from_secs(60 * 60 * 24 * 7)).timestamp() as usize;
 
@@ -140,7 +201,7 @@ pub async fn login(
         &refresh_claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .unwrap();
+    .map_err(|_| ApiError::Internal("Couldnt provide token"))?;
 
     let refresh_cookie = Cookie::build(("refresh_token", refresh_token.clone()))
         .path("/")
@@ -157,10 +218,10 @@ pub async fn login(
     let mut response = Response::new(json!({"status": "success", "token": token}).to_string());
     response
         .headers_mut()
-        .append(header::SET_COOKIE, cookie.to_string().parse().unwrap());
+        .append(header::SET_COOKIE, cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt set cookie"))?);
     response.headers_mut().append(
         header::SET_COOKIE,
-        refresh_cookie.to_string().parse().unwrap(),
+        refresh_cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt set cookie"))?,
     );
     Ok(response)
 }
@@ -202,8 +263,8 @@ pub async fn refresh_token(
     let now = chrono::Utc::now();
     let exp = (now + Duration::from_secs(3600)).timestamp() as usize;
     let new_claims = TokenClaims {
-        sub: claims.sub,
-        role: claims.role,
+        sub: user.email,
+        role: user.role,
         iat: now.timestamp() as usize,
         exp,
     };
@@ -213,7 +274,7 @@ pub async fn refresh_token(
         &new_claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .unwrap();
+    .map_err(|_| ApiError::Internal("Login Error Occured"))?;
 
     let access_cookie = Cookie::build(("token", new_token.clone()))
         .path("/")
@@ -224,7 +285,7 @@ pub async fn refresh_token(
     let mut response = Response::new(json!({"token": new_token}).to_string());
     response.headers_mut().insert(
         header::SET_COOKIE,
-        access_cookie.to_string().parse().unwrap(),
+        access_cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt add cookie"))?,
     );
 
     Ok(response)
@@ -242,6 +303,6 @@ pub async fn logout(
     let mut response = Response::new(json!({"status": "success"}).to_string());
     response
         .headers_mut()
-        .insert(header::SET_COOKIE, cookie.to_string().parse().unwrap());
+        .insert(header::SET_COOKIE, cookie.to_string().parse().map_err(|_| ApiError::Internal("Log Out"))?);
     Ok(response)
 }

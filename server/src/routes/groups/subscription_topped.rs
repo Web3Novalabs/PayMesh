@@ -1,5 +1,5 @@
 use crate::{
-    AppState, libs::error::ApiError, routes::types::SubscriptionToppedReq,
+    AppState, libs::error::ApiError, routes::groups::groups_types::SubscriptionToppedReq,
     util::starknet::call_paymesh_contract_function,
 };
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
