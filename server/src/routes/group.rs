@@ -1,6 +1,7 @@
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use sqlx::types::BigDecimal;
 use std::collections::HashMap;
+use tokio::sync::RwLockReadGuard;
 
 use crate::{
     AppState,
@@ -126,7 +127,8 @@ pub async fn get_groups_metrics(
             MAX(CASE WHEN gth.token_symbol = 'USDC' THEN gth.amount::text END) as share_usdc,
             MAX(CASE WHEN gth.token_symbol = 'USDT' THEN gth.amount::text END) as share_usdt,
             MAX(CASE WHEN gth.token_symbol = 'ETH' THEN gth.amount::text END) as share_eth,
-            MAX(CASE WHEN gth.token_symbol = 'STRK' THEN gth.amount::text END) as share_strk
+            MAX(CASE WHEN gth.token_symbol = 'STRK' THEN gth.amount::text END) as share_strk,
+            MAX(CASE WHEN gth.token_symbol = 'WBTC' THEN gth.amount::text END) as share_wbtc
         FROM groups g
         LEFT JOIN group_token_history gth ON g.group_address = gth.group_address
         GROUP BY g.group_address
@@ -148,6 +150,7 @@ pub async fn get_groups_metrics(
             share_usdt: row.share_usdt,
             share_eth: row.share_eth,
             share_strk: row.share_strk,
+            share_wbtc: row.share_wbtc,
         })
         .collect();
 
@@ -292,6 +295,15 @@ pub async fn get_groups(
     }
 
     Ok(Json(response))
+}
+
+pub async fn get_all_group_addresses(
+    State(state): State<AppState>,
+) -> Result<Json<Vec<String>>, ApiError> {
+    let cache = RwLockReadGuard::map(state.cache.read().await, |f| f).clone();
+    let vec_cache: Vec<String> = cache.into_iter().collect();
+
+    Ok(Json(vec_cache))
 }
 
 pub async fn get_payments_totals(

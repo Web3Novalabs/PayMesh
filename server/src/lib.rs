@@ -1,4 +1,5 @@
 pub mod libs {
+    pub mod auth;
     pub mod cache;
     pub mod config;
     pub mod db;
@@ -8,11 +9,13 @@ pub mod libs {
 }
 
 pub mod routes {
+    pub mod admin;
     pub mod group;
     pub mod health;
     pub mod pay_group;
     pub mod subscription_topped;
     pub mod types;
+    pub mod user;
 }
 
 pub mod util {
@@ -21,7 +24,10 @@ pub mod util {
     pub mod util_types;
 }
 
-use crate::libs::cache::Cache;
+use crate::{
+    libs::{cache::Cache, config::Env},
+    routes::user,
+};
 use axum::{
     Router,
     http::{
@@ -37,6 +43,7 @@ use tower_http::cors::CorsLayer;
 pub struct AppState {
     pub db: PgPool,
     pub cache: Cache,
+    pub env: Env,
 }
 
 use crate::routes::{group, health, pay_group, subscription_topped};
@@ -50,6 +57,13 @@ pub fn router(state: AppState) -> Router {
             AUTHORIZATION,
             HeaderName::from_static("x-requested-with"),
         ]);
+
+    let user = Router::new()
+        .route("/profile", get(user::get_profile))
+        .route("/register", post(user::register))
+        .route("/login", post(user::login))
+        .route("/refresh", post(user::refresh_token))
+        .route("/logout", post(user::logout));
 
     Router::new()
         .route("/health", get(health::health_check))
@@ -66,6 +80,8 @@ pub fn router(state: AppState) -> Router {
             "/store_payment_distribution_history",
             post(pay_group::store_payment_distribution_history),
         )
+        .route("/all_group_addresses", get(group::get_all_group_addresses))
+        .nest("/user", user)
         .with_state(state)
         .layer(cors)
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })

@@ -7,7 +7,7 @@ import { myAbi } from "../abi";
 import { strk_abi } from "../strk_abi";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
-  const { startingBlock, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
+  const { startingBlock: configStartingBlock, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
 
   const TRANSFER_SELECTOR = getSelector("Transfer");
   const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
@@ -17,13 +17,14 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const ETH_TOKEN_ADDRESS = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
   const USDT_TOKEN_ADDRESS = "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
   const USDC_TOKEN_ADDRESS = "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
-
-  const groupCache: string[] = [];
+  const WBTC_TOKEN_ADDRESS = "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
+  const groupCache: string[] = [...group_address_cache];
+  console.log(` the group cache is ${groupCache}`);
 
   return defineIndexer(StarknetStream)({
     streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(2166052), // 2067200
+    startingBlock: BigInt(startingBlock), 
     filter: {
       events: [
         {
@@ -44,6 +45,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         },
         {
           address: USDC_TOKEN_ADDRESS,
+          keys: [TRANSFER_SELECTOR]
+        },
+        {
+          address: WBTC_TOKEN_ADDRESS,
           keys: [TRANSFER_SELECTOR]
         },
       ],
@@ -159,6 +164,7 @@ const pay = (address: string, from_address: string, tx_hash: string, amount: str
     "token_address": token_address
   });
 
+  console.log(`payment data ${body}`);
   fetch(`${process.env.API_URL}/pay_group`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -168,6 +174,7 @@ const pay = (address: string, from_address: string, tx_hash: string, amount: str
     console.error(`Payment error for ${address}:`, err);
   });
 };
+
 const subsciption_topped = (group_address: string, usage_count: number) => {
   let body = JSON.stringify({
       "group_address": group_address,
@@ -206,3 +213,30 @@ const create_group = (address: string, creatorAddress: string, groupName: string
     console.error(`Create group error ${address}:`, err);
   });
 };
+
+export const startingBlock = await fetch(
+  "https://starknet-mainnet.public.blastapi.io",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 0,
+      method: "starknet_blockNumber",
+    }),
+  },
+)
+  .then((response) => response.json())
+  .then((data: any) => data.result);
+
+export const group_address_cache = await fetch(
+  `${process.env.API_URL}/all_group_addresses`,
+  {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  },
+)
+  .then((response) => response.json())
+  .then((data: any) => data);
+
+

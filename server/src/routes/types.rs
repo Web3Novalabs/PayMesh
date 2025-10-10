@@ -103,6 +103,7 @@ pub struct GroupsMetricsResponse {
     pub share_usdt: Option<String>,
     pub share_eth: Option<String>,
     pub share_strk: Option<String>,
+    pub share_wbtc: Option<String>,
 }
 #[derive(Debug, FromRow)]
 pub struct GroupTokenTransfer {
@@ -147,4 +148,44 @@ pub fn validate_address(address: &str) -> Result<(), ValidationError> {
         && address[2..].chars().all(|c| c.is_ascii_hexdigit()))
     .then_some(())
     .ok_or(ValidationError::new("invalid address format"))
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct RegisterRequest {
+    #[validate(email)]
+    pub email: String,
+    #[validate(custom(function = "validate_address"))]
+    pub wallet_address: String,
+    #[validate(length(min = 8))]
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct LoginRequest {
+    #[validate(email)]
+    pub email: String,
+    #[validate(length(min = 8))]
+    pub password: String,
+}
+
+#[derive(Debug, Deserialize, Validate)]
+pub struct RefreshTokenRequest {
+    #[validate(email)]
+    pub email: String,
+    pub refresh_token: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct UserQueryResponse {
+    pub email: String,
+    pub wallet_address: Option<String>,
+    pub password: String,
+    pub role: String,
+}
+
+#[derive(Debug, Serialize)]
+pub struct GetProfileResponse {
+    pub email: String,
+    pub wallet_address: Option<String>,
+    pub role: String,
 }
