@@ -117,3 +117,57 @@ export const compareAddresses = (addr1: string, addr2: string): boolean => {
 
   return normalized1 === normalized2;
 };
+
+export const checkAddressNetwork = async (address: string) => {
+  const mainnetProvider = new RpcProvider({
+    nodeUrl:
+      "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_8/l3W2omp97bsZzhe8YXQOU",
+  });
+
+  try {
+    // Ensure address is properly formatted
+    const formattedAddress = address.startsWith("0x")
+      ? address
+      : `0x${address}`;
+
+    // Try to get nonce - if it works, address exists on mainnet
+    const nonce = await mainnetProvider.getNonceForAddress(formattedAddress);
+
+    console.log(`Mainnet nonce for ${formattedAddress}:`, nonce);
+
+    // If nonce is not "0x0", address exists on mainnet
+    if (nonce && nonce !== "0x0") {
+      return nonce; // Return the nonce value (like 0x26)
+    } else {
+      return null; // Address doesn't exist or has no transactions
+    }
+  } catch (error) {
+    if (error instanceof Error) {
+      console.log("Address not found on mainnet:", error.message);
+    } else {
+      console.log("Address not found on mainnet:", error);
+    }
+    return null; // Address doesn't exist on mainnet
+  }
+};
+
+// export const checkAddressNetwork = async (address: string) => {
+//   const ress = await fetch(
+//     "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_8/l3W2omp97bsZzhe8YXQOU",
+//     {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify({
+//         jsonrpc: "2.0",
+//         method: "starknet_getNonce",
+//         params: ["latest", address],
+//         id: 0,
+//       }),
+//     }
+//   );
+//   const data = await ress.json();
+//   console.log("DATA FROM NONCE", data);
+//   return data;
+// };

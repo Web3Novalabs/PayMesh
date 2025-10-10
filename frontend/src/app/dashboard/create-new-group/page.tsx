@@ -42,10 +42,13 @@ import { useContractFetch } from "@/hooks/useContractInteraction";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import WalletConnect from "@/app/components/WalletConnect";
 import { useGetBalance } from "@/utils/contract";
+import { checkAddressNetwork } from "@/utils/contract";
 
 interface GroupMember {
   addr: string;
   percentage: number;
+  isValidating?: boolean;
+  networkResult?: string | null;
 }
 
 interface CreateGroupFormData {
@@ -98,6 +101,56 @@ const CreateNewGroup = () => {
   const [hasProcessedTransaction, setHasProcessedTransaction] = useState(false);
   const { address } = useAccount();
   const balance = useGetBalance(address || "0x0");
+
+  // Function to validate a single address
+  const validateAddress = async (address: string, index: number) => {
+    // Skip empty or very short addresses
+    if (!address || address.trim().length < 10) {
+      return;
+    }
+
+    // Set validating state
+    setFormData((prev) => ({
+      ...prev,
+      members: prev.members.map((member, i) =>
+        i === index ? { ...member, isValidating: true } : member
+      ),
+    }));
+
+    try {
+      const result = await checkAddressNetwork(address);
+
+      console.log(`Address ${address} validation:`, result);
+
+      // Update member with validation results
+      setFormData((prev) => ({
+        ...prev,
+        members: prev.members.map((member, i) =>
+          i === index
+            ? {
+                ...member,
+                isValidating: false,
+                networkResult: result,
+              }
+            : member
+        ),
+      }));
+    } catch (error) {
+      console.error("Error validating address:", error);
+      setFormData((prev) => ({
+        ...prev,
+        members: prev.members.map((member, i) =>
+          i === index
+            ? {
+                ...member,
+                isValidating: false,
+                networkResult: null,
+              }
+            : member
+        ),
+      }));
+    }
+  };
 
   const { data, error } = useTransactionReceipt({
     hash: resultHash,
@@ -363,8 +416,19 @@ const CreateNewGroup = () => {
             return { ...member, percentage: clampedValue };
           }
           if (field === "addr") {
-            // Ensure addr is always a string
-            return { ...member, addr: String(value) };
+            // Clear previous validation when address changes
+            const newAddr = String(value);
+
+            // Trigger validation after user stops typing (debounce)
+            setTimeout(() => {
+              validateAddress(newAddr, index);
+            }, 1000); // Wait 1 second after user stops typing
+
+            return {
+              ...member,
+              addr: newAddr,
+              networkResult: undefined,
+            };
           }
           return { ...member, [field]: value };
         }
@@ -587,12 +651,51 @@ const CreateNewGroup = () => {
               <p className="text-[#E2E2E2] text-sm sm:text-base">
                 Wallet address
               </p>
-              <Input
-                placeholder="Enter wallet address"
-                value={member.addr}
-                onChange={(e) => updateMember(index, "addr", e.target.value)}
-                className="mt-2 py-4 sm:py-6 px-3 sm:px-4 rounded-sm bg-[#FFFFFF0D] border border-[#FFFFFF0D] text-[#8398AD] !text-sm sm:!text-base"
-              />
+              <div className="relative">
+                <Input
+                  placeholder="Enter wallet address"
+                  value={member.addr}
+                  onChange={(e) => updateMember(index, "addr", e.target.value)}
+                  className={`mt-2 py-4 sm:py-6 px-3 sm:px-4 pr-12 rounded-sm bg-[#FFFFFF0D] border ${
+                    member.networkResult && member.networkResult !== null
+                      ? "border-green-500"
+                      : member.networkResult === null
+                      ? "border-amber-500"
+                      : "border-[#FFFFFF0D]"
+                  } text-[#8398AD] !text-sm sm:!text-base`}
+                />
+
+                {/* Validation Status Indicator */}
+                {member.isValidating && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="w-5 h-5 border-2 border-[#8398AD] border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+
+                {!member.isValidating && member.networkResult !== undefined && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {member.networkResult && member.networkResult !== null ? (
+                      <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">✓</span>
+                      </div>
+                    ) : (
+                      <div className="w-5 h-5 bg-red-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">✕</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Status Message */}
+              {!member.isValidating && member.networkResult === null && (
+                <div className="mt-2 p-2 rounded-sm border border-amber-500/20 bg-amber-500/10">
+                  <p className="text-xs sm:text-sm text-amber-400">
+                    ⚠️ This wallet doesn’t seem to exist on Mainnet. Please
+                    check and try again.
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="w-full sm:w-[25%]">
