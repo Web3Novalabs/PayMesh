@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT group_address, group_name, created_by, usage_remaining, \n        created_at::text as \"created_at!\", updated_at::text as \"updated_at!\" \n        FROM groups \n        WHERE group_address = $1\n        ",
+  "query": "\n        SELECT \n            group_address, \n            group_name, \n            created_by, \n            usage_remaining::text as \"usage_remaining!\", \n            created_at::text as \"created_at!\", \n            updated_at::text as \"updated_at\"\n        FROM groups \n        ORDER BY created_at DESC\n        ",
   "describe": {
     "columns": [
       {
@@ -20,8 +20,8 @@
       },
       {
         "ordinal": 3,
-        "name": "usage_remaining",
-        "type_info": "Numeric"
+        "name": "usage_remaining!",
+        "type_info": "Text"
       },
       {
         "ordinal": 4,
@@ -30,23 +30,21 @@
       },
       {
         "ordinal": 5,
-        "name": "updated_at!",
+        "name": "updated_at",
         "type_info": "Text"
       }
     ],
     "parameters": {
-      "Left": [
-        "Text"
-      ]
+      "Left": []
     },
     "nullable": [
       false,
       false,
       false,
-      false,
+      null,
       null,
       null
     ]
   },
-  "hash": "5738fa923afbfe15de0d5616064abc6fa73ae96d225a3d8f5474252c4e52ccdc"
+  "hash": "de898e06d094de2cc00444175f81b3a07c83309aa6b693017217c248022fd69f"
 }

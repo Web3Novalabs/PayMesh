@@ -1,4 +1,5 @@
 use crate::libs::auth::TokenClaims;
+use crate::libs::utopia::USER_TAG;
 use crate::util::validate_address::validate_address;
 use crate::{
     AppState,
@@ -10,9 +11,7 @@ use crate::{
 use argon2::PasswordVerifier;
 use argon2::{Argon2, password_hash};
 use argon2::{PasswordHash, PasswordHasher};
-use axum::Router;
 use axum::http::{HeaderMap, Response, header};
-use axum::routing::{get, post};
 use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
 use axum_extra::extract::cookie::{Cookie, SameSite};
 use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, encode};
@@ -20,20 +19,23 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::types::chrono;
 use std::time::Duration;
+use utoipa::ToSchema;
+use utoipa_axum::router::OpenApiRouter;
+use utoipa_axum::routes;
 use validator::Validate;
 
-pub fn router() -> Router<AppState> {
-    let user: Router<AppState> = Router::new()
-        .route("/profile", get(get_profile))
-        .route("/register", post(register))
-        .route("/login", post(login))
-        .route("/refresh", post(refresh_token))
-        .route("/logout", post(logout));
+pub fn router() -> OpenApiRouter<AppState> {
+    let user: OpenApiRouter<AppState> = OpenApiRouter::new()
+    .routes(routes!(get_profile))
+    .routes(routes!(register))
+    .routes(routes!(login))
+    .routes(routes!(refresh_token))
+    .routes( routes!(logout));
 
     user
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct RegisterRequest {
     #[validate(email)]
     pub email: String,
@@ -43,14 +45,14 @@ pub struct RegisterRequest {
     pub password: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct GetProfileResponse {
     pub email: String,
     pub wallet_address: Option<String>,
     pub role: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct LoginRequest {
     #[validate(email)]
     pub email: String,
@@ -58,14 +60,7 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
-pub struct RefreshTokenRequest {
-    #[validate(email)]
-    pub email: String,
-    pub refresh_token: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UserQueryResponse {
     pub email: String,
     pub wallet_address: Option<String>,
@@ -73,6 +68,16 @@ pub struct UserQueryResponse {
     pub role: String,
 }
 
+#[utoipa::path(
+    method(get),
+    path = "/profile",
+    responses(
+        (status = OK, description = "Success", body = GetProfileResponse),
+        (status = UNAUTHORIZED, description = "Unauthorized", body = ApiError),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error", body = ApiError)
+    ), tag= USER_TAG,
+    security(("bearer" = [])),
+)]
 pub async fn get_profile(
     State(state): State<AppState>,
     AuthenticatedUser(user): AuthenticatedUser,
@@ -89,34 +94,27 @@ pub async fn get_profile(
     Ok((StatusCode::OK, Json(profile)))
 }
 
+#[utoipa::path(
+    post,
+    path = "/register",
+    request_body = RegisterRequest,
+    responses(
+        (status = CREATED, description = "User registered successfully"),
+        (status = BAD_REQUEST, description = "Invalid Request Data", body = ApiError),
+        (status = CONFLICT, description = "Duplicate Data (User with this email already exists)", body = ApiError),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error", body = ApiError)
+    ),
+    tag = USER_TAG
+)]
 pub async fn register(
     State(state): State<AppState>,
     Json(payload): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let wallet_address = &payload
-        .wallet_address
-        .unwrap_or_default()
-        .to_owned()
-        .to_ascii_lowercase();
-    let email = &payload.email.to_owned().to_ascii_lowercase();
-
-    let user_exists: Option<bool> =
-        sqlx::query_scalar("SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)")
-            .bind(email)
-            .fetch_one(&state.db)
-            .await
-            .map_err(|e| {
-                tracing::error!("Error while getting user from database {}", e.to_string());
-                map_sqlx_error(&e)
-            })?;
-
-    if let Some(exists) = user_exists {
-        if exists {
-            return Err(ApiError::Conflict(
-                "User with that email address already exists",
-            ));
-        }
-    }
+    let wallet_address = payload
+    .wallet_address
+    .unwrap_or_default()
+    .to_ascii_lowercase();
+let email = payload.email.to_ascii_lowercase();
 
     let salt = password_hash::SaltString::generate(&mut password_hash::rand_core::OsRng);
     let hashed_password = Argon2::default()
@@ -140,9 +138,20 @@ pub async fn register(
         map_sqlx_error(&e)
     })?;
 
-    Ok(StatusCode::OK)
+    Ok(StatusCode::CREATED)
 }
 
+#[utoipa::path(
+    method(post),
+    path = "/login",
+    responses(
+        (status = OK, description = "Success"),
+        (status = BAD_REQUEST, description = "Invalid email or password", body = ApiError),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Login error", body = ApiError),
+    ),
+    tag = USER_TAG,
+    request_body = LoginRequest,
+)]
 pub async fn login(
     State(state): State<AppState>,
     Json(payload): Json<LoginRequest>,
@@ -167,7 +176,7 @@ pub async fn login(
     };
 
     if !is_valid {
-        return Err(ApiError::BadRequest("Invalid wallet_address or password"));
+        return Err(ApiError::BadRequest("Invalid email or password"));
     }
 
     let now = chrono::Utc::now();
@@ -185,7 +194,7 @@ pub async fn login(
         &claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .map_err(|_| ApiError::Internal("Couldnt provide token"))?;
+    .map_err(|_| ApiError::Internal("Login error"))?;
 
     let refresh_exp = (now + Duration::from_secs(60 * 60 * 24 * 7)).timestamp() as usize;
 
@@ -201,7 +210,7 @@ pub async fn login(
         &refresh_claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .map_err(|_| ApiError::Internal("Couldnt provide token"))?;
+    .map_err(|_| ApiError::Internal("Login error"))?;
 
     let refresh_cookie = Cookie::build(("refresh_token", refresh_token.clone()))
         .path("/")
@@ -216,18 +225,38 @@ pub async fn login(
         .http_only(true);
 
     let mut response = Response::new(json!({"status": "success", "token": token}).to_string());
-    response
-        .headers_mut()
-        .append(header::SET_COOKIE, cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt set cookie"))?);
     response.headers_mut().append(
         header::SET_COOKIE,
-        refresh_cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt set cookie"))?,
+        cookie
+            .to_string()
+            .parse()
+            .map_err(|_| ApiError::Internal("Login error"))?,
+    );
+    response.headers_mut().append(
+        header::SET_COOKIE,
+        refresh_cookie
+            .to_string()
+            .parse()
+            .map_err(|_| ApiError::Internal("Login error"))?,
     );
     Ok(response)
 }
 
+#[utoipa::path(
+    method(post),
+    path = "/refresh",
+    responses(
+        (status = OK, description = "Success"),
+        (status = UNAUTHORIZED, description = "Invalid or expired refresh token", body = ApiError),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Refresh token error", body = ApiError),
+        (status = BAD_REQUEST, description = "User not found", body = ApiError),
+    ),
+    tag = USER_TAG,
+    security(("bearer" = [])),
+)]
 pub async fn refresh_token(
     headers: HeaderMap,
+    AuthenticatedUser(_user): AuthenticatedUser,
     State(state): State<AppState>,
 ) -> Result<impl IntoResponse, ApiError> {
     let cookie_header = headers
@@ -258,7 +287,7 @@ pub async fn refresh_token(
     .fetch_optional(&state.db)
     .await
     .map_err(|e| map_sqlx_error(&e))?
-    .ok_or_else(|| ApiError::BadRequest("Invalid email or password"))?;
+    .ok_or_else(|| ApiError::BadRequest("User not found"))?;
 
     let now = chrono::Utc::now();
     let exp = (now + Duration::from_secs(3600)).timestamp() as usize;
@@ -274,7 +303,7 @@ pub async fn refresh_token(
         &new_claims,
         &EncodingKey::from_secret(state.env.jwt_secret.as_ref()),
     )
-    .map_err(|_| ApiError::Internal("Login Error Occured"))?;
+    .map_err(|_| ApiError::Internal("Refresh token error"))?;
 
     let access_cookie = Cookie::build(("token", new_token.clone()))
         .path("/")
@@ -285,12 +314,26 @@ pub async fn refresh_token(
     let mut response = Response::new(json!({"token": new_token}).to_string());
     response.headers_mut().insert(
         header::SET_COOKIE,
-        access_cookie.to_string().parse().map_err(|_| ApiError::Internal("Couldnt add cookie"))?,
+        access_cookie
+            .to_string()
+            .parse()
+            .map_err(|_| ApiError::Internal("Refresh token error"))?,
     );
 
     Ok(response)
 }
 
+
+#[utoipa::path(
+    method(post),
+    path = "/logout",
+    responses(
+        (status = OK, description = "Success"),
+        (status = INTERNAL_SERVER_ERROR, description = "Logout error", body = ApiError),
+    ),
+    tag = USER_TAG,
+    security(("bearer" = [])),
+)]
 pub async fn logout(
     AuthenticatedUser(_user): AuthenticatedUser,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -301,8 +344,12 @@ pub async fn logout(
         .http_only(true);
 
     let mut response = Response::new(json!({"status": "success"}).to_string());
-    response
-        .headers_mut()
-        .insert(header::SET_COOKIE, cookie.to_string().parse().map_err(|_| ApiError::Internal("Log Out"))?);
+    response.headers_mut().insert(
+        header::SET_COOKIE,
+        cookie
+            .to_string()
+            .parse()
+            .map_err(|_| ApiError::Internal("Logout error"))?,
+    );
     Ok(response)
 }

@@ -1,9 +1,21 @@
-use axum::{extract::State, Json};
+use axum::{Json, extract::State};
 use bigdecimal::BigDecimal;
 
-use crate::{libs::error::ApiError, routes::admin::admin_types::{GroupsMetricsResponse, PaymentsTotalsResponse}, AppState};
+use crate::{
+    libs::{error::ApiError, utopia::ADMIN_TAG}, routes::admin::admin_types::{GroupsMetricsResponse, PaymentsTotalsResponse}, AppState
+};
 
 // Get all groups metrics with token shares
+#[utoipa::path(
+    method(get),
+    path = "/history",
+    responses(
+        (status = OK, description = "Success", body = Vec<GroupsMetricsResponse>),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to fetch groups metrics", body = ApiError),
+    ),
+    tag = ADMIN_TAG,
+    security(("bearer" = [])),
+)]
 pub async fn get_groups_metrics(
     State(state): State<AppState>,
 ) -> Result<Json<Vec<GroupsMetricsResponse>>, ApiError> {
@@ -44,8 +56,16 @@ pub async fn get_groups_metrics(
     Ok(Json(response))
 }
 
-
-
+#[utoipa::path(
+    method(get),
+    path = "/transfer_metrics",
+    responses(
+        (status = OK, description = "Success", body = PaymentsTotalsResponse),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to fetch payments totals", body = ApiError),
+    ),
+    tag = ADMIN_TAG,
+    security(("bearer" = [])),
+)]
 pub async fn get_payments_totals(
     State(state): State<AppState>,
 ) -> Result<Json<PaymentsTotalsResponse>, ApiError> {
@@ -91,5 +111,3 @@ pub async fn get_payments_totals(
 
     Ok(Json(response))
 }
-
-

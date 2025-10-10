@@ -2,7 +2,8 @@ use crate::util::validate_address::validate_address;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use validator::Validate;
-#[derive(Debug, Deserialize, Validate)]
+use utoipa::ToSchema;
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct GroupRequest {
     #[validate(custom(function = "validate_address"))]
     pub group_address: String,
@@ -14,7 +15,7 @@ pub struct GroupRequest {
     pub members: Vec<GroupMembersRequest>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct GroupMembersRequest {
     #[validate(custom(function = "validate_address"))]
     pub addr: String,
@@ -22,23 +23,23 @@ pub struct GroupMembersRequest {
     pub percentage: u8,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct GetGroupDetailsRequest {
     #[validate(custom(function = "validate_address"))]
     pub group_address: String,
 }
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct GetGroupDetailsResponse {
     pub group_address: String,
     pub group_name: String,
     pub created_by: String,
-    pub usage_remaining: bigdecimal::BigDecimal,
+    pub usage_remaining: String,
     pub created_at: String,
     pub updated_at: Option<String>,
     pub members: Vec<GroupMemberResponse>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct PayGroupRequest {
     #[validate(custom(function = "validate_address"))]
     pub group_address: String,
@@ -51,7 +52,7 @@ pub struct PayGroupRequest {
     pub members: Vec<PayGroupMembersRequest>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct CallContractRequest {
     #[validate(custom(function = "validate_address"))]
     pub group_address: String,
@@ -63,31 +64,31 @@ pub struct CallContractRequest {
     pub token_address: String,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct SubscriptionToppedReq {
     #[validate(custom(function = "validate_address"))]
     pub group_address: String,
     pub usage_count: u32,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+#[derive(Debug, Deserialize, Validate, ToSchema)]
 pub struct PayGroupMembersRequest {
     #[validate(custom(function = "validate_address"))]
     pub member_address: String,
     pub member_amount: String,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct GroupsResponse {
     pub group_address: String,
     pub group_name: String,
     pub created_by: String,
-    pub usage_remaining: bigdecimal::BigDecimal,
+    pub usage_remaining: String,
     pub created_at: String,
     pub updated_at: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct GroupFullDetailResponse {
     pub group_data: GetGroupDetailsResponse,
     pub share_usdc: Option<String>,
@@ -96,25 +97,25 @@ pub struct GroupFullDetailResponse {
     pub share_strk: Option<String>,
 }
 
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, ToSchema )]
 pub struct GroupTokenTransfer {
     pub group_address: String,
     pub token_symbol: String,
-    pub amount: bigdecimal::BigDecimal,
+    pub amount: String,
 }
-#[derive(Debug, FromRow)]
+#[derive(Debug, FromRow, ToSchema)]
 pub struct GroupMemberWithAddress {
     pub group_address: String,
     pub member_address: String,
-    pub member_percentage: bigdecimal::BigDecimal,
+    pub member_percentage: String,
     pub is_active: bool,
     pub added_at: String,
 }
 
-#[derive(Debug, Serialize, Clone)]
+#[derive(Debug, Serialize, Clone, ToSchema)]
 pub struct GroupMemberResponse {
     pub member_address: String,
-    pub member_percentage: bigdecimal::BigDecimal,
+    pub member_percentage: String,
     pub is_active: bool,
     pub added_at: String,
 }

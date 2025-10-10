@@ -5,7 +5,7 @@ use axum::{
 };
 use serde::Serialize;
 
-#[derive(Debug)]
+#[derive(Debug, utoipa::ToSchema)]
 pub enum ApiError {
     BadRequest(&'static str),
     Unauthorized(&'static str),
