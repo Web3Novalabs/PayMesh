@@ -1,6 +1,8 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+// @ts-expect-error not ts compatible
+import { initialize } from "@paunovic/random-words";
 // import {
 //   Select,
 //   SelectContent,
@@ -60,11 +62,14 @@ interface CreateGroupFormData {
 
 const CreateNewGroup = () => {
   const { account } = useAccount();
+  const randomWord = initialize({ countryCode: "us" })
+    .word()
+    .toLocaleUpperCase();
 
   // const { createGroup, isCreatingGroup } = useContractInteraction();
 
   const [formData, setFormData] = useState<CreateGroupFormData>({
-    name: "",
+    name: randomWord,
     usage: "",
     tokenAddress:
       "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",

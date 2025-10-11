@@ -85,23 +85,23 @@ export const create_pool = async (
       };
       const multicallData = [approveCall, Call];
       console.log(multicallData);
-      // const feeDetails: PaymasterDetails = {
-      //   feeMode: {
-      //     mode: "sponsored",
-      //   },
-      // };
+      const feeDetails: PaymasterDetails = {
+        feeMode: {
+          mode: "sponsored",
+        },
+      };
 
-      // const feeEstimation = await account?.estimatePaymasterTransactionFee(
-      //   [...multicallData],
-      //   feeDetails
-      // );
+      const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        [...multicallData],
+        feeDetails
+      );
 
-      // const result = await account?.executePaymasterTransaction(
-      //   [...multicallData],
-      //   feeDetails,
-      //   feeEstimation?.suggested_max_fee_in_gas_token
-      // );
-      const result = await account.execute(multicallData);
+      const result = await account?.executePaymasterTransaction(
+        [...multicallData],
+        feeDetails,
+        feeEstimation?.suggested_max_fee_in_gas_token
+      );
+      // const result = await account.execute(multicallData);
 
       const status = await myProvider.waitForTransaction(
         result?.transaction_hash as string
@@ -136,8 +136,6 @@ export const create_pool = async (
 };
 
 type SetIsLoading = (isSubmitting: boolean) => void;
-type OnSuccess = (isSubmitting: boolean) => void;
-type OnError = (isSubmitting: string) => void;
 export const donate = async (
   pool_address: string,
   amount: number,
@@ -197,8 +195,7 @@ export const donate = async (
         };
         console.log(Call, "input", amount * ONE_STK);
         const approveCall = {
-          contractAddress:
-            "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d", // strk address
+          contractAddress: STRK_ADDR, // strk address
           entrypoint: "approve",
           calldata: CallData.compile({
             spender: CROWDFUNDINGADDRESS,
@@ -207,23 +204,23 @@ export const donate = async (
         };
         console.log();
         const multicallData = [approveCall, Call];
-        // const feeDetails: PaymasterDetails = {
-        //   feeMode: {
-        //     mode: "sponsored",
-        //   },
-        // };
+        const feeDetails: PaymasterDetails = {
+          feeMode: {
+            mode: "sponsored",
+          },
+        };
 
-        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
-        //   [...multicallData],
-        //   feeDetails
-        // );
+        const feeEstimation = await account?.estimatePaymasterTransactionFee(
+          [...multicallData],
+          feeDetails
+        );
 
-        // const result = await account?.executePaymasterTransaction(
-        //   [...multicallData],
-        //   feeDetails,
-        //   feeEstimation?.suggested_max_fee_in_gas_token
-        // );
-        const result = await account.execute(multicallData);
+        const result = await account?.executePaymasterTransaction(
+          [...multicallData],
+          feeDetails,
+          feeEstimation?.suggested_max_fee_in_gas_token
+        );
+        // const result = await account.execute(multicallData);
 
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
@@ -255,28 +252,3 @@ export const donate = async (
     setIsLoading(false);
   }
 };
-// export const donate = async (
-//   pool_address: string,
-//   amount: number,
-//   account: AccountInterface | undefined
-// ): Promise<void> => {
-//   const sdk = new TyphoonSDK();
-//   const STRK_ADDR =
-//     "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
-
-//   try {
-//     console.log("Blockchain function - Starting donation");
-
-//     if (account != undefined) {
-//     }
-//   } catch (error) {
-//     console.error("Blockchain function - Error occurred:", error);
-//     // setIsError(true);
-//     toast.error("error creating a pool");
-//   } finally {
-//     console.log(
-//       "Blockchain function - Finally block, setting isSubmitting to false"
-//     );
-//     // setIsSubmitting(false);
-//   }
-// };
