@@ -83,6 +83,7 @@ pub mod CrowdFund {
         emergency_withdraw_address: ContractAddress,
         platform_percentage: u256,
         pool_balance: Map<ContractAddress, Token>,
+        fee_token: ContractAddress,
     }
 
     #[event]
@@ -154,7 +155,7 @@ pub mod CrowdFund {
             description: ByteArray,
         ) -> ContractAddress {
             assert(get_caller_address() != contract_address_const::<0>(), 'zero address');
-            assert(target_amount > 1_000_000_000_000_000_000, 'target amount <= 1 STRK');
+            assert(target_amount > 1_000_000, 'target amount <= 1 USDC');
             let caller = get_caller_address();
             let id = self.pool_count.read() + 1;
             let mut pool = Pool {
@@ -301,7 +302,7 @@ pub mod CrowdFund {
         fn is_pool_completed(self: @ContractState, pool_id: u256) -> bool {
             self.is_pool_paid.read(pool_id)
         }
-        fn get_donation_token(self: @ContractState) -> ContractAddress{
+        fn get_donation_token(self: @ContractState) -> ContractAddress {
             self.token_address.read()
         }
         fn set_platform_percentage(ref self: ContractState, value: u256) {
@@ -314,12 +315,17 @@ pub mod CrowdFund {
         fn get_platform_percentage(self: @ContractState) -> u256 {
             self.platform_percentage.read()
         }
-        fn set_donation_token(ref self: ContractState, new_donation_token: ContractAddress){
+        fn set_donation_token(ref self: ContractState, new_donation_token: ContractAddress) {
             let caller = get_caller_address();
             let caller = self.accesscontrol.has_role(ADMIN_ROLE, caller);
             assert(caller, 'Unauthorize caller');
             self.token_address.write(new_donation_token);
-
+        }
+        fn set_platform_fee_token(ref self: ContractState, token: ContractAddress) {
+            let caller = get_caller_address();
+            let caller = self.accesscontrol.has_role(ADMIN_ROLE, caller);
+            assert(caller, 'Unauthorize caller');
+            self.fee_token.write(token);
         }
         fn set_supported_token(ref self: ContractState, new_token_address: ContractAddress) {
             let caller = get_caller_address();
@@ -463,7 +469,7 @@ pub mod CrowdFund {
             ref self: ContractState, creator: ContractAddress, amount: u256,
         ) {
             // Retrieve the STRK token contract
-            let strk_token = IERC20Dispatcher { contract_address: self.token_address.read() };
+            let strk_token = IERC20Dispatcher { contract_address: self.fee_token.read() };
 
             // Check group creation fee requirements using SecurityTrait
             let _contract_address = get_contract_address();

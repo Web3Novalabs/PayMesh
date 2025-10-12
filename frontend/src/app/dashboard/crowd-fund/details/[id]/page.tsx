@@ -68,10 +68,10 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
       return;
     }
 
-    if (isAnonymous && balance?.formatted && +balance.formatted < 12) {
-      toast.error("Insufficient balance, Top Up!");
-      return;
-    }
+    // if (isAnonymous && balance?.formatted && +balance.formatted < 12) {
+    //   toast.error("Insufficient balance, Top Up!");
+    //   return;
+    // }
 
     // Validation: Amount must be positive
     if (numAmount <= 0) {
@@ -201,7 +201,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
               <div className="bg-[#1F2937] border border-[#F59E0B] rounded-sm p-3">
                 <p className="text-[#F59E0B] text-sm">
                   ⚠️ Anonymous donations require a minimum of{" "}
-                  <strong>10 STRK</strong>
+                  <strong>10 USDC</strong>
                 </p>
               </div>
             )}

@@ -11,6 +11,7 @@ export const strkTokenAddress =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
 export const ONE_STK = 1000000000000000000;
+export const ONE_USDC = 1000000;
 export const myProvider = new RpcProvider({
   nodeUrl: process.env.NEXT_PUBLIC_RPC_URL,
 });

@@ -1,5 +1,10 @@
 import { FormData } from "@/app/dashboard/crowd-fund/components/CreateCrowdFundForm";
-import { myProvider, ONE_STK, strkTokenAddress } from "@/utils/contract";
+import {
+  myProvider,
+  ONE_STK,
+  ONE_USDC,
+  strkTokenAddress,
+} from "@/utils/contract";
 // @ts-expect-error typhoon-sdk has incorrect type declarations
 import { TyphoonSDK } from "typhoon-sdk";
 import toast from "react-hot-toast";
@@ -11,8 +16,11 @@ import {
   PaymasterDetails,
 } from "starknet";
 
+const usdc =
+  "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 export const CROWDFUNDINGADDRESS =
-  "0x05371e167ec1a1884734895bd25aa66765829d1b040f66fc757d1f4ce13aa401";
+  "0x05a37b08ab67fba4de346b7db2c16e68c59c408bb6ce4e7d3deeecc9ec3f2723";
+// "0x05371e167ec1a1884734895bd25aa66765829d1b040f66fc757d1f4ce13aa401";// mainnet testing contract
 // "0x02625bd794f2e623270c244b9871306747addee48c2b449f6a6dce75120e0841"; // mainnet
 // "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d"; // mainnet
 type SetIsSubmitting = (isSubmitting: boolean) => void;
@@ -66,7 +74,7 @@ export const create_pool = async (
         entrypoint: "create_pool",
         calldata: CallData.compile({
           name: byteArray.byteArrayFromString(name),
-          target: cairo.uint256(+targetAmount * ONE_STK),
+          target: cairo.uint256(+targetAmount * ONE_USDC),
           beneficiary: walletAddress,
           description: byteArray.byteArrayFromString(formated_description),
         }),
@@ -74,7 +82,7 @@ export const create_pool = async (
       console.log(Call);
       const approveCall = {
         contractAddress:
-          "0x4718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d", // strk address
+          "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
         entrypoint: "approve",
         calldata: [
           CROWDFUNDINGADDRESS, // spender
@@ -148,9 +156,6 @@ export const donate = async (
   // onError: OnError
 ): Promise<void> => {
   const sdk = new TyphoonSDK();
-  const STRK_ADDR =
-    // "0x52aecc8358313bd9bce6303b3152f8951723654d7e8dc2a6d55b291b8989976";
-    "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 
   try {
     console.log("Blockchain function - Starting donation");
@@ -159,8 +164,8 @@ export const donate = async (
     if (account != undefined) {
       if (isAnonymous) {
         const calls = await sdk.generate_approve_and_deposit_calls(
-          BigInt(+amount * ONE_STK),
-          strkTokenAddress
+          BigInt(+amount * ONE_USDC),
+          usdc
         );
         console.log(calls);
         const multicall = await account.execute(calls);
@@ -180,26 +185,21 @@ export const donate = async (
         console.log("Anonymous donation isSuccess true");
         setIsSuccess(true);
       } else {
-        console.log(
-          "main-address",
-          "0x06921613abdd80028144c8df3be64646d1291377f3ff1bcaf126617821d60e40"
-        );
-        console.log("pool_address", pool_address);
         const Call = {
           contractAddress: CROWDFUNDINGADDRESS,
           entrypoint: "paymesh_donate",
           calldata: CallData.compile({
             pool_address: pool_address,
-            amount: cairo.uint256(amount * ONE_STK),
+            amount: cairo.uint256(amount * ONE_USDC),
           }),
         };
-        console.log(Call, "input", amount * ONE_STK);
+
         const approveCall = {
-          contractAddress: STRK_ADDR, // strk address
+          contractAddress: usdc,
           entrypoint: "approve",
           calldata: CallData.compile({
             spender: CROWDFUNDINGADDRESS,
-            amount: cairo.uint256(amount * ONE_STK),
+            amount: cairo.uint256(amount * ONE_USDC),
           }),
         };
         console.log();
