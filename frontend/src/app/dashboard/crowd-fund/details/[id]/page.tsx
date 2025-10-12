@@ -201,7 +201,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
               <div className="bg-[#1F2937] border border-[#F59E0B] rounded-sm p-3">
                 <p className="text-[#F59E0B] text-sm">
                   ⚠️ Anonymous donations require a minimum of{" "}
-                  <strong>10.01 STRK</strong>
+                  <strong>10 STRK</strong>
                 </p>
               </div>
             )}

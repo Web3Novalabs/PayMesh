@@ -327,12 +327,27 @@ const CreateNewGroup = () => {
       // const amount = parseFloat(formData.amount);
 
       if (account != undefined && formData.usage) {
+        console.log("formData.members", formData.members);
+
+        const formattedMembers = formData.members
+          .filter((member) => member.addr.trim() !== "")
+          .map((member) => ({
+            addr: member.addr.trim(),
+            percentage: Number(member.percentage),
+          }));
+
+        console.log("form dataDDDDDDDDDDD xxxxxxxxxx:", {
+          name: formData.name,
+          usage: formData.usage,
+          formattedMembers,
+        });
+
         const swiftpayCall = {
           contractAddress: PAYMESH_ADDRESS,
           entrypoint: "create_group",
           calldata: CallData.compile({
             name: byteArray.byteArrayFromString(formData.name),
-            members: formData.members,
+            members: formattedMembers,
             usage_count: cairo.uint256(+formData?.usage),
           }),
         };
