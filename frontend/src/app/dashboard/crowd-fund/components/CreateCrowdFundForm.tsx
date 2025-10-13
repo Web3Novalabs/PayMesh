@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import Loading from "../../components/Loading";
 import QRcodeCrowdfund from "../../components/QRcodeCrowdfund";
 import { Textarea } from "@/components/ui/textarea";
+import { useGetAllPools } from "@/hooks/useContractInteraction";
 
 export interface FormData {
   name: string;
@@ -38,6 +39,18 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [poolAddress, setPoolAddress] = useState("");
+  const [poolId, setPoolId] = useState<string>("");
+  const allPools = useGetAllPools();
+
+  // Get the ID of the most recently created pool (last in array)
+  useEffect(() => {
+    if (poolAddress && allPools && allPools.length > 0) {
+      // Get the last pool in the array (most recently created)
+      const lastPool = allPools[allPools.length - 1];
+      setPoolId(lastPool.id.toString());
+      console.log("Using last pool ID:", lastPool.id, "for newly created pool");
+    }
+  }, [poolAddress, allPools]);
 
   // Debug logging
   React.useEffect(() => {
@@ -257,7 +270,9 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
         <>
           {console.log(
             "Rendering QRcodeCrowdfund - isSuccess is true, poolAddress:",
-            poolAddress
+            poolAddress,
+            "poolId:",
+            poolId
           )}
           <QRcodeCrowdfund
             fundAddress={poolAddress || formData.walletAddress}
@@ -266,6 +281,9 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
             copySuccess={copySuccess}
             copyToClipboard={copyToClipboard}
             resetForm={resetFormAndClose}
+            campaignTitle={formData.name}
+            campaignDescription={formData.description}
+            campaignId={poolId}
           />
         </>
       )}

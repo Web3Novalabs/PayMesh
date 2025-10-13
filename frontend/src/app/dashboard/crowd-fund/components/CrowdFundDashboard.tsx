@@ -15,13 +15,17 @@ import group1icon from "../../../../../public/PlusCircle.svg";
 import group4icon from "../../../../../public/Handshake.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { useRouter } from "next/navigation";
+import { generateShortId } from "@/utils/shareUtils";
+import Link from "next/link";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
+  isWalletConnected: boolean;
 }
 
 const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   onCreateNew,
+  isWalletConnected,
 }) => {
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -30,9 +34,9 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   const pools = useGetAllPools();
   console.log(pools);
 
-  const handleViewDetails = (id: number) => {
-    router.push(`/dashboard/crowd-fund/details/${id}`);
-  };
+  // const handleViewDetails = (id: number) => {
+  //   router.push(`/dashboard/crowd-fund/details/${generateShortId()}/${id}`);
+  // };
 
   const filteredFundings = pools?.filter((funding) => {
     const matchesSearch = funding.name
@@ -86,15 +90,26 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Create New Funding Card */}
         <div
-          onClick={onCreateNew}
-          className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 cursor-pointer hover:bg-[#282e38] transition-colors duration-200 flex flex-col items-center justify-center min-h-[200px]"
+          onClick={isWalletConnected ? onCreateNew : undefined}
+          className={`bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 transition-colors duration-200 flex flex-col items-center justify-center min-h-[200px] ${
+            isWalletConnected
+              ? "cursor-pointer hover:bg-[#282e38]"
+              : "cursor-not-allowed opacity-50"
+          }`}
         >
           <div className="w-16 h-16 flex items-center justify-center mb-0">
             <Image src={group1icon} alt="group1icon" />
           </div>
           <p className="text-[#DFDFE0] font-medium text-center">
-            Create crowd funding
+            {isWalletConnected
+              ? "Create crowd funding"
+              : "Connect wallet to create"}
           </p>
+          {!isWalletConnected && (
+            <p className="text-[#8398AD] text-xs mt-2 text-center">
+              Please connect your wallet first
+            </p>
+          )}
         </div>
 
         {/* Existing Funding Cards */}
@@ -152,12 +167,14 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
             </div>
 
             {/* View Details Button */}
-            <button
-              onClick={() => handleViewDetails(funding.id)}
+            <Link
+              href={`/dashboard/crowd-fund/details/${generateShortId()}/${
+                funding.id
+              }`}
               className="w-full bg-[#FFFFFF0D] cursor-pointer border border-[#FFFFFF0D] text-[#DFDFE0] py-2 px-4 rounded-sm hover:bg-[#282e38] transition-colors duration-200 text-sm"
             >
               View Details
-            </button>
+            </Link>
           </div>
         ))}
       </div>

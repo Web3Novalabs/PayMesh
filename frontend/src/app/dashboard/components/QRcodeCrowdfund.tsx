@@ -1,4 +1,11 @@
 import QRCode from "react-qr-code";
+import { useState } from "react";
+import {
+  getTwitterShareUrl,
+  createShareUrl,
+  generateShortId,
+} from "@/utils/shareUtils";
+import { Copy } from "lucide-react";
 
 interface QRcodeCrowdfundProps {
   fundAddress: string;
@@ -7,6 +14,9 @@ interface QRcodeCrowdfundProps {
   copySuccess: boolean;
   copyToClipboard: () => void;
   resetForm: () => void;
+  campaignTitle?: string;
+  campaignDescription?: string;
+  campaignId?: string;
 }
 
 export default function QRcodeCrowdfund({
@@ -14,10 +24,46 @@ export default function QRcodeCrowdfund({
   copySuccess,
   copyToClipboard,
   resetForm,
+  campaignTitle = "My Crowdfunding Campaign",
+  campaignDescription = "Support this amazing cause!",
+  campaignId,
 }: QRcodeCrowdfundProps) {
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
+
+  const handleCopyShareLink = async () => {
+    // Use campaignId if available, otherwise fallback to fundAddress
+    const id = campaignId || fundAddress || "temp";
+    const shareUrl = `paymesh.app/dashboard/crowd-fund/details/${generateShortId()}/${id}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareLinkCopied(true);
+      setTimeout(() => setShareLinkCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy share link:", err);
+    }
+  };
+
+  const handleShareOnTwitter = () => {
+    // Use campaignId if available, otherwise fallback to fundAddress
+    const id = campaignId || fundAddress || "temp";
+    const shareUrl = `paymesh.app/dashboard/crowd-fund/details/${generateShortId()}/${id}`;
+    const shareText = `🌟 I just launched my Fundraising campaign "${campaignTitle}" on @paymesh_ 🚀
+
+
+Every contribution counts — let's build something amazing together! 💫
+
+#PayMesh #Starknet #CryptoForGood #Crowdfunding`;
+
+    const twitterUrl = getTwitterShareUrl(shareText, shareUrl);
+    window.open(twitterUrl, "_blank", "width=600,height=400");
+  };
+
   console.log(
     "QRcodeCrowdfund component rendering with fundAddress:",
-    fundAddress
+    fundAddress,
+    "campaignId:",
+    campaignId
   );
   return (
     <div className="fixed inset-0 bg-[#000000a3] bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
@@ -103,6 +149,42 @@ export default function QRcodeCrowdfund({
               >
                 {copySuccess ? "Copied!" : "Copy"}
               </button>
+            </div>
+          </div>
+
+          {/* Share Section - Simplified */}
+          <div className="mb-4 sm:mb-6">
+            <div className="flex flex-col items-center gap-4">
+              <span className="text-sm text-[#8398AD]">
+                Share your Fundraising campaign:
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleShareOnTwitter}
+                  className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                  </svg>
+                  <span>Share on X</span>
+                </button>
+
+                <button
+                  onClick={handleCopyShareLink}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer ${
+                    shareLinkCopied
+                      ? "bg-green-600 text-white"
+                      : "bg-[#434672] hover:bg-[#755A5A] text-white"
+                  }`}
+                >
+                  <Copy className="w-4 h-4" />
+                  <span>{shareLinkCopied ? "Copied!" : "Copy Link"}</span>
+                </button>
+              </div>
             </div>
           </div>
 

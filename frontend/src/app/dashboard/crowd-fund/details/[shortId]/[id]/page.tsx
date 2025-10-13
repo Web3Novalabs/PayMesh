@@ -18,6 +18,7 @@ import { useAccount } from "@starknet-react/core";
 import WalletConnect from "@/app/components/WalletConnect";
 import { CROWDFUNDINGADDRESS, donate } from "@/hooks/blockchainWriteFunction";
 import { toast } from "react-hot-toast";
+import { getTwitterShareUrl } from "@/utils/shareUtils";
 import QRCode from "react-qr-code";
 import { CallData, PaymasterDetails } from "starknet";
 import { myProvider, ONE_STK } from "@/utils/contract";
@@ -38,7 +39,8 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const { id } = useParams();
+  const params = useParams();
+  const { shortId, id } = params;
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   const { account } = useAccount();
   console.log(pool);
@@ -255,11 +257,13 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
 const FundingDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
+  const { shortId, id } = params;
+  console.log("Route params:", { shortId, id, params });
   const [isSbumitting, setIsSubmitting] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
   const { address, account } = useAccount();
   const isWalletConnected = !!address;
-  const { id } = useParams();
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   console.log(pool);
 
@@ -278,6 +282,32 @@ const FundingDetailsPage = () => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     });
+  };
+
+  const handleCopyShareLink = async () => {
+    const shareUrl = `paymesh.app/dashboard/crowd-fund/details/${shortId}/${id}`;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setShareLinkCopied(true);
+      toast.success("Campaign link copied to clipboard!");
+      setTimeout(() => setShareLinkCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy share link:", err);
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handleShareOnTwitter = () => {
+    const shareUrl = `paymesh.app/dashboard/crowd-fund/details/${shortId}/${id}`;
+    const shareText = `🌟 I just launched my campaign "${pool?.name}" on @paymesh_ 🚀 
+
+Every contribution counts — let's build something amazing together! 💫
+
+#PayMesh #Starknet #CryptoForGood #Crowdfunding`;
+
+    const twitterUrl = getTwitterShareUrl(shareText, shareUrl);
+    window.open(twitterUrl, "_blank", "width=600,height=400");
   };
 
   // const targetReached = pool
@@ -358,24 +388,24 @@ const FundingDetailsPage = () => {
     }
   };
 
-  if (!isWalletConnected) {
-    return (
-      <div className="min-h-[50vh] text-white p-6 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-[#434672] to-[#755a5a] rounded-full flex items-center justify-center mx-auto mb-4">
-            <Heart className="w-8 h-8 text-white" />
-          </div>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            Wallet Not Connected
-          </h2>
-          <p className="text-gray-300 mb-4">
-            Please connect your wallet to view funding details
-          </p>
-          <WalletConnect />
-        </div>
-      </div>
-    );
-  }
+  // if (!isWalletConnected) {
+  //   return (
+  //     <div className="min-h-[50vh] text-white p-6 flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="w-16 h-16 bg-gradient-to-r from-[#434672] to-[#755a5a] rounded-full flex items-center justify-center mx-auto mb-4">
+  //           <Heart className="w-8 h-8 text-white" />
+  //         </div>
+  //         <h2 className="text-2xl font-bold text-white mb-2">
+  //           Wallet Not Connected
+  //         </h2>
+  //         <p className="text-gray-300 mb-4">
+  //           Please connect your wallet to view funding details
+  //         </p>
+  //         <WalletConnect />
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (!pool) {
     return (
@@ -462,6 +492,38 @@ const FundingDetailsPage = () => {
         <p className="text-[#8398AD] text-base">
           Help us reach our funding goal
         </p>
+      </div>
+
+      {/* Share Section - Compact */}
+      <div
+        className={`mb-6 ${
+          pool.is_completed ? "blur-sm pointer-events-none" : ""
+        }`}
+      >
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-[#8398AD]">Share this campaign:</span>
+          <button
+            onClick={handleShareOnTwitter}
+            className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            <span>Share on X</span>
+          </button>
+
+          <button
+            onClick={handleCopyShareLink}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer ${
+              shareLinkCopied
+                ? "bg-green-600 text-white"
+                : "bg-[#434672] hover:bg-[#755A5A] text-white"
+            }`}
+          >
+            <Copy className="w-4 h-4" />
+            <span>{shareLinkCopied ? "Copied!" : "Copy Link"}</span>
+          </button>
+        </div>
       </div>
 
       <div
