@@ -11,4 +11,4 @@ COPY . .
 RUN pnpm install
 RUN pnpm run build
 
-CMD ["sh", "-c", "pnpm start --indexer paymesh-starknet && pnpm start --indexer crowdfunding"]
+CMD ["sh", "-c", "pnpm run dev"]
