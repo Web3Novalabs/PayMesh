@@ -1,6 +1,18 @@
 import React from "react";
 
-const Loading = () => {
+interface LoadingProps {
+  title: string;
+  description: string;
+  progressSteps: string[];
+  estimatedTime: string;
+}
+
+const Loading: React.FC<LoadingProps> = ({
+  title,
+  description,
+  progressSteps,
+  estimatedTime,
+}) => {
   return (
     <div className="fixed inset-0 bg-[#000000a3] bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-[#ffffff1e] border-gradient-modal rounded-lg shadow-xl max-w-md w-full p-8 text-center">
@@ -10,12 +22,8 @@ const Loading = () => {
         </div>
 
         {/* Loading Text */}
-        <h2 className="text-2xl font-bold text-[#E2E2E2] mb-4">
-          Creating Your Group
-        </h2>
-        <p className="text-[#8398AD] text-base mb-6">
-          Please wait while we process your transaction on the blockchain...
-        </p>
+        <h2 className="text-2xl font-bold text-[#E2E2E2] mb-4">{title}</h2>
+        <p className="text-[#8398AD] text-base mb-6">{description}</p>
 
         {/* Progress Steps */}
         <div className="space-y-3 text-left">
@@ -33,9 +41,7 @@ const Loading = () => {
                 />
               </svg>
             </div>
-            <span className="text-[#E2E2E2] text-sm">
-              Validating group data
-            </span>
+            <span className="text-[#E2E2E2] text-sm">{progressSteps[0]}</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -52,23 +58,19 @@ const Loading = () => {
                 />
               </svg>
             </div>
-            <span className="text-[#E2E2E2] text-sm">
-              Approving transaction
-            </span>
+            <span className="text-[#E2E2E2] text-sm">{progressSteps[1]}</span>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 border-2 border-[#434672] border-t-[#755A5A] rounded-full animate-spin"></div>
-            <span className="text-[#E2E2E2] text-sm">
-              Deploying group contract
-            </span>
+            <span className="text-[#E2E2E2] text-sm">{progressSteps[2]}</span>
           </div>
         </div>
 
         {/* Estimated Time */}
         <div className="mt-6 p-3 bg-[#FFFFFF0D] rounded-lg">
           <p className="text-[#8398AD] text-sm">
-            ⏱️ Estimated time: 15-30 seconds
+            ⏱️ Estimated time: {estimatedTime}
           </p>
         </div>
       </div>

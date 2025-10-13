@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM supported_crowd_funding_tokens WHERE token_address = $1 AND is_active = false",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5ee96f8d9438b72f87989b1b476a1cf6237a72af683f9719e5605a16fbc7d8ad"
+}

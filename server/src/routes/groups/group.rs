@@ -1,21 +1,43 @@
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use sqlx::types::BigDecimal;
-use tokio::sync::RwLockReadGuard;
 use std::collections::HashMap;
+use tokio::sync::RwLockReadGuard;
 
 use crate::{
     AppState,
-    libs::error::{ApiError, map_sqlx_error},
-    routes::types::{
-        GetGroupDetailsRequest, GetGroupDetailsResponse, GroupFullDetailResponse,
-        GroupMemberResponse, GroupMemberWithAddress, GroupRequest, GroupTokenTransfer,
-        GroupsMetricsResponse, GroupsResponse, PaymentsTotalsResponse,
+    libs::{
+        auth::AuthApiKey,
+        error::{ApiError, map_sqlx_error},
+        utopia::GROUP_TAG,
     },
-    util::connector::is_valid_address,
+    routes::groups::groups_types::{
+        GetGroupDetailsResponse, GroupFullDetailResponse, GroupMemberResponse,
+        GroupMemberWithAddress, GroupRequest, GroupTokenTransfer, GroupsResponse,
+    },
+    util::validate_address::validate_address_api_err,
 };
 
+#[utoipa::path(
+    method(post),
+    path = "/",
+    responses(
+        (status = CREATED, description = "Success"),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to create group", body = ApiError),
+        (status = BAD_REQUEST, description = "Invalid Request Payload", body = ApiError),
+        (status = CONFLICT, description = "Duplicate Group", body = ApiError),
+    ),
+    tag = GROUP_TAG,
+    security(("api_key" = [])),
+    request_body = GroupRequest,
+)]
 pub async fn create_group(
     State(state): State<AppState>,
+    AuthApiKey(_hello): AuthApiKey,
     Json(payload): Json<GroupRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let usage_remaining: BigDecimal = payload.usage_remaining.into();
@@ -24,11 +46,10 @@ pub async fn create_group(
 
     tracing::info!("Creating group: {}", group_address);
 
-    let mut tx = state
-        .db
-        .begin()
-        .await
-        .map_err(|_| ApiError::Internal("Failed to begin transaction"))?;
+    let mut tx = state.db.begin().await.map_err(|e| {
+        tracing::error!("Failed to begin transaction: {}", e);
+        ApiError::Internal("Failed to begin transaction")
+    })?;
 
     sqlx::query!(
         r#"INSERT INTO groups (group_address, group_name, created_by, usage_remaining) VALUES ($1, $2, $3, $4)"#,
@@ -39,7 +60,10 @@ pub async fn create_group(
     )
     .execute(&mut *tx)
     .await
-    .map_err(|e| map_sqlx_error(&e))?;
+    .map_err(|e| {
+        tracing::error!("Failed to create group: {}", e);
+        map_sqlx_error(&e)
+    })?;
 
     {
         let mut cache = state.cache.write().await;
@@ -56,30 +80,42 @@ pub async fn create_group(
         )
         .execute(&mut *tx)
         .await
-            .map_err(|e| map_sqlx_error(&e))?;
+            .map_err(|e| {
+                tracing::error!("Failed to create group member: {}", e);
+                map_sqlx_error(&e)
+            })?;
     }
 
-    tx.commit()
-        .await
-        .map_err(|_| ApiError::Internal("Failed to commit transaction"))?;
+    tx.commit().await.map_err(|e| {
+        tracing::error!("Failed to commit transaction: {}", e);
+        ApiError::Internal("Failed to commit transaction")
+    })?;
 
-    tracing::info!("Group created: {}", group_address);
-
-    Ok((StatusCode::OK, Json("Group created".to_owned())))
+    Ok(StatusCode::CREATED)
 }
 
+#[utoipa::path(
+    method(get),
+    path = "/{group_address}",
+    responses(
+        (status = OK, description = "Success", body = GetGroupDetailsResponse),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to fetch group details", body = ApiError),
+        (status = NOT_FOUND, description = "Group Not Found", body = ApiError),
+        (status = BAD_REQUEST, description = "Invalid Group Address", body = ApiError),
+    ),
+    tag = GROUP_TAG,
+)]
 pub async fn get_group(
     State(state): State<AppState>,
-    Json(params): Json<GetGroupDetailsRequest>,
+    Path(group_address): Path<String>,
 ) -> Result<Json<GetGroupDetailsResponse>, ApiError> {
-    let group_address = params.group_address;
-
-    is_valid_address(&group_address).map_err(|_| ApiError::BadRequest("INVALID GROUP ADDRESS"))?;
+    validate_address_api_err(&group_address)?;
+    let group_address = group_address;
 
     let group = sqlx::query_as!(
         GroupsResponse,
         r#"
-        SELECT group_address, group_name, created_by, usage_remaining, 
+        SELECT group_address, group_name, created_by, usage_remaining::text as "usage_remaining!", 
         created_at::text as "created_at!", updated_at::text as "updated_at!" 
         FROM groups 
         WHERE group_address = $1
@@ -88,13 +124,16 @@ pub async fn get_group(
     )
     .fetch_optional(&state.db)
     .await
-    .map_err(|_| ApiError::Internal("Database Error Occurred"))?
+    .map_err(|e| {
+        tracing::error!("Database error fetching group: {}", e);
+        ApiError::Internal("Database Error Occurred")
+    })?
     .ok_or(ApiError::NotFound("Group Not Found"))?;
 
     let members = sqlx::query_as!(
         GroupMemberResponse,
         r#"
-        SELECT member_address, member_percentage, is_active, added_at::text as "added_at!"
+        SELECT member_address, member_percentage::text as "member_percentage!", is_active, added_at::text as "added_at!"
         FROM group_members 
         WHERE group_address = $1 AND is_active = true
         ORDER BY member_percentage DESC
@@ -103,7 +142,10 @@ pub async fn get_group(
     )
     .fetch_all(&state.db)
     .await
-    .map_err(|_| ApiError::Internal("Database Error Occurred"))?;
+    .map_err(|e| {
+        tracing::error!("Database error fetching group members: {}", e);
+        ApiError::Internal("Database Error Occurred")
+    })?;
 
     Ok(Json(GetGroupDetailsResponse {
         group_address: group.group_address,
@@ -116,52 +158,16 @@ pub async fn get_group(
     }))
 }
 
-// Get all groups metrics with token shares
-pub async fn get_groups_metrics(
-    State(state): State<AppState>,
-) -> Result<Json<Vec<GroupsMetricsResponse>>, ApiError> {
-    let metrics = sqlx::query!(
-        r#"
-        SELECT 
-            g.group_address,
-            MAX(CASE WHEN gth.token_symbol = 'USDC' THEN gth.amount::text END) as share_usdc,
-            MAX(CASE WHEN gth.token_symbol = 'USDT' THEN gth.amount::text END) as share_usdt,
-            MAX(CASE WHEN gth.token_symbol = 'ETH' THEN gth.amount::text END) as share_eth,
-            MAX(CASE WHEN gth.token_symbol = 'STRK' THEN gth.amount::text END) as share_strk,
-            MAX(CASE WHEN gth.token_symbol = 'WBTC' THEN gth.amount::text END) as share_wbtc
-        FROM groups g
-        LEFT JOIN group_token_history gth ON g.group_address = gth.group_address
-        GROUP BY g.group_address
-        ORDER BY g.created_at DESC
-        "#
-    )
-    .fetch_all(&state.db)
-    .await
-    .map_err(|e| {
-        eprintln!("Database error fetching group metrics: {}", e);
-        ApiError::Internal("Database Error Occurred")
-    })?;
-
-    let response: Vec<GroupsMetricsResponse> = metrics
-        .into_iter()
-        .map(|row| GroupsMetricsResponse {
-            group_address: row.group_address,
-            share_usdc: row.share_usdc,
-            share_usdt: row.share_usdt,
-            share_eth: row.share_eth,
-            share_strk: row.share_strk,
-            share_wbtc: row.share_wbtc,
-        })
-        .collect();
-
-    Ok(Json(response))
-}
-
-// Get all groups with full details including token transfer amount
-// for admin usage
-pub async fn get_groups(
-    State(state): State<AppState>,
-) -> Result<Json<Vec<GroupFullDetailResponse>>, ApiError> {
+#[utoipa::path(
+    method(get),
+    path = "/",
+    responses(
+        (status = OK, description = "Success", body = Vec<GroupFullDetailResponse>),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to fetch groups", body = ApiError),
+    ),
+    tag = GROUP_TAG,
+)]
+pub async fn get_groups(State(state): State<AppState>) -> Result<impl IntoResponse, ApiError> {
     // Get all groups
     let groups = sqlx::query_as!(
         GroupsResponse,
@@ -170,7 +176,7 @@ pub async fn get_groups(
             group_address, 
             group_name, 
             created_by, 
-            usage_remaining, 
+            usage_remaining::text as "usage_remaining!", 
             created_at::text as "created_at!", 
             updated_at::text as "updated_at"
         FROM groups 
@@ -180,7 +186,7 @@ pub async fn get_groups(
     .fetch_all(&state.db)
     .await
     .map_err(|e| {
-        eprintln!("Database error fetching groups: {}", e);
+        tracing::error!("Database error fetching groups: {}", e);
         ApiError::Internal("Database Error Occurred")
     })?;
 
@@ -191,7 +197,7 @@ pub async fn get_groups(
         SELECT 
             group_address,
             member_address, 
-            member_percentage, 
+            member_percentage::text as "member_percentage!", 
             is_active, 
             added_at::text as "added_at!"
         FROM group_members 
@@ -202,7 +208,7 @@ pub async fn get_groups(
     .fetch_all(&state.db)
     .await
     .map_err(|e| {
-        eprintln!("Database error fetching members: {}", e);
+        tracing::error!("Database error fetching members: {}", e);
         ApiError::Internal("Database Error Occurred")
     })?;
 
@@ -213,7 +219,7 @@ pub async fn get_groups(
         SELECT 
             group_address,
             token_symbol,
-            amount
+            amount::text as "amount!"
         FROM group_token_history
         ORDER BY group_address
         "#
@@ -221,7 +227,7 @@ pub async fn get_groups(
     .fetch_all(&state.db)
     .await
     .map_err(|e| {
-        eprintln!("Database error fetching token balances: {}", e);
+        tracing::error!("Database error fetching token balances: {}", e);
         ApiError::Internal("Database Error Occurred")
     })?;
 
@@ -294,63 +300,22 @@ pub async fn get_groups(
         response.push(full_response);
     }
 
-    Ok(Json(response))
+    Ok((StatusCode::OK, Json(response)))
 }
 
+#[utoipa::path(
+    method(get),
+    path = "/addresses",
+    responses(
+        (status = OK, description = "Success", body = Vec<String>),
+    ),
+    tag = GROUP_TAG,
+)]
 pub async fn get_all_group_addresses(
     State(state): State<AppState>,
-) -> Result<Json<Vec<String>>, ApiError> {
-    let cache = RwLockReadGuard::map(
-        state.cache.read().await, 
-        |f| f 
-    ).clone();
+) -> Result<impl IntoResponse, ApiError> {
+    let cache = RwLockReadGuard::map(state.cache.read().await, |f| f).clone();
     let vec_cache: Vec<String> = cache.into_iter().collect();
 
-    Ok(Json(vec_cache))
-}
-
-pub async fn get_payments_totals(
-    State(state): State<AppState>,
-) -> Result<Json<PaymentsTotalsResponse>, ApiError> {
-    let totals = sqlx::query!(
-        r#"
-        SELECT 
-            COUNT(DISTINCT p.group_address) as total_groups,
-            COUNT(p.tx_hash) as total_payments,
-            COALESCE(SUM(CASE WHEN p.token_address = '0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8' THEN p.amount END), 0) as total_usdc_paid,
-            COALESCE(SUM(CASE WHEN p.token_address = '0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8' THEN p.amount END), 0) as total_usdt_paid,
-            COALESCE(SUM(CASE WHEN p.token_address = '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7' THEN p.amount END), 0) as total_eth_paid,
-            COALESCE(SUM(CASE WHEN p.token_address = '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d' THEN p.amount END), 0) as total_strk_paid
-        FROM payments p
-        "#
-    )
-    .fetch_one(&state.db)
-    .await
-    .map_err(|e| {
-        eprintln!("Database error fetching payment totals: {}", e);
-        ApiError::Internal("Database Error Occurred")
-    })?;
-
-    let response = PaymentsTotalsResponse {
-        total_groups: totals.total_groups.unwrap_or(0),
-        total_payments: totals.total_payments.unwrap_or(0),
-        total_usdc_paid: totals
-            .total_usdc_paid
-            .unwrap_or(BigDecimal::from(0))
-            .to_string(),
-        total_usdt_paid: totals
-            .total_usdt_paid
-            .unwrap_or(BigDecimal::from(0))
-            .to_string(),
-        total_eth_paid: totals
-            .total_eth_paid
-            .unwrap_or(BigDecimal::from(0))
-            .to_string(),
-        total_strk_paid: totals
-            .total_strk_paid
-            .unwrap_or(BigDecimal::from(0))
-            .to_string(),
-    };
-
-    Ok(Json(response))
+    Ok((StatusCode::OK, Json(vec_cache)))
 }

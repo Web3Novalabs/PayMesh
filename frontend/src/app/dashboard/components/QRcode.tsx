@@ -13,7 +13,6 @@ interface QRcodeProps {
 
 export default function QRcode({
   groupAddress,
-  groupBalance,
   isLoadingBalance,
   copySuccess,
   copyToClipboard,

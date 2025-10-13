@@ -10,49 +10,39 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { Search, Users, Calendar, Handshake } from "lucide-react";
+import { Search, Users, Calendar } from "lucide-react";
 import group1icon from "../../../../../public/PlusCircle.svg";
 import group4icon from "../../../../../public/Handshake.svg";
-
-// Sample funding data
-const fundingData = [
-  {
-    id: 1,
-    title: "Visa Application",
-    progress: 79,
-    donors: 12,
-    dateCreated: "20th - 08 - 2025",
-    targetAmount: "$5,000",
-    currentAmount: "$3,950",
-  },
-  {
-    id: 2,
-    title: "School Fees",
-    progress: 55,
-    donors: 5,
-    dateCreated: "29th - 08 - 2025",
-    targetAmount: "$3,000",
-    currentAmount: "$1,650",
-  },
-];
+import { useGetAllPools } from "@/hooks/useContractInteraction";
+import { useRouter } from "next/navigation";
+import { generateShortId } from "@/utils/shareUtils";
+import Link from "next/link";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
-  onViewDetails: (id: number) => void;
+  isWalletConnected: boolean;
 }
 
 const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   onCreateNew,
-  onViewDetails,
+  isWalletConnected,
 }) => {
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const router = useRouter();
 
-  const filteredFundings = fundingData.filter((funding) => {
-    const matchesSearch = funding.title
+  const pools = useGetAllPools();
+  console.log(pools);
+
+  // const handleViewDetails = (id: number) => {
+  //   router.push(`/dashboard/crowd-fund/details/${generateShortId()}/${id}`);
+  // };
+
+  const filteredFundings = pools?.filter((funding) => {
+    const matchesSearch = funding.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === "all" || true; // Add filter logic if needed
+    const matchesFilter = filter === "all" || true;
     return matchesSearch && matchesFilter;
   });
 
@@ -90,7 +80,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
           <span className="text-[#8398AD] text-sm">
             Active Funding{" "}
             <span className="text-[#DFDFE0] font-semibold">
-              {filteredFundings.length}
+              {filteredFundings?.length}
             </span>
           </span>
         </div>
@@ -100,30 +90,41 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Create New Funding Card */}
         <div
-          onClick={onCreateNew}
-          className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 cursor-pointer hover:bg-[#282e38] transition-colors duration-200 flex flex-col items-center justify-center min-h-[200px]"
+          onClick={isWalletConnected ? onCreateNew : undefined}
+          className={`bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 transition-colors duration-200 flex flex-col items-center justify-center min-h-[200px] ${
+            isWalletConnected
+              ? "cursor-pointer hover:bg-[#282e38]"
+              : "cursor-not-allowed opacity-50"
+          }`}
         >
           <div className="w-16 h-16 flex items-center justify-center mb-0">
             <Image src={group1icon} alt="group1icon" />
           </div>
           <p className="text-[#DFDFE0] font-medium text-center">
-            Create crowd funding
+            {isWalletConnected
+              ? "Create crowd funding"
+              : "Connect wallet to create"}
           </p>
+          {!isWalletConnected && (
+            <p className="text-[#8398AD] text-xs mt-2 text-center">
+              Please connect your wallet first
+            </p>
+          )}
         </div>
 
         {/* Existing Funding Cards */}
-        {filteredFundings.map((funding) => (
+        {pools?.map((funding) => (
           <div
             key={funding.id}
-            className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 hover:bg-[#282e38] transition-colors duration-200"
+            className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 hover:bg-[#282e3883] transition-colors duration-200"
           >
             {/* Header with Title and Progress */}
             <div className="flex justify-between items-start mb-4 border-b border-[#FFFFFF0D] pb-4">
               <h3 className="text-[#DFDFE0] font-semibold text-lg">
-                {funding.title}
+                {funding.name}
               </h3>
               <span className="bg-[#10273E] text-[#0073E6] text-xs px-2 py-1 rounded-sm">
-                {funding.progress}% Complete
+                {/* {funding.progress}% Complete */}
               </span>
             </div>
 
@@ -138,7 +139,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[#8398AD]" />
                 <span className="text-[#8398AD] text-sm">
-                  Date Created {funding.dateCreated}
+                  Date Created {funding.create_at}
                 </span>
               </div>
             </div>
@@ -148,22 +149,32 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               <div className="w-full bg-[#282e38] rounded-full h-2">
                 <div
                   className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${funding.progress}%` }}
+                  style={{
+                    width: `${Math.min(
+                      (Number.parseFloat(funding.balance.toString()) /
+                        1e18 /
+                        Number.parseFloat(funding.target.toString())) *
+                        100,
+                      100
+                    )}%`,
+                  }}
                 ></div>
               </div>
               <div className="flex justify-between text-xs text-[#8398AD] mt-1">
-                <span>{funding.currentAmount}</span>
-                <span>{funding.targetAmount}</span>
+                {/* <span>{funding.currentAmount}</span>
+                <span>{funding.targetAmount}</span> */}
               </div>
             </div>
 
             {/* View Details Button */}
-            <button
-              onClick={() => onViewDetails(funding.id)}
+            <Link
+              href={`/dashboard/crowd-fund/details/${generateShortId()}/${
+                funding.id
+              }`}
               className="w-full bg-[#FFFFFF0D] cursor-pointer border border-[#FFFFFF0D] text-[#DFDFE0] py-2 px-4 rounded-sm hover:bg-[#282e38] transition-colors duration-200 text-sm"
             >
               View Details
-            </button>
+            </Link>
           </div>
         ))}
       </div>
