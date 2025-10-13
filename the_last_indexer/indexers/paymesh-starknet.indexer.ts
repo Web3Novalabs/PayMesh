@@ -1,39 +1,42 @@
 import { defineIndexer } from "apibara/indexer";
 import { useLogger } from "apibara/plugins";
 
-import { StarknetStream, getSelector, FieldElement, decodeEvent } from "@apibara/starknet";
+import { FieldElement, StarknetStream, decodeEvent, getSelector } from "@apibara/starknet";
 import type { ApibaraRuntimeConfig } from "apibara/types";
+import { ETH_TOKEN_ADDRESS, STRK_TOKEN_ADDRESS, TRANSFER_SELECTOR, USDC_TOKEN_ADDRESS, USDT_TOKEN_ADDRESS, WBTC_TOKEN_ADDRESS } from "../constants";
+import { crowdfunding_abi } from "crowdfunding_abi";
 import { myAbi } from "../abi";
-import { strk_abi } from "../strk_abi";
-import { 
-  STRK_TOKEN_ADDRESS, 
-  ETH_TOKEN_ADDRESS, 
-  USDT_TOKEN_ADDRESS,
-  USDC_TOKEN_ADDRESS, 
-  WBTC_TOKEN_ADDRESS, 
-  TRANSFER_SELECTOR
-} from "../constants";
+import { strk_abi } from "strk_abi";
 import { hexToString, startingBlock } from "../helpers";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
-  const { startingBlock: _, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
+  const crowdfundingConfig = (runtimeConfig as any)["crowdfunding"];
+  const groupConfig = runtimeConfig["paymeshStarknet"];
 
+  const POOL_CREATED_SELECTOR = getSelector("PoolCreated");
+  const POOL_PAID_SELECTOR = getSelector("PoolPaid");
   const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
   const SUBSCRIPTION_TOPPED_SELECTOR = getSelector("SubscriptionTopped");
   const GROUP_PAID_SELECTOR = getSelector("GroupPaid");
 
+  let crowd_funding_cache = [...crowdFundingContractAddresses];
+  let group_cache = [...group_address_cache];
   
-  const groupCache: string[] = [...group_address_cache];
-  console.log(` the group cache is ${groupCache}`);
+  console.log("Crowd Funding Cache: ", crowd_funding_cache);
+  console.log("Group Cache: ", group_cache);
 
   return defineIndexer(StarknetStream)({
-    streamUrl,
+    streamUrl: crowdfundingConfig.streamUrl || groupConfig.streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(startingBlock), 
+    startingBlock: BigInt(startingBlock),
     filter: {
       events: [
         {
-          address: contractAddress as FieldElement,
+          address: crowdfundingConfig.contractAddress as FieldElement,
+          keys: [],
+        },
+        {
+          address: groupConfig.contractAddress as FieldElement,
           keys: [],
         },
         {
@@ -66,152 +69,162 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
       for (const event of blockEvents) {
         const eventKey = event.keys[0];
-        
-        if (eventKey === GROUP_CREATED_SELECTOR) {
-          logger.info(`\n💡 Group created event`); 
-          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupCreated" });
-          
-          const safeArgs = JSON.stringify(args, (_, v) =>
-            typeof v === "bigint" ? v.toString() : v
-        );
-        
-        const {group_address, _, creator, name, usage_count, members} = JSON.parse(safeArgs);
 
-        if (!groupCache.includes(group_address)) {
-          groupCache.push(group_address);
-          console.log(`✅ Added group ${group_address} to cache`);
-        }
-        
-          create_group(group_address, creator, hexToString(name), usage_count, members);
-        } 
-        else if (eventKey === TRANSFER_SELECTOR) {
-
-          const { args } = decodeEvent({ strict: true, event, abi: strk_abi, eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer" });
-
+        // Crowdfunding Events
+        if (eventKey === POOL_CREATED_SELECTOR) {
+          logger.info("Pool Created");
+          const { args } = decodeEvent({ strict: true, event, abi: crowdfunding_abi, eventName: "contract::base::events::PoolCreated" });
           const safeArgs = JSON.stringify(args, (_, v) =>
             typeof v === "bigint" ? v.toString() : v
           );
+          logger.info(`\n💡 Pool created event ${safeArgs}`);
+          const { pool_address, _, creator, pool_name, target_amount } = JSON.parse(safeArgs);
+          crowd_funding_cache.push(args.pool_address);
+          create_crowd_funding(pool_address, creator, hexToString(pool_name), target_amount);
+        }
+        else if (eventKey === POOL_PAID_SELECTOR) {
+          logger.info("Pool Paid");
+          const { args } = decodeEvent({ strict: true, event, abi: crowdfunding_abi, eventName: "contract::base::events::PoolPaid" });
+          const safeArgs = JSON.stringify(args, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v
+          );
+          logger.info(`\n💡 Pool paid event ${safeArgs}`);
+          const { pool_address, amount, paid_by, _, token_address } = JSON.parse(safeArgs);
+          resolve_crowd_funding(pool_address, amount, token_address, event.transactionHash, paid_by);
+        }
+        // Group Events
+        else if (eventKey === GROUP_CREATED_SELECTOR) {
+          logger.info(`\n💡 Group created event`);
+          const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupCreated" });
+          const safeArgs = JSON.stringify(args, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v
+          );
+          const { group_address, _, creator, name, usage_count, members } = JSON.parse(safeArgs);
 
-          let tx_hash = event.transactionHash;
+          if (!group_cache.includes(group_address)) {
+            group_cache.push(group_address);
+            console.log(`✅ Added group ${group_address} to cache`);
+          }
 
-          if (groupCache.includes(args.to)) {
-            console.log(`💰 Transfer to group ${args.to}, processing payment...`);
-            pay(args.to, args.from, tx_hash, String(args.value), event.address);
-          }         
+          create_group(group_address, creator, hexToString(name), usage_count, members);
         }
         else if (eventKey === GROUP_PAID_SELECTOR) {
-          
-          logger.info("Group Paid Occurred")
-
+          logger.info("Group Paid Occurred");
           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::GroupPaid" });
-          
           const safeArgs = JSON.stringify(args, (_, v) =>
             typeof v === "bigint" ? v.toString() : v
           );
-
-          const {group_address, amount, paid_by, paid_at, members, usage_count, token_address} = JSON.parse(safeArgs);
-
+          const { group_address, amount, paid_by, paid_at, members, usage_count, token_address } = JSON.parse(safeArgs);
           logger.info(`\n💡 Group paid event ${group_address}`);
-
           let tx_hash = event.transactionHash;
-
           store_distribution_history(group_address, token_address, tx_hash, usage_count, amount, members);
         }
         else if (eventKey === SUBSCRIPTION_TOPPED_SELECTOR) {
-
-          logger.info(`\n💡 Group top up subsribed`);
-
+          logger.info(`\n💡 Group top up subscribed`);
           const { args } = decodeEvent({ strict: true, event, abi: myAbi, eventName: "contract::base::events::SubscriptionTopped" });
-
+          const safeArgs = JSON.stringify(args, (_, v) =>
+            typeof v === "bigint" ? v.toString() : v
+          );
+          const { group_address, usage_count } = JSON.parse(safeArgs);
+          subsciption_topped(group_address, Number(usage_count));
+        }
+        // Transfer Event - handled for both crowdfunding and groups
+        else if (eventKey === TRANSFER_SELECTOR) {
+          const { args } = decodeEvent({ strict: true, event, abi: strk_abi, eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer" });
           const safeArgs = JSON.stringify(args, (_, v) =>
             typeof v === "bigint" ? v.toString() : v
           );
 
-          const {group_address, usage_count} = JSON.parse(safeArgs);
-
-
-          subsciption_topped(group_address, Number(usage_count));
+          // Check if transfer is to crowdfunding pool
+          if (crowd_funding_cache.includes(args.to)) {
+            const { from, to, value } = JSON.parse(safeArgs);
+            logger.info(`\n💡 Transfer event to crowdfunding ${safeArgs}`);
+            donate_to_crowd_funding(to, value, from, event.address, event.transactionHash);
+          }
+          // Check if transfer is to group
+          else if (group_cache.includes(args.to)) {
+            console.log(`💰 Transfer to group ${args.to}, processing payment...`);
+            let tx_hash = event.transactionHash;
+            pay(args.to, args.from, tx_hash, String(args.value), event.address);
+          }
         }
       }
     },
   });
 }
 
-const store_distribution_history = (
-  group_address: string,
-  token_address: string,
-  tx_hash: string,
-  usage_remaining: number,
-  token_amount: string,
-  members: Array<{ addr: string; share: string; }>
-) => {
-  const members_decoupled = members.map(member => ({
-    member_address: member.addr,
-    member_amount: member.share
-  }));
+// Cache exports
+export const crowdFundingContractAddresses = await fetch(
+  `${process.env.API_URL}/crowdfunding/addresses`,
+  {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  },
+)
+  .then((response) => response.json())
+  .then((data: any) => data);
 
-  fetch(`${process.env.API_URL}/groups/${group_address}/payment-distributions`, {
-    method: "POST",
+export const group_address_cache = await fetch(
+  `${process.env.API_URL}/groups/addresses`,
+  {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  },
+)
+  .then((response) => response.json())
+  .then((data: any) => data);
+
+// Crowdfunding Functions
+const create_crowd_funding = (pool_address: string, creator_address: string, name: string, target_amount: string) => {
+  fetch(`${process.env.API_URL}/crowdfunding`, {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "paymesh-api-key": `${process.env.PAYMESH_API_KEY}`
+      'Content-Type': 'application/json',
+      'paymesh-api-key': `${process.env.PAYMESH_API_KEY}`
     },
     body: JSON.stringify({
-      members: members_decoupled,
-      token_address: token_address,
-      token_amount: token_amount,
-      tx_hash: tx_hash,
-      usage_remaining: Number(usage_remaining)
+      creator_address: creator_address,
+      name: name,
+      pool_address: pool_address,
+      target_amount: target_amount
     })
   });
-}
+  console.log("Crowd funding created: ", pool_address);
+};
 
-const pay = (
-  group_address: string,
-  from_address: string,
-  tx_hash: string,
-  token_amount: string,
-  token_address: string
-) => {
-  const body = JSON.stringify({
-    from_address,
-    token_address,
-    token_amount,
-    tx_hash
-  });
-
-  console.log(`payment data ${body}`);
-  fetch(`${process.env.API_URL}/groups/${group_address}/pay`, {
-    method: "POST",
+const donate_to_crowd_funding = (crowd_funding_address: string, amount: string, donor_address: string, token_address: string, transaction_hash: string) => {
+  fetch(`${process.env.API_URL}/crowdfunding/${crowd_funding_address}/donate`, {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "paymesh-api-key": `${process.env.PAYMESH_API_KEY}`
+      'Content-Type': 'application/json',
+      'paymesh-api-key': `${process.env.PAYMESH_API_KEY}`
     },
-    body: body
-  })
-  .catch((err) => {
-    console.error(`Payment error for ${group_address}:`, err);
+    body: JSON.stringify({
+      amount: amount,
+      donor_address: donor_address,
+      token_address: token_address,
+      transaction_hash: transaction_hash
+    })
   });
 };
 
-const subsciption_topped = (group_address: string, usage_count: number) => {
-  const body = JSON.stringify({
-    usage_count: usage_count
-  });
-  console.log(`subscription topped data ${body}`);
-
-  fetch(`${process.env.API_URL}/groups/${group_address}/subscription`, {
-    method: "POST",
+const resolve_crowd_funding = (crowd_funding_address: string, amount: string, token_address: string, transaction_hash: string, withdrawn_by: string) => {
+  fetch(`${process.env.API_URL}/crowdfunding/${crowd_funding_address}/resolve`, {
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "paymesh-api-key": `${process.env.PAYMESH_API_KEY}`
+      'Content-Type': 'application/json',
+      'paymesh-api-key': `${process.env.PAYMESH_API_KEY}`
     },
-    body: body
-  }).catch((err) => {
-    console.error(`Subscription top up error for ${group_address}:`, err);
+    body: JSON.stringify({
+      amount: amount,
+      token_address: token_address,
+      transaction_hash: transaction_hash,
+      withdrawn_by: withdrawn_by
+    })
   });
 };
 
+// Group Functions
 const create_group = (
   address: string,
   creatorAddress: string,
@@ -242,14 +255,77 @@ const create_group = (
   });
 };
 
-export const group_address_cache = await fetch(
-  `${process.env.API_URL}/groups/addresses`,
-  {
-    method: "GET",
-    headers: { "Content-Type": "application/json" },
-  },
-)
-  .then((response) => response.json())
-  .then((data: any) => data);
+const pay = (
+  group_address: string,
+  from_address: string,
+  tx_hash: string,
+  token_amount: string,
+  token_address: string
+) => {
+  const body = JSON.stringify({
+    from_address,
+    token_address,
+    token_amount,
+    tx_hash
+  });
 
+  console.log(`payment data ${body}`);
+  fetch(`${process.env.API_URL}/groups/${group_address}/pay`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "paymesh-api-key": `${process.env.PAYMESH_API_KEY}`
+    },
+    body: body
+  })
+  .catch((err) => {
+    console.error(`Payment error for ${group_address}:`, err);
+  });
+};
 
+const store_distribution_history = (
+  group_address: string,
+  token_address: string,
+  tx_hash: string,
+  usage_remaining: number,
+  token_amount: string,
+  members: Array<{ addr: string; share: string; }>
+) => {
+  const members_decoupled = members.map(member => ({
+    member_address: member.addr,
+    member_amount: member.share
+  }));
+
+  fetch(`${process.env.API_URL}/groups/${group_address}/payment-distributions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "paymesh-api-key": `${process.env.PAYMESH_API_KEY}`
+    },
+    body: JSON.stringify({
+      members: members_decoupled,
+      token_address: token_address,
+      token_amount: token_amount,
+      tx_hash: tx_hash,
+      usage_remaining: Number(usage_remaining)
+    })
+  });
+};
+
+const subsciption_topped = (group_address: string, usage_count: number) => {
+  const body = JSON.stringify({
+    usage_count: usage_count
+  });
+  console.log(`subscription topped data ${body}`);
+
+  fetch(`${process.env.API_URL}/groups/${group_address}/subscription`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "paymesh-api-key": `${process.env.PAYMESH_API_KEY}`
+    },
+    body: body
+  }).catch((err) => {
+    console.error(`Subscription top up error for ${group_address}:`, err);
+  });
+};
