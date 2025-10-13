@@ -181,10 +181,8 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
                   <SelectValue placeholder="Select token" />
                 </SelectTrigger>
                 <SelectContent className="bg-[#1F2937] border border-[#FFFFFF0D] text-[#8398AD]">
-                  <SelectItem value="strk">STRK</SelectItem>
-                  <SelectItem value="eth">ETH</SelectItem>
+                  {/* <SelectItem value="strk">STRK</SelectItem> */}
                   <SelectItem value="usdc">USDC</SelectItem>
-                  <SelectItem value="btc">BTC</SelectItem>
                 </SelectContent>
               </Select>
             </div>
