@@ -14,6 +14,18 @@ pub struct CrowdFunding {
     pub is_complete: bool,
 }
 
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct CrowdFundingDetails {
+    pub crowd_funding: CrowdFunding,
+    pub usdc_balance: USDCBalance,
+}
+
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct USDCBalance {
+    pub balance: String,
+
+}
+
 #[derive(Debug, Deserialize, ToSchema, Validate)]
 pub struct CreateCrowdFundingRequest {
     pub name: String,

@@ -12,8 +12,7 @@ use crate::{
         error::{map_sqlx_error, ApiError},
         utopia::CROWD_FUNDING_TAG,
     }, routes::crowd_funding::crowd_funding_types::{
-        CreateCrowdFundingRequest, CrowdFunding, DonateToCrowdFundingRequest, Donation,
-        PreviousBalance, ResolveCrowdFundingRequest,
+        CreateCrowdFundingRequest, CrowdFunding, CrowdFundingDetails, DonateToCrowdFundingRequest, Donation, PreviousBalance, ResolveCrowdFundingRequest, USDCBalance
     }, util::{
         paymesh_crowd_funding::paymesh_crowd_funding, validate_address::validate_address_api_err
     }, AppState
@@ -25,13 +24,12 @@ const STRK_TOKEN: &str = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab072018
     method(get),
     path = "/{crowd_funding_address}",
     responses(
-        (status = OK, description = "Success", body = CrowdFunding),
+        (status = OK, description = "Success", body = CrowdFundingDetails),
         (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to get crowd funding", body = ApiError),
         (status = NOT_FOUND, description = "Crowd Funding Not Found", body = ApiError),
         (status = BAD_REQUEST, description = "Invalid Crowd Funding Address", body = ApiError),
     ),
     tag = CROWD_FUNDING_TAG,
-    security(("api_key" = [])),
 )]
 pub async fn get_crowd_funding(
     State(state): State<AppState>,
@@ -60,7 +58,21 @@ pub async fn get_crowd_funding(
     .map_err(|e| map_sqlx_error(&e))?
     .ok_or(ApiError::NotFound("Crowd Funding Not Found"))?;
 
-    Ok(Json(crowd_funding))
+    let total_donated_usdc: USDCBalance = sqlx::query_as!(
+        USDCBalance,
+        r#"SELECT total_amount::text as "balance!" FROM crowd_funding_token_balances WHERE crowd_funding_id = $1 AND token_address = $2"#,
+        crowd_funding.id,
+        STRK_TOKEN
+    )
+    .fetch_optional(&state.db)
+    .await
+    .map_err(|e| map_sqlx_error(&e))?
+    .ok_or(ApiError::NotFound("Crowd Funding Not Found"))?;
+
+    Ok(Json(CrowdFundingDetails {
+        crowd_funding,
+        usdc_balance: total_donated_usdc,
+    }))
 }
 
 #[utoipa::path(

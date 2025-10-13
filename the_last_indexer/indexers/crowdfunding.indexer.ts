@@ -6,7 +6,7 @@ import type { ApibaraRuntimeConfig } from "apibara/types";
 import { ETH_TOKEN_ADDRESS, STRK_TOKEN_ADDRESS, TRANSFER_SELECTOR, USDC_TOKEN_ADDRESS, USDT_TOKEN_ADDRESS, WBTC_TOKEN_ADDRESS } from "../constants";
 import { crowdfunding_abi } from "crowdfunding_abi";
 import { strk_abi } from "strk_abi";
-import { startingBlock } from "../helpers";
+import { hexToString, startingBlock } from "../helpers";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const { startingBlock: _, streamUrl, contractAddress } = (runtimeConfig as any)["crowdfunding"];
@@ -79,7 +79,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           logger.info(`\n💡 Pool created event ${safeArgs}`);
           const {pool_address, _, creator, pool_name, target_amount} = JSON.parse(safeArgs);
           crowd_funding_cache.push(args.pool_address);
-          create_crowd_funding(pool_address, creator, pool_name, target_amount)
+          create_crowd_funding(pool_address, creator, hexToString(pool_name), target_amount)
         }
         else if (eventKey === POOL_PAID_SELECTOR) {
           logger.info("Pool Paid");

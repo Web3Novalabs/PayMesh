@@ -13,7 +13,7 @@ import {
   WBTC_TOKEN_ADDRESS, 
   TRANSFER_SELECTOR
 } from "../constants";
-import { startingBlock } from "../helpers";
+import { hexToString, startingBlock } from "../helpers";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
   const { startingBlock: _, streamUrl, contractAddress } = runtimeConfig["paymeshStarknet"];
@@ -82,7 +82,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           console.log(`✅ Added group ${group_address} to cache`);
         }
         
-          create_group(group_address, creator, name, usage_count, members);
+          create_group(group_address, creator, hexToString(name), usage_count, members);
         } 
         else if (eventKey === TRANSFER_SELECTOR) {
 
