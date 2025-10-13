@@ -64,8 +64,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
     plugins: [],
     async transform({ block }) {
       const logger = useLogger();
-      const { events: blockEvents, header } = block;
-      logger.info(`Received mainnet #1 block ${header.blockNumber}`);
+      const { events: blockEvents } = block;
 
       for (const event of blockEvents) {
         const eventKey = event.keys[0];
