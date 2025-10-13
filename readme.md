@@ -12,7 +12,7 @@ Paymesh is a decentralized payment platform that automates group payment distrib
 - Tracking & Details: Monitor all transactions with complete transparency, view distribution history, and track group payment flows in real-time
 
 ## Pitch slide
-[`Paymesh`](https://www.figma.com/deck/475U4ReM5UP764R8RAPdW5/Voice-of-Customer-Insights-Report?node-id=1-1812).
+[`Paymesh`](https://www.figma.com/deck/475U4ReM5UP764R8RAPdW5/Voice-of-Customer-Insights-Report?node-id=1-1812) .
 
 
 ## NOTE
