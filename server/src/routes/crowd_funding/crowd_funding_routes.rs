@@ -12,7 +12,7 @@ use crate::{
         error::{map_sqlx_error, ApiError},
         utopia::CROWD_FUNDING_TAG,
     }, routes::crowd_funding::crowd_funding_types::{
-        CreateCrowdFundingRequest, CrowdFunding, CrowdFundingDetails, DonateToCrowdFundingRequest, Donation, PreviousBalance, ResolveCrowdFundingRequest, USDCBalance
+        CreateCrowdFundingRequest, CrowdFunding, CrowdFundingDetails, DonateToCrowdFundingRequest, Donation, PreviousBalance, ResolveCrowdFundingRequest, TokenBalance
     }, util::{
         paymesh_crowd_funding::paymesh_crowd_funding, validate_address::validate_address_api_err
     }, AppState
@@ -58,20 +58,18 @@ pub async fn get_crowd_funding(
     .map_err(|e| map_sqlx_error(&e))?
     .ok_or(ApiError::NotFound("Crowd Funding Not Found"))?;
 
-    let total_donated_usdc: USDCBalance = sqlx::query_as!(
-        USDCBalance,
-        r#"SELECT total_amount::text as "balance!" FROM crowd_funding_token_balances WHERE crowd_funding_id = $1 AND token_address = $2"#,
-        crowd_funding.id,
-        STRK_TOKEN
+    let total_donated_tokens: Vec<TokenBalance> = sqlx::query_as!(
+        TokenBalance,
+        r#"SELECT token_address, total_amount::text as "balance!" FROM crowd_funding_token_balances WHERE crowd_funding_id = $1"#,
+        crowd_funding.id
     )
-    .fetch_optional(&state.db)
+    .fetch_all(&state.db)
     .await
-    .map_err(|e| map_sqlx_error(&e))?
-    .ok_or(ApiError::NotFound("Crowd Funding Not Found"))?;
+    .map_err(|e| map_sqlx_error(&e))?;
 
     Ok(Json(CrowdFundingDetails {
         crowd_funding,
-        usdc_balance: total_donated_usdc,
+        token_history: total_donated_tokens,
     }))
 }
 
