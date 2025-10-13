@@ -5,7 +5,7 @@ import { FieldElement, StarknetStream, decodeEvent, getSelector } from "@apibara
 import type { ApibaraRuntimeConfig } from "apibara/types";
 import { ETH_TOKEN_ADDRESS, STRK_TOKEN_ADDRESS, TRANSFER_SELECTOR, USDC_TOKEN_ADDRESS, USDT_TOKEN_ADDRESS, WBTC_TOKEN_ADDRESS } from "../constants";
 import { crowdfunding_abi } from "crowdfunding_abi";
-import { myAbi } from "../abi";
+import { myAbi } from "../abi"; 
 import { strk_abi } from "strk_abi";
 import { hexToString, startingBlock } from "../helpers";
 
