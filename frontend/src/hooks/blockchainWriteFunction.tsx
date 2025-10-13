@@ -19,8 +19,9 @@ import {
 const usdc =
   "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 export const CROWDFUNDINGADDRESS =
-  "0x05a37b08ab67fba4de346b7db2c16e68c59c408bb6ce4e7d3deeecc9ec3f2723";
-// "0x05371e167ec1a1884734895bd25aa66765829d1b040f66fc757d1f4ce13aa401";// mainnet testing contract
+  "0x03e58267891dff9318e6e715336b84b515547173dee464d251d0aae3ed19e22a";
+// "0x05a37b08ab67fba4de346b7db2c16e68c59c408bb6ce4e7d3deeecc9ec3f2723"; // mainnet testing contract
+// "0x05371e167ec1a1884734895bd25aa66765829d1b040f66fc757d1f4ce13aa401";
 // "0x02625bd794f2e623270c244b9871306747addee48c2b449f6a6dce75120e0841"; // mainnet
 // "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d"; // mainnet
 type SetIsSubmitting = (isSubmitting: boolean) => void;
