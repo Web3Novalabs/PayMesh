@@ -5,3 +5,4 @@ services:
     environment:
       DNA_TOKEN: "${DNA_TOKEN}"
       API_URL: "${API_URL}"
+      PAYMESH_API_KEY: "${PAYMESH_API_KEY}"

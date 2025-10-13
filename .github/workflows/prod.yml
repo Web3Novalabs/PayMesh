@@ -101,6 +101,13 @@ jobs:
           DATABASE_URL_DB=${{ secrets.DATABASE_URL_DB }}
           DNA_TOKEN=${{ secrets.DNA_TOKEN }}
           API_URL=${{ secrets.API_URL }}
+          CROWD_FUNDING_CONTRACT_ADDRESS=${{ secrets.CROWD_FUNDING_CONTRACT_ADDRESS }}
+          GENESIS_ADMIN_EMAIL=${{ secrets.GENESIS_ADMIN_EMAIL }}
+          GENESIS_ADMIN_PASSWORD=${{ secrets.GENESIS_ADMIN_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRED_IN=${{ secrets.JWT_EXPIRED_IN }}
+          JWT_MAXAGE=${{ secrets.JWT_MAXAGE }}
+          PAYMESH_API_KEY=${{ secrets.PAYMESH_API_KEY }}
           EOL
           
           docker compose --env-file .env stop
