@@ -14,7 +14,6 @@ import { Search, Users, Calendar } from "lucide-react";
 import group1icon from "../../../../../public/PlusCircle.svg";
 import group4icon from "../../../../../public/Handshake.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
-import { useRouter } from "next/navigation";
 import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
 
@@ -29,9 +28,10 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 }) => {
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 11;
 
-  const { createdPool: pools, refetchPools } = useGetAllPools();
+  const { createdPool: pools } = useGetAllPools();
   console.log(pools);
 
   // const handleViewDetails = (id: number) => {
@@ -45,6 +45,20 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
     const matchesFilter = filter === "all" || true;
     return matchesSearch && matchesFilter;
   });
+
+  // Reverse array to show newest campaigns first
+  const reversedFundings = [...(filteredFundings || [])].reverse();
+
+  // Calculate pagination
+  const totalPages = Math.ceil((reversedFundings?.length || 0) / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedFundings = reversedFundings?.slice(startIndex, endIndex);
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset to first page when searching
+  };
 
   return (
     <div className="space-y-6">
@@ -67,7 +81,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
             type="text"
             placeholder="Search funding by name.."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="w-full sm:w-[425px] pl-8 py-6 bg-transparent border border-[#FFFFFF0D] rounded-sm text-[#8398AD] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
           />
         </div>
@@ -113,7 +127,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
         </div>
 
         {/* Existing Funding Cards */}
-        {pools?.map((funding) => (
+        {paginatedFundings?.map((funding) => (
           <div
             key={funding.id}
             className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 hover:bg-[#282e3883] transition-colors duration-200"
@@ -178,6 +192,56 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Pagination */}
+      {reversedFundings && reversedFundings.length > 0 && (
+        <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-16">
+          <div className="text-sm text-[#E2E2E2]">
+            Showing {startIndex + 1} to{" "}
+            {Math.min(endIndex, reversedFundings?.length || 0)} of{" "}
+            {reversedFundings?.length || 0} results
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
+              ← Previous
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-2 text-sm font-medium rounded-md ${
+                      currentPage === page
+                        ? "bg-gradient-to-r from-[#434672] to-[#755a5a] text-white"
+                        : "text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] hover:bg-[#282e38]"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              )}
+            </div>
+
+            <button
+              onClick={() =>
+                setCurrentPage(Math.min(totalPages, currentPage + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
