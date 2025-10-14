@@ -13,7 +13,7 @@ export default defineConfig({
       startingBlock: "0",
       streamUrl: "https://mainnet.starknet.a5a.ch",
       contractAddress:
-        "0x03e58267891dff9318e6e715336b84b515547173dee464d251d0aae3ed19e22a",
+        "0x02c92666029b207dc882c267d7b55c3fe4178e9f550f7188cd49adb85f963623",
     },
     // crowdfunding: {
     //   startingBlock: 0,
