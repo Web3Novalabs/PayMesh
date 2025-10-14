@@ -316,6 +316,7 @@ const CreateNewGroup = () => {
       toast.error("Please select a usage");
       return;
     }
+
     if (balance?.formatted && Number(balance.formatted) < +formData.usage) {
       toast.error(`Insufficient balance, Top Up!`);
       return;

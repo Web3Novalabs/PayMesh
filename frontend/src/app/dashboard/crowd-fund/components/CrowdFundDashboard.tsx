@@ -15,7 +15,7 @@ import group1icon from "../../../../../public/PlusCircle.svg";
 import group4icon from "../../../../../public/Handshake.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { useRouter } from "next/navigation";
-import { generateShortId } from "@/utils/shareUtils";
+import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
 
 interface CrowdFundDashboardProps {
@@ -31,7 +31,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
 
-  const pools = useGetAllPools();
+  const { createdPool: pools, refetchPools } = useGetAllPools();
   console.log(pools);
 
   // const handleViewDetails = (id: number) => {
@@ -168,9 +168,9 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 
             {/* View Details Button */}
             <Link
-              href={`/dashboard/crowd-fund/details/${generateShortId()}/${
-                funding.id
-              }`}
+              href={`/dashboard/crowd-fund/details/${generateShortIdFromPoolId(
+                funding.id.toString()
+              )}/${funding.id}`}
               className="w-full bg-[#FFFFFF0D] cursor-pointer border border-[#FFFFFF0D] text-[#DFDFE0] py-2 px-4 rounded-sm hover:bg-[#282e38] transition-colors duration-200 text-sm"
             >
               View Details

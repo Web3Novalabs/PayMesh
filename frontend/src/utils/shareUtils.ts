@@ -9,6 +9,62 @@ export const generateShortId = (length: number = 8): string => {
   return result;
 };
 
+// Generate a deterministic short ID from a pool ID
+export const generateShortIdFromPoolId = (
+  poolId: string | undefined
+): string => {
+  // Handle undefined/null/empty values - generate a random ID as fallback
+  if (
+    poolId === undefined ||
+    poolId === null ||
+    poolId === "" ||
+    poolId === "undefined" ||
+    poolId === "null" ||
+    String(poolId).includes("undefined")
+  ) {
+    return generateShortId(8);
+  }
+
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+  // Create a better hash with more variety
+  let hash1 = 0;
+  let hash2 = 0;
+
+  for (let i = 0; i < poolId.length; i++) {
+    const char = poolId.charCodeAt(i);
+    hash1 = (hash1 << 5) - hash1 + char;
+    hash1 = hash1 & hash1; // Convert to 32bit integer
+    hash2 = hash2 * 31 + char;
+    hash2 = hash2 & hash2;
+  }
+
+  // Use both hashes to generate more variety
+  let result = "";
+  let h1 = Math.abs(hash1);
+  let h2 = Math.abs(hash2);
+
+  for (let i = 0; i < 8; i++) {
+    // Alternate between the two hashes and add position-based variation
+    const combinedHash = (h1 + h2 + i * 17) % chars.length;
+    const charAtIndex = chars[combinedHash];
+
+    // Safety check: ensure we have a valid character
+    if (charAtIndex === undefined || charAtIndex === null) {
+      result += chars[0]; // Fallback to first character
+    } else {
+      result += charAtIndex;
+    }
+
+    // Rotate the hashes
+    h1 = (h1 >>> 1) ^ (h1 << 3);
+    h2 = (h2 >>> 2) ^ (h2 << 2);
+  }
+
+  return result;
+};
+
 export const createShareUrl = (originalId: string): string => {
   const timestamp = Date.now().toString(36);
   const shortId = generateShortId(6);
