@@ -18,13 +18,19 @@ pub struct CrowdFunding {
 pub struct CrowdFundingDetails {
     pub crowd_funding: CrowdFunding,
     pub token_history: Vec<TokenBalance>,
+    pub donation_count: DonationDetails,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct TokenBalance {
     pub token_address: String,
     pub balance: String,
+}
 
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+pub struct DonationDetails {
+    pub total_donors: i64,
+    pub total_numbers_of_donations: i64,
 }
 
 #[derive(Debug, Deserialize, ToSchema, Validate)]

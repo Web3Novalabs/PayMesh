@@ -1,6 +1,17 @@
-use axum::{extract::{Path, State}, http::StatusCode, response::IntoResponse};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
 
-use crate::{libs::{auth::{AdminUser}, error::{map_sqlx_error, ApiError}, utopia::ADMIN_TAG}, AppState};
+use crate::{
+    AppState,
+    libs::{
+        auth::AdminUser,
+        error::{ApiError, map_sqlx_error},
+        utopia::ADMIN_TAG,
+    },
+};
 
 #[utoipa::path(
     method(post),
@@ -42,7 +53,7 @@ pub async fn set_active_token(
     Ok(())
 }
 
-#[utoipa::path( 
+#[utoipa::path(
     method(post),
     path = "/add_token/{token_address}",
     responses(

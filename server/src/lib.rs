@@ -22,10 +22,10 @@ pub mod util {
     pub mod connector;
     pub mod crowd_funding_resolve;
     pub mod hash_api_key;
+    pub mod paymesh_crowd_funding;
     pub mod starknet;
     pub mod util_types;
     pub mod validate_address;
-    pub mod paymesh_crowd_funding;
 }
 
 use crate::libs::{cache::Cache, config::Env};

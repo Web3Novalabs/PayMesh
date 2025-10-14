@@ -7,15 +7,19 @@ use axum::{
 use bigdecimal::BigDecimal;
 
 use crate::{
+    AppState,
     libs::{
         auth::AuthApiKey,
-        error::{map_sqlx_error, ApiError},
+        error::{ApiError, map_sqlx_error},
         utopia::CROWD_FUNDING_TAG,
-    }, routes::crowd_funding::crowd_funding_types::{
-        CreateCrowdFundingRequest, CrowdFunding, CrowdFundingDetails, DonateToCrowdFundingRequest, Donation, PreviousBalance, ResolveCrowdFundingRequest, TokenBalance
-    }, util::{
-        paymesh_crowd_funding::paymesh_crowd_funding, validate_address::validate_address_api_err
-    }, AppState
+    },
+    routes::crowd_funding::crowd_funding_types::{
+        CreateCrowdFundingRequest, CrowdFunding, CrowdFundingDetails, DonateToCrowdFundingRequest,
+        Donation, DonationDetails, PreviousBalance, ResolveCrowdFundingRequest, TokenBalance,
+    },
+    util::{
+        paymesh_crowd_funding::paymesh_crowd_funding, validate_address::validate_address_api_err,
+    },
 };
 
 const STRK_TOKEN: &str = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
@@ -67,9 +71,20 @@ pub async fn get_crowd_funding(
     .await
     .map_err(|e| map_sqlx_error(&e))?;
 
+    // get the total donation and the total number of people that donated
+    let donation_details = sqlx::query_as!(
+        DonationDetails,
+        r#"SELECT COUNT(DISTINCT donor_address) as "total_donors!", COUNT(*) as "total_numbers_of_donations!" FROM donations WHERE crowd_funding_id = $1"#,
+        crowd_funding.id
+    )
+    .fetch_one(&state.db)
+    .await
+    .map_err(|e| map_sqlx_error(&e))?;
+
     Ok(Json(CrowdFundingDetails {
         crowd_funding,
         token_history: total_donated_tokens,
+        donation_count: donation_details,
     }))
 }
 
@@ -231,11 +246,15 @@ pub async fn donate_to_crowd_funding(
     })?;
 
     if crowd_funding.is_complete {
-        paymesh_crowd_funding(crowd_funding_address.clone(), state.env.crowd_funding_contract_address.clone()).await?;
+        paymesh_crowd_funding(
+            crowd_funding_address.clone(),
+            state.env.crowd_funding_contract_address.clone(),
+        )
+        .await?;
     }
 
     let active_token = sqlx::query_scalar(
-        "SELECT token_address FROM supported_crowd_funding_tokens WHERE is_active = true"
+        "SELECT token_address FROM supported_crowd_funding_tokens WHERE is_active = true",
     )
     .fetch_optional(&state.db)
     .await
@@ -266,7 +285,11 @@ pub async fn donate_to_crowd_funding(
         dbg!(format!("target amount: {:?}", target_amount.to_string()));
 
         if balance.total_amount >= target_amount {
-            paymesh_crowd_funding(crowd_funding_address.clone(), state.env.crowd_funding_contract_address.clone()).await?;
+            paymesh_crowd_funding(
+                crowd_funding_address.clone(),
+                state.env.crowd_funding_contract_address.clone(),
+            )
+            .await?;
             tracing::info!("Crowd funding resolved: {}", crowd_funding_address);
         }
     }
