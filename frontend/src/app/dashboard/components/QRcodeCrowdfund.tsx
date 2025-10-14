@@ -2,8 +2,7 @@ import QRCode from "react-qr-code";
 import { useState } from "react";
 import {
   getTwitterShareUrl,
-  createShareUrl,
-  generateShortId,
+  generateShortIdFromPoolId,
 } from "@/utils/shareUtils";
 import { Copy } from "lucide-react";
 
@@ -33,7 +32,8 @@ export default function QRcodeCrowdfund({
   const handleCopyShareLink = async () => {
     // Use campaignId if available, otherwise fallback to fundAddress
     const id = campaignId || fundAddress || "temp";
-    const shareUrl = `paymesh.app/dashboard/crowd-fund/details/${generateShortId()}/${id}`;
+    const shortId = generateShortIdFromPoolId(id);
+    const shareUrl = `paymesh.app/dashboard/crowd-fund/details/${shortId}/${id}`;
 
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -47,7 +47,10 @@ export default function QRcodeCrowdfund({
   const handleShareOnTwitter = () => {
     // Use campaignId if available, otherwise fallback to fundAddress
     const id = campaignId || fundAddress || "temp";
-    const shareUrl = `paymesh.app/dashboard/crowd-fund/details/${generateShortId()}/${id}`;
+
+    const shareUrl = `paymesh.app/dashboard/crowd-fund/details/${generateShortIdFromPoolId(
+      id
+    )}/${id}`;
     const shareText = `🌟 I just launched my Fundraising campaign "${campaignTitle}" on @paymesh_ 🚀
 
 
@@ -59,12 +62,6 @@ Every contribution counts — let's build something amazing together! 💫
     window.open(twitterUrl, "_blank", "width=600,height=400");
   };
 
-  console.log(
-    "QRcodeCrowdfund component rendering with fundAddress:",
-    fundAddress,
-    "campaignId:",
-    campaignId
-  );
   return (
     <div className="fixed inset-0 bg-[#000000a3] bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
       <div className="bg-[#ffffff1e] border-gradient-modal rounded-lg shadow-xl w-full max-w-sm sm:max-w-xl max-h-[95vh] sm:max-h-[100vh] overflow-y-auto relative mx-2">

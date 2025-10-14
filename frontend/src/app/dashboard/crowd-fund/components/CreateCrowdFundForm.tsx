@@ -17,6 +17,7 @@ import Loading from "../../components/Loading";
 import QRcodeCrowdfund from "../../components/QRcodeCrowdfund";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
+import { useGetBalance } from "@/utils/contract";
 
 export interface FormData {
   name: string;
@@ -35,27 +36,33 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   onBack,
   onSubmit,
 }) => {
-  const { account } = useAccount();
+  const { account, address } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [poolAddress, setPoolAddress] = useState("");
   const [poolId, setPoolId] = useState<string>("");
-  const allPools = useGetAllPools();
+  const { createdPool: allPools, refetchPools } = useGetAllPools();
+  const balance = useGetBalance(address || "");
 
-  // Get the ID of the most recently created pool (last in array)
+  // Get the last pool ID when pool is created
   useEffect(() => {
     if (poolAddress && allPools && allPools.length > 0) {
-      // Get the last pool in the array (most recently created)
       const lastPool = allPools[allPools.length - 1];
-      setPoolId(lastPool.id.toString());
-      console.log("Using last pool ID:", lastPool.id, "for newly created pool");
+      const newPoolId = lastPool?.id?.toString();
+      setPoolId(newPoolId);
     }
   }, [poolAddress, allPools]);
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log("CreateCrowdFundForm - isSuccess:", isSuccess);
-  }, [isSuccess]);
+  // Keep refetching until we get the new pool
+  useEffect(() => {
+    if (!isSuccess) return;
+
+    const interval = setInterval(() => {
+      refetchPools();
+    }, 2000); // Refetch every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [isSuccess, refetchPools]);
 
   const [copySuccess, setCopySuccess] = useState(false);
   const [formData, setFormData] = useState<FormData>({
@@ -92,6 +99,11 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
       return toast.error("Connect Wallet to continue");
     }
 
+    if (balance?.formatted && Number(balance.formatted) < 2) {
+      toast.error(`Insufficient balance, Top Up!`);
+      return;
+    }
+
     // Reset success state before creating new pool
     console.log("Setting isSuccess to false before creating pool");
     setIsSuccess(false);
@@ -103,7 +115,11 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
       setIsSubmitting,
       setIsSuccess,
       setPoolAddress
-    );
+    ).then(() => {
+      // Manually trigger a refetch after pool creation
+      console.log("Pool created, triggering refetch...");
+      refetchPools();
+    });
   };
 
   const resetForm = () => {
@@ -266,7 +282,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
         />
       )}
 
-      {isSuccess && (
+      {isSuccess && poolId && (
         <>
           {console.log(
             "Rendering QRcodeCrowdfund - isSuccess is true, poolAddress:",
@@ -286,6 +302,22 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
             campaignId={poolId}
           />
         </>
+      )}
+
+      {isSuccess && !poolId && (
+        <div className="fixed inset-0 bg-[#000000a3] bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#ffffff1e] border-gradient-modal rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
+            <div className="mb-4">
+              <div className="w-16 h-16 border-4 border-[#434672] border-t-[#755A5A] rounded-full animate-spin mx-auto"></div>
+            </div>
+            <h2 className="text-xl font-bold text-[#ffffff] mb-2">
+              Pool Created Successfully!
+            </h2>
+            <p className="text-[#8398AD] text-sm">
+              Waiting for pool to be indexed...
+            </p>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -11,11 +11,6 @@ type currentView = "dashboard" | "create";
 const CrowdFundPage = () => {
   const [currentView, setCurrentView] = useState<currentView>("dashboard");
 
-  // Debug logging
-  React.useEffect(() => {
-    console.log("CrowdFundPage - currentView:", currentView);
-  }, [currentView]);
-
   const handleCreateNew = () => {
     // Prevent creating if wallet is not connected
     if (!isWalletConnected) {
@@ -80,7 +75,7 @@ const CrowdFundPage = () => {
         description="This feature is in development..."
       /> */}
 
-      <div className="">
+      <div className=" pb-16">
         {/* Header Section */}
         <div className="mb-8 border-b border-[#FFFFFF0D] pb-8">
           <h1 className="text-xl font-bold text-[#DFDFE0] mb-2">

@@ -30,7 +30,7 @@ export function useContractFetch(
     // @ts-expect-error 0x0 error
     address: contract_address,
     args: args,
-    refetchInterval: 600000,
+    refetchInterval: 3000, // Refetch every 3 seconds
   });
 
   return {
@@ -225,7 +225,7 @@ export function useGroupMember(id: string) {
 
 export function useGetAllPools() {
   const [createdPool, setCreatedPool] = useState<Pool[]>();
-  const { readData: pools } = useContractFetch(
+  const { readData: pools, dataRefetch } = useContractFetch(
     POOL_ABI,
     "get_all_pools",
     [],
@@ -253,7 +253,7 @@ export function useGetAllPools() {
     setCreatedPool(poolData);
   }, [pools]);
 
-  return createdPool;
+  return { createdPool, refetchPools: dataRefetch };
 }
 
 export function useGetPool(id: string) {

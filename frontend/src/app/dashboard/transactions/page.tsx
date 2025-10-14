@@ -15,6 +15,7 @@ import { useAccount } from "@starknet-react/core";
 // import { truncateAddress } from "@/lib/utils";
 import { GroupTransactionData } from "@/types/group";
 import { truncateAddress } from "@/lib/utils";
+import { Search } from "lucide-react";
 
 const TransactionsPage = () => {
   const [filter, setFilter] = useState("strk");
@@ -27,7 +28,7 @@ const TransactionsPage = () => {
     try {
       setIsLoading(true);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/all_groups`
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch transaction");
@@ -123,9 +124,22 @@ const TransactionsPage = () => {
     );
   }
 
+  if (transaction.length === 0) {
+    return (
+      <div className="min-h-[50vh] flex flex-col items-center justify-center">
+        <div className="w-16 h-16 bg-[#2A2D35] rounded-full flex items-center justify-center mx-auto mb-4">
+          <Search className="w-8 h-8 text-gray-400" />
+        </div>
+        <h2 className="text-xl font-bold text-[#E2E2E2] mb-2 text-center">
+          No transactions found
+        </h2>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
-      <div className="">
+      <div className=" pb-10">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-xl font-bold text-[#DFDFE0] mb-4">

@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ArrowLeft,
   Users,
   Calendar,
   DollarSign,
   Target,
-  Heart,
   X,
   Copy,
   Check,
@@ -23,12 +22,24 @@ import QRCode from "react-qr-code";
 import { CallData, PaymasterDetails } from "starknet";
 import { myProvider, ONE_STK } from "@/utils/contract";
 import { copyToClipboard } from "@/lib/utils";
-import { useGetBalance } from "@/utils/contract";
 
 interface ContributeModalProps {
   isOpen: boolean;
   onClose: () => void;
   isSuccess: boolean;
+}
+
+interface UsdcBalanceProps {
+  crowd_funding: {
+    target_amount: string;
+    creator_address: string;
+    id: number;
+    is_complete: boolean;
+  };
+  token_history: Array<{
+    token_address: string;
+    balance: string;
+  }>;
 }
 
 const ContributeModal: React.FC<ContributeModalProps> = ({
@@ -40,12 +51,12 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const params = useParams();
-  const { shortId, id } = params;
+  const { id } = params;
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   const { account } = useAccount();
   console.log(pool);
-  const balance = useGetBalance(account?.address || "0x0");
-  // Handle success state - close modal and show success toast
+  // const balance = useGetBalance(account?.address || "0x0");
+  // Handle success state close modal and show success toast
   useEffect(() => {
     if (isSuccess) {
       toast.success("🎉 Donation successful! Thank you for your contribution!");
@@ -66,7 +77,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
 
     // Validation: If anonymous is selected, amount must be more than 10
     if (isAnonymous && numAmount <= 10) {
-      toast.error("Anonymous donations must be more than 10 STRK or 10 USDC");
+      toast.error("Anonymous donations must be more than 10 STRK or 2 USDC");
       return;
     }
 
@@ -203,7 +214,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
               <div className="bg-[#1F2937] border border-[#F59E0B] rounded-sm p-3">
                 <p className="text-[#F59E0B] text-sm">
                   ⚠️ Anonymous donations require a minimum of{" "}
-                  <strong>10 USDC</strong>
+                  <strong>10 STRK/2 USDC</strong>
                 </p>
               </div>
             )}
@@ -258,24 +269,58 @@ const FundingDetailsPage = () => {
   const router = useRouter();
   const params = useParams();
   const { shortId, id } = params;
-  console.log("Route params:", { shortId, id, params });
   const [isSbumitting, setIsSubmitting] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
   const [shareLinkCopied, setShareLinkCopied] = useState(false);
+  const [usdcBalance, setUsdcBalance] = useState<UsdcBalanceProps | null>(null);
   const { address, account } = useAccount();
   const isWalletConnected = !!address;
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
-  console.log(pool);
 
   const crowdFundingAddr: string = pool?.pool_address
     ? (pool.pool_address as bigint).toString()
     : "";
 
-  console.log(
-    "this is for you xxXXXXXXXxxxxxxXXXXXX",
-    crowdFundingAddr,
-    pool?.pool_address
-  );
+  const getUsdcBalance = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/crowdfunding/${crowdFundingAddr}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch USDC balance");
+      }
+
+      const data = await response.json();
+      console.log("USDC BALANCE: ", data);
+      setUsdcBalance(data);
+    } catch (error) {
+      console.error("Error fetching USDC balance:", error);
+    }
+  }, [crowdFundingAddr]);
+
+  function formatAmountUsdc(amount: string | number) {
+    return (Number(amount) / 1e6).toFixed(2);
+  }
+
+  const targetAmount = usdcBalance?.crowd_funding?.target_amount
+    ? formatAmountUsdc(usdcBalance.crowd_funding.target_amount)
+    : "0.00";
+
+  const amountRaised = usdcBalance?.token_history?.[0]?.balance
+    ? formatAmountUsdc(usdcBalance.token_history[0].balance)
+    : "0.00";
+
+  useEffect(() => {
+    getUsdcBalance();
+
+    // Poll every 5 seconds
+    const interval = setInterval(() => {
+      getUsdcBalance();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [id, getUsdcBalance]);
 
   const handleCopyToClipboard = async (text: string) => {
     await copyToClipboard(text, () => {
@@ -319,16 +364,6 @@ Every contribution counts — let's build something amazing together! 💫
   const [isSuccess] = useState(false);
   // const [funding, setFunding] = useState<any>(null);
 
-  const fundingId = params.id ? parseInt(params.id as string) : null;
-
-  useEffect(() => {
-    if (fundingId) {
-      // In real app, fetch from API using fundingId
-      // const foundFunding = sampleFundingData.find((f) => f.id === fundingId);
-      // setFunding(foundFunding || null);
-    }
-  }, [fundingId]);
-
   const handlePayment = async () => {
     try {
       setIsSubmitting(true);
@@ -343,7 +378,7 @@ Every contribution counts — let's build something amazing together! 💫
         };
 
         // const approveCall = {
-        //   contractAddress: strkTokenAddress,
+        //   contractAddress: USDCTokenAddress,
         //   entrypoint: "approve",
         //   calldata: [
         //     PAYMESH_ADDRESS, // spender
@@ -374,8 +409,6 @@ Every contribution counts — let's build something amazing together! 💫
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
         );
-
-        console.log(result);
 
         // setResultHash(result.transaction_hash);
         console.log(status);
@@ -451,13 +484,13 @@ Every contribution counts — let's build something amazing together! 💫
                   {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
                     2
                   )}{" "}
-                  STRK
+                  USDC
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-[#6EE7B7]">Target Goal:</span>
                 <span className="text-[#DFDFE0]">
-                  {Number.parseFloat(pool.target.toString()).toFixed(2)} STRK
+                  {Number.parseFloat(pool.target.toString()).toFixed(2)} USDC
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
@@ -531,6 +564,9 @@ Every contribution counts — let's build something amazing together! 💫
           pool.is_completed ? "blur-sm pointer-events-none" : ""
         }`}
       >
+        <span className="text-[#434672] font-semibold">
+          FundRaising Address:
+        </span>
         <span className="text-[#cad4dd]">{crowdFundingAddr}</span>
         <button
           onClick={() => handleCopyToClipboard(crowdFundingAddr)}
@@ -585,17 +621,8 @@ Every contribution counts — let's build something amazing together! 💫
                   </div>
                 </div>
                 <div className="flex justify-between text-sm text-[#8398AD]">
-                  <span>
-                    Raised:{" "}
-                    {(
-                      Number.parseFloat(pool.balance.toString()) / 1e18
-                    ).toFixed(2)}{" "}
-                    STRK
-                  </span>
-                  <span>
-                    Target:{" "}
-                    {Number.parseFloat(pool.target.toString()).toFixed(2)} STRK
-                  </span>
+                  <span>Raised: {amountRaised} USDC</span>
+                  <span>Target: {targetAmount} USDC</span>
                 </div>
               </div>
             </div>
@@ -640,10 +667,7 @@ Every contribution counts — let's build something amazing together! 💫
                 <DollarSign className="w-5 h-5 text-[#8398AD]" />
                 <div>
                   <p className="text-[#DFDFE0] font-medium">
-                    {(
-                      Number.parseFloat(pool.balance.toString()) / 1e18
-                    ).toFixed(2)}{" "}
-                    STRK
+                    {amountRaised} USDC
                   </p>
                   <p className="text-[#8398AD] text-sm">Amount Raised</p>
                 </div>
@@ -653,7 +677,7 @@ Every contribution counts — let's build something amazing together! 💫
                 <Target className="w-5 h-5 text-[#8398AD]" />
                 <div>
                   <p className="text-[#DFDFE0] font-medium">
-                    {Number.parseFloat(pool.target.toString()).toFixed(2)} STRK
+                    {targetAmount} USDC
                   </p>
                   <p className="text-[#8398AD] text-sm">Target Amount</p>
                 </div>
@@ -678,12 +702,45 @@ Every contribution counts — let's build something amazing together! 💫
                   {isSbumitting ? "resolving....." : "resolve pool"}
                 </button>
               )}
-              <button
-                onClick={() => setIsContributeModalOpen(true)}
-                className="w-full bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium"
-              >
-                Contribute Now
-              </button>
+
+              {!isWalletConnected ? (
+                <div className="bg-[#1F2937] border border-[#F59E0B] rounded-sm p-3 mb-2 text-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-8 h-8 bg-[#F59E0B] rounded-full flex items-center justify-center flex-shrink-0">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-[#F59E0B] text-sm font-medium mb-1">
+                        Wallet Not Connected
+                      </h4>
+                      <p className="text-[#8398AD] text-xs mb-2">
+                        Connect your wallet to contribute to this campaign and
+                        track your donations.
+                      </p>
+                      <WalletConnect />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setIsContributeModalOpen(true)}
+                  className="w-full bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium"
+                >
+                  Contribute Now
+                </button>
+              )}
             </div>
           )}
 
