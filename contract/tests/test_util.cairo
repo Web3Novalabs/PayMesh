@@ -17,6 +17,11 @@ const USER5_CONST: felt252 = 13141513;
 const USER6_CONST: felt252 = 1314162454;
 const USER7_CONST: felt252 = 1314132354;
 const EMERGENCY_WITHDRAW_CONST: felt252 = 13141325;
+const AUTO_SWAP_CONST: felt252 = 13141;
+
+pub fn AUTO_SWAP_ADDR() -> ContractAddress {
+    AUTO_SWAP_CONST.try_into().unwrap()
+}
 
 pub fn ADMIN_ADDR() -> ContractAddress {
     ADMIN_CONST.try_into().unwrap()

@@ -46,5 +46,8 @@ pub trait ICrowdFund<TContractState> {
     fn get_donation_token(self: @TContractState) -> ContractAddress;
     fn set_donation_token(ref self: TContractState, new_donation_token: ContractAddress);
     fn set_platform_fee_token(ref self: TContractState, token: ContractAddress);
+    fn get_platform_fee_token(self: @TContractState) -> ContractAddress;
     fn withdraw(ref self: TContractState);
+    fn set_auto_swapping_address(ref self: TContractState, auto_swappr: ContractAddress);
+    fn get_auto_swapping_address(self: @TContractState) -> ContractAddress;
 }
