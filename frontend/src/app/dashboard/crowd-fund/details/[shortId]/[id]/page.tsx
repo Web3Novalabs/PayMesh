@@ -40,6 +40,10 @@ interface UsdcBalanceProps {
     token_address: string;
     balance: string;
   }>;
+  donation_count: {
+    total_donors: string;
+    total_numbers_of_donations: string;
+  };
 }
 
 const ContributeModal: React.FC<ContributeModalProps> = ({
@@ -650,7 +654,9 @@ Every contribution counts — let's build something amazing together! 💫
               <div className="flex items-center gap-3">
                 <Users className="w-5 h-5 text-[#8398AD]" />
                 <div>
-                  <p className="text-[#DFDFE0] font-medium">{pool.donors}</p>
+                  <p className="text-[#DFDFE0] font-medium">
+                    {usdcBalance?.donation_count.total_donors}
+                  </p>
                   <p className="text-[#8398AD] text-sm">Total Donors</p>
                 </div>
               </div>
