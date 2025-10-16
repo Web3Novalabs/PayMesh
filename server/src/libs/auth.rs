@@ -83,7 +83,7 @@ where
     }
 }
 
-pub struct AuthApiKey(pub String);
+pub struct AuthApiKey;
 
 impl FromRequestParts<AppState> for AuthApiKey {
     type Rejection = ApiError;
@@ -123,7 +123,7 @@ impl FromRequestParts<AppState> for AuthApiKey {
             map_sqlx_error(&e)
         })?;
 
-        Ok(AuthApiKey(String::new()))
+        Ok(AuthApiKey)
     }
 }
 #[derive(Debug)]

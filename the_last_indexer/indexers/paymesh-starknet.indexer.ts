@@ -76,10 +76,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           const safeArgs = JSON.stringify(args, (_, v) =>
             typeof v === "bigint" ? v.toString() : v
           );
-          logger.info(`\n💡 Pool created event ${safeArgs}`);
           const { pool_address, _, creator, pool_name, target_amount } = JSON.parse(safeArgs);
           crowd_funding_cache.push(args.pool_address);
           create_crowd_funding(pool_address, creator, hexToString(pool_name), target_amount);
+          logger.info(`\n💡 Crowdfunding created event ${pool_address}`);
         }
         else if (eventKey === POOL_PAID_SELECTOR) {
           logger.info("Pool Paid");
@@ -87,9 +87,9 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           const safeArgs = JSON.stringify(args, (_, v) =>
             typeof v === "bigint" ? v.toString() : v
           );
-          logger.info(`\n💡 Pool paid event ${safeArgs}`);
           const { pool_address, amount, paid_by, _, token_address } = JSON.parse(safeArgs);
           resolve_crowd_funding(pool_address, amount, token_address, event.transactionHash, paid_by);
+          logger.info(`\n💡 Pool paid event ${pool_address}`);
         }
         // Group Events
         else if (eventKey === GROUP_CREATED_SELECTOR) {
@@ -137,8 +137,8 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           // Check if transfer is to crowdfunding pool
           if (crowd_funding_cache.includes(args.to)) {
             const { from, to, value } = JSON.parse(safeArgs);
-            logger.info(`\n💡 Transfer event to crowdfunding ${safeArgs}`);
             donate_to_crowd_funding(to, value, from, event.address, event.transactionHash);
+            logger.info(`\n💡 Transfer event to crowdfunding ${to}`);
           }
           // Check if transfer is to group
           else if (group_cache.includes(args.to)) {

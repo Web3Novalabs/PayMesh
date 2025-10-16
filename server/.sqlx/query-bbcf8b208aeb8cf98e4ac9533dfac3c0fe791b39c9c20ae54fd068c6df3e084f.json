@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    INSERT INTO crowd_funding_token_balances (crowd_funding_id, token_address, total_amount)\n    VALUES ($1, $2, $3)\n    ON CONFLICT (crowd_funding_id, token_address)\n    DO UPDATE SET\n        total_amount = crowd_funding_token_balances.total_amount + EXCLUDED.total_amount,\n        updated_at = NOW()\n    ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Varchar",
+        "Numeric"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "bbcf8b208aeb8cf98e4ac9533dfac3c0fe791b39c9c20ae54fd068c6df3e084f"
+}
