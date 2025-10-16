@@ -21,7 +21,7 @@ import { getTwitterShareUrl } from "@/utils/shareUtils";
 import QRCode from "react-qr-code";
 import { CallData, PaymasterDetails } from "starknet";
 import { myProvider, ONE_STK } from "@/utils/contract";
-import { copyToClipboard } from "@/lib/utils";
+import { copyToClipboard, truncateAddress } from "@/lib/utils";
 
 interface ContributeModalProps {
   isOpen: boolean;
@@ -537,28 +537,33 @@ Every contribution counts — let's build something amazing together! 💫
           pool.is_completed ? "blur-sm pointer-events-none" : ""
         }`}
       >
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-[#8398AD]">Share this campaign:</span>
+        <div className="flex items-center flex-wrap gap-2 sm:gap-4">
+          <span className="text-xs sm:text-sm text-[#8398AD] whitespace-nowrap">
+            Share this campaign:
+          </span>
+
           <button
             onClick={handleShareOnTwitter}
-            className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer"
+            className="flex items-center gap-1 sm:gap-2 bg-black hover:bg-gray-800 text-white px-2 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium cursor-pointer"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
-            <span>Share on X</span>
+            <span className="whitespace-nowrap">Share on X</span>
           </button>
 
           <button
             onClick={handleCopyShareLink}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium cursor-pointer ${
               shareLinkCopied
                 ? "bg-green-600 text-white"
                 : "bg-[#434672] hover:bg-[#755A5A] text-white"
             }`}
           >
             <Copy className="w-4 h-4" />
-            <span>{shareLinkCopied ? "Copied!" : "Copy Link"}</span>
+            <span className="whitespace-nowrap">
+              {shareLinkCopied ? "Copied!" : "Copy Link"}
+            </span>
           </button>
         </div>
       </div>
@@ -571,7 +576,11 @@ Every contribution counts — let's build something amazing together! 💫
         <span className="text-[#434672] font-semibold">
           FundRaising Address:
         </span>
-        <span className="text-[#cad4dd]">{crowdFundingAddr}</span>
+        <span className="text-[#cad4dd]">
+          {window.innerWidth < 880
+            ? truncateAddress(crowdFundingAddr)
+            : crowdFundingAddr}
+        </span>
         <button
           onClick={() => handleCopyToClipboard(crowdFundingAddr)}
           className="text-gray-400 hover:text-white transition-colors cursor-pointer"
