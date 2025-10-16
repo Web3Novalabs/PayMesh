@@ -1,5 +1,4 @@
 import { defineConfig } from "apibara/config";
-import { startingBlock } from "./helpers";
 
 export default defineConfig({
   runtimeConfig: {
@@ -14,10 +13,6 @@ export default defineConfig({
       streamUrl: "https://mainnet.starknet.a5a.ch",
       contractAddress:
         "0x02c92666029b207dc882c267d7b55c3fe4178e9f550f7188cd49adb85f963623",
-    },
-    // crowdfunding: {
-    //   startingBlock: 0,
-    //   streamUrl: "https://mainnet.starknet.a5a.ch",
-    // },
+    }
   },
 });
