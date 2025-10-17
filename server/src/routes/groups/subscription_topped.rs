@@ -27,7 +27,7 @@ use starknet::core::types::Felt;
 )]
 pub async fn subscription_topped(
     State(state): State<AppState>,
-    AuthApiKey(_hello): AuthApiKey,
+    AuthApiKey: AuthApiKey,
     Path(group_address): Path<String>,
     Json(payload): Json<SubscriptionToppedReq>,
 ) -> Result<impl IntoResponse, ApiError> {
