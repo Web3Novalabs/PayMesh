@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,6 +16,7 @@ import group4icon from "../../../../../public/Handshake.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
+import { UsdcBalanceProps } from "@/types/usdcDataApi";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
@@ -29,6 +30,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [usdcBalance, setUsdcBalance] = useState<UsdcBalanceProps | null>(null);
   const itemsPerPage = 11;
 
   const { createdPool: pools } = useGetAllPools();
@@ -59,6 +61,28 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
     setSearchQuery(value);
     setCurrentPage(1); // Reset to first page when searching
   };
+
+  const getUsdcBalance = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/crowdfunding/${pools?.[0]?.pool_address}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch USDC balance");
+      }
+
+      const data = await response.json();
+      console.log("USDC BALANCE: ", data);
+      setUsdcBalance(data);
+    } catch (error) {
+      console.error("Error fetching USDC balance:", error);
+    }
+  }, [pools]);
+
+  useEffect(() => {
+    getUsdcBalance();
+  }, [pools]);
 
   return (
     <div className="space-y-6">
@@ -147,13 +171,13 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               <div className="flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#8398AD]" />
                 <span className="text-[#8398AD] text-sm">
-                  Donors {funding.donors}
+                  Donors {funding?.donors || 0}
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[#8398AD]" />
                 <span className="text-[#8398AD] text-sm">
-                  Date Created {funding.create_at}
+                  Date Created {funding?.create_at || ""}
                 </span>
               </div>
             </div>

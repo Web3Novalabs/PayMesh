@@ -22,7 +22,25 @@ import QRCode from "react-qr-code";
 import { CallData, PaymasterDetails } from "starknet";
 import { myProvider, ONE_STK } from "@/utils/contract";
 import { copyToClipboard, truncateAddress } from "@/lib/utils";
-import { UsdcBalanceProps } from "@/types/usdcDataApi";
+
+interface UsdcBalanceProps {
+  crowd_funding: {
+    target_amount: string;
+    creator_address: string;
+    id: number;
+    is_complete: boolean;
+    name: string;
+    pool_address: string;
+  };
+  token_history: Array<{
+    token_address: string;
+    balance: string;
+  }>;
+  donation_count: {
+    total_donors: number;
+    total_numbers_of_donations: number;
+  };
+}
 
 interface ContributeModalProps {
   isOpen: boolean;
@@ -452,7 +470,7 @@ Every contribution counts — let's build something amazing together! 💫
   return (
     <div className="min-h-screen mb-10 relative">
       {/* Pool Completed Overlay */}
-      {pool.is_completed && (
+      {pool?.is_completed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000036] bg-opacity-50 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-[#1F2937] border border-[#10B981] rounded-lg p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="w-16 h-16 bg-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -469,10 +487,10 @@ Every contribution counts — let's build something amazing together! 💫
               <div className="flex justify-between items-center text-sm">
                 <span className="text-[#6EE7B7]">Final Amount Raised:</span>
                 <span className="text-[#10B981] font-bold">
-                  {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
+                  {/* {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
                     2
-                  )}{" "}
-                  USDC
+                  )}{" "} */}
+                  {targetAmount} USDC
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
@@ -482,8 +500,14 @@ Every contribution counts — let's build something amazing together! 💫
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-[#51be58]">Donors:</span>
                 <span className="text-[#DFDFE0]">
-                  {usdcBalance?.donation_count.total_donors || 0}
+                  {usdcBalance?.donation_count?.total_donors || 0}
                 </span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-[#6EE7B7] font-medium">
+                  Date Created:
+                </span>
+                <span className="text-[#DFDFE0]">{pool.create_at}</span>
               </div>
             </div>
             <button
@@ -499,7 +523,9 @@ Every contribution counts — let's build something amazing together! 💫
       {/* Header */}
       <div
         className={`mb-8 border-b border-[#FFFFFF0D] pb-8 ${
-          pool.is_completed ? "blur-sm pointer-events-none" : ""
+          usdcBalance?.crowd_funding?.is_complete
+            ? "blur-sm pointer-events-none"
+            : ""
         }`}
       >
         <button
@@ -579,7 +605,9 @@ Every contribution counts — let's build something amazing together! 💫
 
       <div
         className={`grid grid-cols-1 lg:grid-cols-3 gap-8 ${
-          pool.is_completed ? "blur-sm pointer-events-none" : ""
+          usdcBalance?.crowd_funding?.is_complete
+            ? "blur-sm pointer-events-none"
+            : ""
         }`}
       >
         {/* Main Content */}
