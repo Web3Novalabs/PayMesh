@@ -22,28 +22,12 @@ import QRCode from "react-qr-code";
 import { CallData, PaymasterDetails } from "starknet";
 import { myProvider, ONE_STK } from "@/utils/contract";
 import { copyToClipboard, truncateAddress } from "@/lib/utils";
+import { UsdcBalanceProps } from "@/types/usdcDataApi";
 
 interface ContributeModalProps {
   isOpen: boolean;
   onClose: () => void;
   isSuccess: boolean;
-}
-
-interface UsdcBalanceProps {
-  crowd_funding: {
-    target_amount: string;
-    creator_address: string;
-    id: number;
-    is_complete: boolean;
-  };
-  token_history: Array<{
-    token_address: string;
-    balance: string;
-  }>;
-  donation_count: {
-    total_donors: string;
-    total_numbers_of_donations: string;
-  };
 }
 
 const ContributeModal: React.FC<ContributeModalProps> = ({
@@ -391,24 +375,24 @@ Every contribution counts — let's build something amazing together! 💫
         // };
 
         const multicallData = [swiftpayCall];
-        // const result = await account.execute(multicallData);
+        const result = await account.execute(multicallData);
 
-        const feeDetails: PaymasterDetails = {
-          feeMode: {
-            mode: "sponsored",
-          },
-        };
+        // const feeDetails: PaymasterDetails = {
+        //   feeMode: {
+        //     mode: "sponsored",
+        //   },
+        // };
 
-        const feeEstimation = await account?.estimatePaymasterTransactionFee(
-          [...multicallData],
-          feeDetails
-        );
+        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        //   [...multicallData],
+        //   feeDetails
+        // );
 
-        const result = await account?.executePaymasterTransaction(
-          [...multicallData],
-          feeDetails,
-          feeEstimation?.suggested_max_fee_in_gas_token
-        );
+        // const result = await account?.executePaymasterTransaction(
+        //   [...multicallData],
+        //   feeDetails,
+        //   feeEstimation?.suggested_max_fee_in_gas_token
+        // );
 
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
@@ -493,13 +477,13 @@ Every contribution counts — let's build something amazing together! 💫
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-[#6EE7B7]">Target Goal:</span>
-                <span className="text-[#DFDFE0]">
-                  {Number.parseFloat(pool.target.toString()).toFixed(2)} USDC
-                </span>
+                <span className="text-[#DFDFE0]">{targetAmount} USDC</span>
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-[#51be58]">Donors:</span>
-                <span className="text-[#DFDFE0]">{pool.donors}</span>
+                <span className="text-[#DFDFE0]">
+                  {usdcBalance?.donation_count.total_donors || 0}
+                </span>
               </div>
             </div>
             <button
