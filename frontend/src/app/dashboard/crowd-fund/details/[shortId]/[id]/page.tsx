@@ -20,7 +20,7 @@ import { toast } from "react-hot-toast";
 import { getTwitterShareUrl } from "@/utils/shareUtils";
 import QRCode from "react-qr-code";
 import { CallData, PaymasterDetails } from "starknet";
-import { myProvider, ONE_STK } from "@/utils/contract";
+import { myProvider, ONE_STK, normalizeAddress } from "@/utils/contract";
 import { copyToClipboard, truncateAddress } from "@/lib/utils";
 
 interface UsdcBalanceProps {
@@ -284,7 +284,7 @@ const FundingDetailsPage = () => {
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
 
   const crowdFundingAddr: string = pool?.pool_address
-    ? (pool.pool_address as bigint).toString()
+    ? "0x" + normalizeAddress((pool.pool_address as bigint).toString())
     : "";
 
   const getUsdcBalance = useCallback(async () => {
