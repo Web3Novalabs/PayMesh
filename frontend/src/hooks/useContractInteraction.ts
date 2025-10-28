@@ -231,7 +231,7 @@ export function useGetAllPools() {
     [],
     CROWDFUNDINGADDRESS
   );
-  console.log("pools---- ", pools);
+  // console.log("pools---- ", pools);
   useEffect(() => {
     if (!pools) return; //
     const poolData: Pool[] = [];

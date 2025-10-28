@@ -166,7 +166,7 @@ pub async fn create_crowd_funding(
 
 pub async fn update_crowd_funding(
     State(state): State<AppState>,
-    // AuthApiKey: AuthApiKey,
+    AuthApiKey: AuthApiKey,
     Path(pool_address): Path<String>,
     Json(payload): Json<UpdateCrowdFundingRequest>,
 ) -> Result<StatusCode, ApiError> {
@@ -479,4 +479,74 @@ pub async fn get_all_crowd_funding_addresses(
         .map_err(|e| map_sqlx_error(&e))?;
 
     Ok(Json(crowd_funding_addresses))
+}
+
+#[utoipa::path(
+    method(get),
+    path = "/pools",
+    responses(
+        (status = OK, description = "Success", body = Vec<CrowdFundingDetails>),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to get all crowd funding addresses", body = ApiError),
+    ),
+    tag = CROWD_FUNDING_TAG,
+    security(("api_key" = [])),
+)]
+pub async fn get_all_crowd_funding_details(
+    State(state): State<AppState>,
+) -> Result<impl IntoResponse, ApiError> {
+    let mut pools: Vec<CrowdFundingDetails> = Vec::new();
+
+    let crowd_funding_addresses = sqlx::query_scalar!(r#"SELECT pool_address FROM crowd_funding"#,)
+        .fetch_all(&state.db)
+        .await
+        .map_err(|e| map_sqlx_error(&e))?;
+
+    for address in crowd_funding_addresses {
+        let crowd_funding = sqlx::query_as!(
+            CrowdFunding,
+            r#"
+            SELECT 
+                id, 
+                name, 
+                pool_address, 
+                creator_address, 
+                target_amount::text as "target_amount!", 
+                is_complete,
+                description
+            FROM crowd_funding 
+            WHERE pool_address = $1
+        "#,
+            address
+        )
+        .fetch_optional(&state.db)
+        .await
+        .map_err(|e| map_sqlx_error(&e))?
+        .ok_or(ApiError::NotFound("Crowd Funding Not Found"))?;
+
+        let total_donated_tokens: Vec<TokenBalance> = sqlx::query_as!(
+        TokenBalance,
+        r#"SELECT token_address, total_amount::text as "balance!" FROM crowd_funding_token_balances WHERE crowd_funding_id = $1"#,
+        crowd_funding.id
+    )
+    .fetch_all(&state.db)
+    .await
+    .map_err(|e| map_sqlx_error(&e))?;
+
+        let donation_details = sqlx::query_as!(
+        DonationDetails,
+        r#"SELECT COUNT(DISTINCT donor_address) as "total_donors!", COUNT(*) as "total_numbers_of_donations!" FROM donations WHERE crowd_funding_id = $1"#,
+        crowd_funding.id
+    )
+    .fetch_one(&state.db)
+    .await
+    .map_err(|e| map_sqlx_error(&e))?;
+
+        pools.push(CrowdFundingDetails {
+            crowd_funding,
+            token_history: total_donated_tokens,
+            donation_count: donation_details,
+        });
+    }
+
+    Ok(Json(pools))
 }

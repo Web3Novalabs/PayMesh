@@ -134,7 +134,7 @@ export const checkAddressNetwork = async (address: string) => {
     // Try to get nonce - if it works, address exists on mainnet
     const nonce = await mainnetProvider.getNonceForAddress(formattedAddress);
 
-    console.log(`Mainnet nonce for ${formattedAddress}:`, nonce);
+    // console.log(`Mainnet nonce for ${formattedAddress}:`, nonce);
 
     // If nonce is not "0x0", address exists on mainnet
     if (nonce && nonce !== "0x0") {

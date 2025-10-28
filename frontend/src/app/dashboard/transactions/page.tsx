@@ -27,9 +27,7 @@ const TransactionsPage = () => {
   async function getTransaction() {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups`
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/groups`);
       if (!response.ok) {
         throw new Error("Failed to fetch transaction");
       }

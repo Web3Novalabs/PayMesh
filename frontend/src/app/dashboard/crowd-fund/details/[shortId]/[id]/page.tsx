@@ -31,6 +31,7 @@ interface UsdcBalanceProps {
     is_complete: boolean;
     name: string;
     pool_address: string;
+    description: string;
   };
   token_history: Array<{
     token_address: string;
@@ -60,7 +61,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
   const { id } = params;
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   const { account } = useAccount();
-  console.log(pool);
+  // console.log(pool);
   // const balance = useGetBalance(account?.address || "0x0");
   // Handle success state close modal and show success toast
   useEffect(() => {
@@ -290,7 +291,7 @@ const FundingDetailsPage = () => {
   const getUsdcBalance = useCallback(async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/crowdfunding/${crowdFundingAddr}`
+        `${process.env.NEXT_PUBLIC_API_URL}/crowdfunding/${crowdFundingAddr}`
       );
 
       if (!response.ok) {
@@ -298,7 +299,7 @@ const FundingDetailsPage = () => {
       }
 
       const data = await response.json();
-      console.log("USDC BALANCE: ", data);
+      // console.log("USDC BALANCE: ", data);
       setUsdcBalance(data);
     } catch (error) {
       console.error("Error fetching USDC balance:", error);
@@ -659,7 +660,9 @@ Every contribution counts — let's build something amazing together! 💫
               Description
             </h3>
             <p className="text-[#8398AD] text-sm leading-relaxed">
-              {pool?.description ? pool?.description : "No description"}
+              {usdcBalance?.crowd_funding?.description
+                ? usdcBalance?.crowd_funding?.description
+                : pool.description}
             </p>
           </div>
         </div>

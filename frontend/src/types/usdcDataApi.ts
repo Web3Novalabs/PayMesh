@@ -4,6 +4,8 @@ export interface UsdcBalanceProps {
     creator_address: string;
     id: number;
     is_complete: boolean;
+    description: string;
+    name: string;
   };
   token_history: Array<{
     token_address: string;
@@ -14,3 +16,13 @@ export interface UsdcBalanceProps {
     total_numbers_of_donations: string;
   };
 }
+
+export type pool = {
+  target_amount: string;
+  creator_address: string;
+  id: number;
+  is_complete: boolean;
+  description: string;
+  name: string;
+  pool_address: string;
+};

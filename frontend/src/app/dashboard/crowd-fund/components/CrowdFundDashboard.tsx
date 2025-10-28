@@ -16,7 +16,8 @@ import group4icon from "../../../../../public/Handshake.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
-import { UsdcBalanceProps } from "@/types/usdcDataApi";
+import { pool, UsdcBalanceProps } from "@/types/usdcDataApi";
+import { compareAddresses } from "@/utils/contract";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
@@ -30,11 +31,11 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [usdcBalance, setUsdcBalance] = useState<UsdcBalanceProps | null>(null);
+  const [poolData, setPoolData] = useState<pool[] | null>(null);
   const itemsPerPage = 11;
 
   const { createdPool: pools } = useGetAllPools();
-  console.log(pools);
+  // console.log(pools);
 
   // const handleViewDetails = (id: number) => {
   //   router.push(`/dashboard/crowd-fund/details/${generateShortId()}/${id}`);
@@ -62,10 +63,11 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
     setCurrentPage(1); // Reset to first page when searching
   };
 
-  const getUsdcBalance = useCallback(async () => {
+  const getPoolsData = useCallback(async () => {
     try {
+      // console.log(pools);
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/crowdfunding/${pools?.[0]?.pool_address}`
+        `${process.env.NEXT_PUBLIC_API_URL}/crowdfunding/pools`
       );
 
       if (!response.ok) {
@@ -73,16 +75,15 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
       }
 
       const data = await response.json();
-      console.log("USDC BALANCE: ", data);
-      setUsdcBalance(data);
+      setPoolData(data);
     } catch (error) {
-      console.error("Error fetching USDC balance:", error);
+      console.error("Error fetching USDC balance:---", error);
     }
   }, [pools]);
 
   useEffect(() => {
-    getUsdcBalance();
-  }, [pools]);
+    getPoolsData();
+  }, [pools, getPoolsData]);
 
   return (
     <div className="space-y-6">
@@ -151,70 +152,76 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
         </div>
 
         {/* Existing Funding Cards */}
-        {paginatedFundings?.map((funding) => (
-          <div
-            key={funding.id}
-            className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 hover:bg-[#282e3883] transition-colors duration-200"
-          >
-            {/* Header with Title and Progress */}
-            <div className="flex justify-between items-start mb-4 border-b border-[#FFFFFF0D] pb-4">
-              <h3 className="text-[#DFDFE0] font-semibold text-lg">
-                {funding.name}
-              </h3>
-              <span className="bg-[#10273E] text-[#0073E6] text-xs px-2 py-1 rounded-sm">
-                {/* {funding.progress}% Complete */}
-              </span>
-            </div>
-
-            {/* Funding Details */}
-            <div className="space-y-3 mb-6">
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-[#8398AD]" />
-                <span className="text-[#8398AD] text-sm">
-                  Donors {funding?.donors || 0}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-[#8398AD]" />
-                <span className="text-[#8398AD] text-sm">
-                  Date Created {funding?.create_at || ""}
-                </span>
-              </div>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-4">
-              <div className="w-full bg-[#282e38] rounded-full h-2">
-                <div
-                  className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
-                  style={{
-                    width: `${Math.min(
-                      (Number.parseFloat(funding.balance.toString()) /
-                        1e18 /
-                        Number.parseFloat(funding.target.toString())) *
-                        100,
-                      100
-                    )}%`,
-                  }}
-                ></div>
-              </div>
-              <div className="flex justify-between text-xs text-[#8398AD] mt-1">
-                {/* <span>{funding.currentAmount}</span>
-                <span>{funding.targetAmount}</span> */}
-              </div>
-            </div>
-
-            {/* View Details Button */}
-            <Link
-              href={`/dashboard/crowd-fund/details/${generateShortIdFromPoolId(
-                funding.id.toString()
-              )}/${funding.id}`}
-              className="w-full bg-[#FFFFFF0D] cursor-pointer border border-[#FFFFFF0D] text-[#DFDFE0] py-2 px-4 rounded-sm hover:bg-[#282e38] transition-colors duration-200 text-sm"
+        {paginatedFundings?.map((funding) => {
+          const findPool = poolData?.find((data) =>
+            //@ts-expect-error parmas can be undefined
+            compareAddresses(data.pool_address, funding.pool_address)
+          );
+          return (
+            <div
+              key={funding.id}
+              className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6 hover:bg-[#282e3883] transition-colors duration-200"
             >
-              View Details
-            </Link>
-          </div>
-        ))}
+              {/* Header with Title and Progress */}
+              <div className="flex justify-between items-start mb-4 border-b border-[#FFFFFF0D] pb-4">
+                <h3 className="text-[#DFDFE0] font-semibold text-lg">
+                  {findPool?.name || funding.name}
+                </h3>
+                <span className="bg-[#10273E] text-[#0073E6] text-xs px-2 py-1 rounded-sm">
+                  {/* {funding.progress}% Complete */}
+                </span>
+              </div>
+
+              {/* Funding Details */}
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#8398AD]" />
+                  <span className="text-[#8398AD] text-sm">
+                    Donors {funding?.donors || 0}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-[#8398AD]" />
+                  <span className="text-[#8398AD] text-sm">
+                    Date Created {funding?.create_at || ""}
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="mb-4">
+                <div className="w-full bg-[#282e38] rounded-full h-2">
+                  <div
+                    className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.min(
+                        (Number.parseFloat(funding.balance.toString()) /
+                          1e18 /
+                          Number.parseFloat(funding.target.toString())) *
+                          100,
+                        100
+                      )}%`,
+                    }}
+                  ></div>
+                </div>
+                <div className="flex justify-between text-xs text-[#8398AD] mt-1">
+                  {/* <span>{funding.currentAmount}</span>
+              <span>{funding.targetAmount}</span> */}
+                </div>
+              </div>
+
+              {/* View Details Button */}
+              <Link
+                href={`/dashboard/crowd-fund/details/${generateShortIdFromPoolId(
+                  funding.id.toString()
+                )}/${funding.id}`}
+                className="w-full bg-[#FFFFFF0D] cursor-pointer border border-[#FFFFFF0D] text-[#DFDFE0] py-2 px-4 rounded-sm hover:bg-[#282e38] transition-colors duration-200 text-sm"
+              >
+                View Details
+              </Link>
+            </div>
+          );
+        })}
       </div>
 
       {/* Pagination */}

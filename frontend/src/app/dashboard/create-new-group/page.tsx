@@ -125,7 +125,7 @@ const CreateNewGroup = () => {
     try {
       const result = await checkAddressNetwork(address);
 
-      console.log(`Address ${address} validation:`, result);
+      // console.log(`Address ${address} validation:`, result);
 
       // Update member with validation results
       setFormData((prev) => ({
@@ -328,7 +328,7 @@ const CreateNewGroup = () => {
       // const amount = parseFloat(formData.amount);
 
       if (account != undefined && formData.usage) {
-        console.log("formData.members", formData.members);
+        // console.log("formData.members", formData.members);
 
         const formattedMembers = formData.members
           .filter((member) => member.addr.trim() !== "")
@@ -337,11 +337,11 @@ const CreateNewGroup = () => {
             percentage: Number(member.percentage),
           }));
 
-        console.log("form dataDDDDDDDDDDD xxxxxxxxxx:", {
-          name: formData.name,
-          usage: formData.usage,
-          formattedMembers,
-        });
+        // console.log("form dataDDDDDDDDDDD xxxxxxxxxx:", {
+        //   name: formData.name,
+        //   usage: formData.usage,
+        //   formattedMembers,
+        // });
 
         const swiftpayCall = {
           contractAddress: PAYMESH_ADDRESS,
@@ -383,13 +383,11 @@ const CreateNewGroup = () => {
           feeEstimation?.suggested_max_fee_in_gas_token
         );
 
-        const status = await myProvider.waitForTransaction(
-          result?.transaction_hash as string
-        );
+        await myProvider.waitForTransaction(result?.transaction_hash as string);
 
-        console.log(result);
+        // console.log(result);
         setResultHash(result.transaction_hash);
-        console.log(status);
+        // console.log(status);
       }
 
       // Reset form

@@ -26,6 +26,7 @@ pub fn router(state: AppState) -> Router {
             CONTENT_TYPE,
             AUTHORIZATION,
             HeaderName::from_static("x-requested-with"),
+            HeaderName::from_static("paymesh-api-key"),
         ]);
 
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
