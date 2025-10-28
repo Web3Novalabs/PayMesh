@@ -99,14 +99,14 @@ export const useGetBalance = (userAddress: string) => {
 
 export const normalizeAddress = (address: string): string => {
   // Remove 0x prefix if present
-  if (address.length === 66) {
+  if (address?.length === 66) {
     // console.log("man-2",address.slice(2))
-    return `${address.slice(2)}`;
+    return `${address?.slice(2)}`;
   }
-  const cleanAddress = address.startsWith("0x") ? address.slice(2) : address;
+  const cleanAddress = address?.startsWith("0x") ? address?.slice(2) : address;
 
   // Pad with zeros to make it 64 characters (standard length)
-  const paddedAddress = cleanAddress.padStart(64, "0");
+  const paddedAddress = cleanAddress?.padStart(64, "0");
   // console.log("man-",paddedAddress);
   // Add back 0x prefix
   return `${paddedAddress}`;
