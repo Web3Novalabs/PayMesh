@@ -316,7 +316,7 @@ const create_crowd_funding = async (
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "paymesh-api-key": `${process.env.NEXT_PUBLIC_PAYMESH_API_KEY}`,
+          "paymesh-api-key": `${process.env.NEXT_PUBLIC_PAYMESH_API}`,
         },
         body: JSON.stringify({
           creator_address: creator_address,
