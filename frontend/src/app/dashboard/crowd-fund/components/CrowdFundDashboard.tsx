@@ -155,7 +155,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
         {paginatedFundings?.map((funding) => {
           const findPool = poolData?.find((data) =>
             //@ts-expect-error parmas can be undefined
-            compareAddresses(data.pool_address, funding.pool_address)
+            compareAddresses(data?.pool_address, funding?.pool_address)
           );
           return (
             <div

@@ -113,8 +113,8 @@ export const normalizeAddress = (address: string): string => {
 };
 
 export const compareAddresses = (addr1: string, addr2: string): boolean => {
-  const normalized1 = normalizeAddress(addr1.toLowerCase());
-  const normalized2 = normalizeAddress(addr2.toLowerCase());
+  const normalized1 = normalizeAddress(addr1?.toLowerCase());
+  const normalized2 = normalizeAddress(addr2?.toLowerCase());
 
   return normalized1 === normalized2;
 };
