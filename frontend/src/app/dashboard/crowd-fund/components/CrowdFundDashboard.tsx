@@ -153,10 +153,13 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 
         {/* Existing Funding Cards */}
         {paginatedFundings?.map((funding) => {
-          const findPool = poolData?.find((data) =>
-            //@ts-expect-error parmas can be undefined
-            compareAddresses(data?.pool_address, funding?.pool_address)
-          );
+          const findPool = poolData?.find((data) => {
+            return compareAddresses(
+              data.crowd_funding.pool_address,
+              //@ts-expect-error parmas can be undefined
+              funding.pool_address
+            );
+          });
           return (
             <div
               key={funding.id}
@@ -165,7 +168,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               {/* Header with Title and Progress */}
               <div className="flex justify-between items-start mb-4 border-b border-[#FFFFFF0D] pb-4">
                 <h3 className="text-[#DFDFE0] font-semibold text-lg">
-                  {findPool?.name || funding.name}
+                  {findPool?.crowd_funding.name || funding.name}
                 </h3>
                 <span className="bg-[#10273E] text-[#0073E6] text-xs px-2 py-1 rounded-sm">
                   {/* {funding.progress}% Complete */}
@@ -177,7 +180,9 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                 <div className="flex items-center gap-2">
                   <Users className="w-4 h-4 text-[#8398AD]" />
                   <span className="text-[#8398AD] text-sm">
-                    Donors {funding?.donors || 0}
+                    Donors{" "}
+                    {findPool?.donation_count.total_numbers_of_donations ||
+                      funding?.donors}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -194,13 +199,17 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                   <div
                     className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
                     style={{
-                      width: `${Math.min(
-                        (Number.parseFloat(funding.balance.toString()) /
-                          1e18 /
-                          Number.parseFloat(funding.target.toString())) *
-                          100,
-                        100
-                      )}%`,
+                      width: `${
+                        findPool?.crowd_funding.is_complete
+                          ? 100
+                          : Math.min(
+                              (Number.parseFloat(funding.balance.toString()) /
+                                1e18 /
+                                Number.parseFloat(funding.target.toString())) *
+                                100,
+                              100
+                            )
+                      }% `,
                     }}
                   ></div>
                 </div>
