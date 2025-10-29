@@ -1,17 +1,17 @@
 export const startingBlock = await fetch(
-    "https://starknet-mainnet.public.blastapi.io",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: 0,
-        method: "starknet_blockNumber",
-      }),
-    },
-  )
-    .then((response) => response.json())
-    .then((data: any) => data.result);
+  "https://starknet-mainnet.public.blastapi.io",
+  {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 0,
+      method: "starknet_blockNumber",
+    }),
+  }
+)
+  .then((response) => response.json())
+  .then((data: any) => data.result);
 
 export function hexToString(hex: string): string {
   if (!hex || !hex.match(/^0x[0-9a-fA-F]*$/)) {
@@ -36,7 +36,7 @@ export function hexToString(hex: string): string {
     }
     // Remove null characters and trim
     const cleanResult = result.replace(/\0/g, "").trim();
-    console.log(`Decoded result: ${cleanResult}`);
+    // console.log(`Decoded result: ${cleanResult}`);
     return cleanResult;
   } catch (error) {
     console.warn(`Failed to decode hex string: ${hex}, error: ${error}`);
