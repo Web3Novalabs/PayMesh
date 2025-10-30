@@ -626,6 +626,18 @@ Every contribution counts — let's build something amazing together! 💫
               </div>
 
               <div className="space-y-2">
+                <h2 className="text-white font-extrabold text-xl">
+                  {usdcBalance?.crowd_funding.is_complete
+                    ? 100
+                    : Math.min(
+                        (Number.parseFloat(pool.balance.toString()) /
+                          1e18 /
+                          Number.parseFloat(pool.target.toString())) *
+                          100,
+                        100
+                      ).toFixed(2)}
+                  %
+                </h2>{" "}
                 <div className="w-full bg-[#282e38] rounded-full h-2.5">
                   <div
                     className={`bg-blue-600 h-2.5 rounded-full transition-all duration-300`}
