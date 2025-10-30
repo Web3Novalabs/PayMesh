@@ -204,7 +204,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                 />
                 <span className="text-[#DFDFE0]">Public donation</span>
               </label>
-              <label className="flex items-center space-x-3 cursor-pointer">
+              {/* <label className="flex items-center space-x-3 cursor-pointer">
                 <input
                   type="radio"
                   name="privacy"
@@ -213,7 +213,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                   className="w-4 h-4 text-[#434672] bg-[#FFFFFF0D] border-[#FFFFFF0D] focus:ring-[#434672]"
                 />
                 <span className="text-[#DFDFE0]">Anonymous donation</span>
-              </label>
+              </label> */}
             </div>
 
             {/* Anonymous donation requirement notice */}
