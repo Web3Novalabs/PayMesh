@@ -181,8 +181,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                   <Users className="w-4 h-4 text-[#8398AD]" />
                   <span className="text-[#8398AD] text-sm">
                     Donors{" "}
-                    {findPool?.donation_count.total_numbers_of_donations ||
-                      funding?.donors}
+                    {findPool?.donation_count.total_donors || funding?.donors}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -194,7 +193,19 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               </div>
 
               {/* Progress Bar */}
-              <div className="mb-4">
+              <div className="mb-4 grid gap-2">
+                <h2 className="text-white font-extrabold text-xl">
+                  {findPool?.crowd_funding.is_complete
+                    ? 100
+                    : Math.min(
+                        (Number.parseFloat(funding.balance.toString()) /
+                          1e18 /
+                          Number.parseFloat(funding.target.toString())) *
+                          100,
+                        100
+                      ).toFixed(2)}
+                  %
+                </h2>
                 <div className="w-full bg-[#282e38] rounded-full h-2">
                   <div
                     className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
