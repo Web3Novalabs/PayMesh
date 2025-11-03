@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { StarknetProvider } from "./providers/StarknetProvider";
 import { Toaster } from "react-hot-toast";
@@ -19,10 +19,17 @@ const geistMono = Geist_Mono({
 });
 
 const anton = Anton({
-  weight: "400", // Anton only has one weight
+  weight: ["400"], // Anton only has one weight
   subsets: ["latin"],
   display: "swap",
   variable: "--font-anton",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"], // Choose the weights you need
+  display: "swap",
+  variable: "--font-dmsans",
 });
 
 export const metadata: Metadata = {
@@ -96,7 +103,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`bg-no-repeat bg-fixed bg h-full bg-cover xl:px-20 px-10 max-w-sit-screen mx-auto py-7 ${anton.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`bg-no-repeat bg-fixed bg h-full bg-cover xl:px-20 px-10 max-w-sit-screen mx-auto py-7 ${dmSans.variable} ${anton.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning={true}
         style={{
           backgroundImage: `url(${bg.src})`,

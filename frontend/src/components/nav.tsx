@@ -24,7 +24,7 @@ export default function Nav() {
             <Link
               className={`${
                 pathname.includes(links.url) ? "bg-[#575EB7]" : ""
-              } cursor-pointer px-6 py-2 rounded-full`}
+              } cursor-pointer font-extrabold text-sm font-dmsans px-6 py-2 rounded-full`}
               href={links.url}
               key={key}
             >
