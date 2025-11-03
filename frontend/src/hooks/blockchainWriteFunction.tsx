@@ -1,4 +1,4 @@
-import { FormData } from "@/app/dashboard/crowd-fund/components/CreateCrowdFundForm";
+import { FormData } from "@/app/components/dashboard/crowd-fund/components/CreateCrowdFundForm";
 import {
   myProvider,
   normalizeAddress,

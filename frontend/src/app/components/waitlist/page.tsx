@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import logo from "../../../public/paymeshLogo.svg";
-import XLogo from "../../../public/XLogo.svg";
-import githubLogo from "../../../public/GithubLogo.svg";
-import paymesh_landing_bg from "../../../public/bg_Landing.png";
+import logo from "../../../../public/paymeshLogo.svg";
+import XLogo from "../../../../public/XLogo.svg";
+import githubLogo from "../../../../public/GithubLogo.svg";
+import paymesh_landing_bg from "../../../../public/bg_Landing.png";
 import Link from "next/link";
-import NavBarLandingPage from "../components/NavBarLandingPage";
+import NavBarLandingPage from "../NavBarLandingPage";
 import { Input } from "@/components/ui/input";
 
 const LandingPage = () => {
@@ -31,7 +31,8 @@ const LandingPage = () => {
 
         <div className="flex items-center justify-center gap-4">
           <Link
-            href="https://x.com/paymesh_" target="_blank"
+            href="https://x.com/paymesh_"
+            target="_blank"
             className="border-gradient-links !p-2.5 rounded-sm"
           >
             <Image src={XLogo} alt="waitlist" className="cursor-pointer" />

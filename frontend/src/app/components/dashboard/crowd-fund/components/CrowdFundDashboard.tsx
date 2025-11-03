@@ -11,8 +11,8 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { Search, Users, Calendar } from "lucide-react";
-import group1icon from "../../../../../public/PlusCircle.svg";
-import group4icon from "../../../../../public/Handshake.svg";
+import group1icon from "../../../../../../public/PlusCircle.svg";
+import group4icon from "../../../../../../public/Handshake.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";

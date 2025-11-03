@@ -1,5 +1,5 @@
-import WalletConnect from "../components/WalletConnect";
-import logo from "../../../public/paymeshLogo.svg";
+import WalletConnect from "../WalletConnect";
+import logo from "../../../../public/paymeshLogo.svg";
 import Image from "next/image";
 import Link from "next/link";
 

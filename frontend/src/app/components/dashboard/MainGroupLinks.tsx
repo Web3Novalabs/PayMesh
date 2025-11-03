@@ -2,10 +2,10 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import group1icon from "../../../public/PlusCircle.svg";
-import group2icon from "../../../public/tranx.svg";
-import group3icon from "../../../public/UsersFour.svg";
-import group4icon from "../../../public/Handshake.svg";
+import group1icon from "../../../../public/PlusCircle.svg";
+import group2icon from "../../../../public/tranx.svg";
+import group3icon from "../../../../public/UsersFour.svg";
+import group4icon from "../../../../public/Handshake.svg";
 import Link from "next/link";
 
 const MainGroupLinksData = [
