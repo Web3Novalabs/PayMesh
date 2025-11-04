@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import logo from "../../public/navLogo.svg";
 import { usePathname, useRouter } from "next/navigation";
+import WalletConnect from "@/app/components/WalletConnect";
 
 export default function Nav() {
   const pathname = usePathname();
@@ -33,9 +34,7 @@ export default function Nav() {
           );
         })}
       </ul>
-      <button className="bg-[#4950B1] rounded-full px-6 py-2 cursor-pointer">
-        CONNECT WALLET
-      </button>
+      <WalletConnect />
     </nav>
   );
 }
