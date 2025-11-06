@@ -75,6 +75,30 @@ export function epocTime(time: string) {
   return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
 }
 
+export function epocTimeReadable(dateString: string) {
+  if (!dateString) return "Unknown Date";
+
+  // Your format is day/month/year → split and rearrange
+  const [day, month, year] = dateString.split("/").map(Number);
+
+  if (!day || !month || !year) return "Invalid date";
+
+  // Create a valid JS Date object
+  const date = new Date(year, month - 1, day);
+
+  const monthName = date.toLocaleString("default", { month: "short" }); // e.g. "Nov"
+  const suffix =
+    day % 10 === 1 && day !== 11
+      ? "st"
+      : day % 10 === 2 && day !== 12
+      ? "nd"
+      : day % 10 === 3 && day !== 13
+      ? "rd"
+      : "th";
+
+  return `${monthName} ${day}${suffix}, ${year}`;
+}
+
 export function getTimeFromEpoch(time: string) {
   const epochSeconds = time.replace("n", "");
   const date = new Date(+epochSeconds * 1000);
