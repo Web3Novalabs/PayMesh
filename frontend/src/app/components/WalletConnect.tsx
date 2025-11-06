@@ -190,18 +190,18 @@ export default function WalletConnect() {
                     >
                       <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center">
                         {connector.id === "braavos" ? (
-                          // <Image
-                          //   className="h-[90px] w-[390px] border"
-                          //   src={bravoos}
-                          //   alt="bravoos wallet"
-                          // />
-                          <div
-                            className={`bg-no-repeat bg-fixed bg h-full bg-cover xl:px-20 px-10 max-w-sit-screen mx-auto py-7 antialiased font-dmsans`}
-                            style={{
-                              backgroundImage: `url(${bravoos})`,
-                            }}
-                          ></div>
-                        ) : connector.id === "argentX" ? (
+                          <Image
+                            className="h-[90px]"
+                            src={bravoos}
+                            alt="bravoos wallet"
+                          />
+                        ) : // <div
+                        //   className={`bg-no-repeat bg-fixed bg h-full bg-cover xl:px-20 px-10 max-w-sit-screen mx-auto py-7 antialiased font-dmsans`}
+                        //   style={{
+                        //     backgroundImage: `url(${bravoos})`,
+                        //   }}
+                        // ></div>
+                        connector.id === "argentX" ? (
                           <Image width={599} src={argent} alt="argent wallet" />
                         ) : (
                           `${connector.id}`

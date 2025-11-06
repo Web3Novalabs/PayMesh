@@ -44,6 +44,17 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --spacing-sit-screen: 1440px;
+  --color-text-white: #dddddd;
+  --color-moon-blue: #232542;
+  --color-purple-bg: #575eb7;
+  --color-blue-btn: #10273e;
+  --color-dim-white-border: #ffffff1a;
+  --color-card-bg: #ffffff05;
+  --color-blue-text: #0073e6;
+  --color-dim-gray: #ffffff0d;
+  --color-text-gray: #8398ad;
 }
 
 .border-gradient {
