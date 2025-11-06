@@ -94,6 +94,7 @@ const GroupDetailsPage = () => {
       ? (currentGroup?.groupAddress as `0x${string}`)
       : ("0x0" as `0x${string}`),
   });
+
   const { data: usdtBalance } = useBalance({
     token:
       "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8" as `0x${string}`,
@@ -101,6 +102,7 @@ const GroupDetailsPage = () => {
       ? (currentGroup?.groupAddress as `0x${string}`)
       : ("0x0" as `0x${string}`),
   });
+
   const { data: ethBalance } = useBalance({
     token:
       "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7" as `0x${string}`,
@@ -108,6 +110,11 @@ const GroupDetailsPage = () => {
       ? (currentGroup?.groupAddress as `0x${string}`)
       : ("0x0" as `0x${string}`),
   });
+
+  console.log("usdcBalance", usdcBalance);
+  console.log("usdtBalance", usdtBalance);
+  console.log("ethBalance", ethBalance);
+
   // Force refresh when params.id changes
   useEffect(() => {
     if (params.id && transaction) {
