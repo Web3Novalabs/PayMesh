@@ -40,7 +40,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl: crowdfundingConfig.streamUrl || groupConfig.streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(startingBlock),
+    startingBlock: BigInt(3421017), // starting lock is 3421017
     filter: {
       events: [
         {
