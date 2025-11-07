@@ -19,9 +19,12 @@ import { CROWDFUNDINGADDRESS, donate } from "@/hooks/blockchainWriteFunction";
 import { toast } from "react-hot-toast";
 import { getTwitterShareUrl } from "@/utils/shareUtils";
 import QRCode from "react-qr-code";
-import { CallData, PaymasterDetails } from "starknet";
+import { CallData } from "starknet";
 import { myProvider, ONE_STK, normalizeAddress } from "@/utils/contract";
 import { copyToClipboard, truncateAddress } from "@/lib/utils";
+
+const USDC_TOKEN_ADDRESS =
+  "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 
 interface UsdcBalanceProps {
   crowd_funding: {
@@ -299,7 +302,7 @@ const FundingDetailsPage = () => {
       }
 
       const data = await response.json();
-      // console.log("USDC BALANCE: ", data);
+      console.log("USDC BALANCE: ", data);
       setUsdcBalance(data);
     } catch (error) {
       console.error("Error fetching USDC balance:", error);
@@ -314,8 +317,14 @@ const FundingDetailsPage = () => {
     ? formatAmountUsdc(usdcBalance.crowd_funding.target_amount)
     : "0.00";
 
-  const amountRaised = usdcBalance?.token_history?.[0]?.balance
-    ? formatAmountUsdc(usdcBalance.token_history[0].balance)
+  const usdcTokenBalance = usdcBalance?.token_history?.find((token) =>
+    token.token_address
+      ? token.token_address.toLowerCase() === USDC_TOKEN_ADDRESS.toLowerCase()
+      : false
+  );
+
+  const amountRaised = usdcTokenBalance?.balance
+    ? formatAmountUsdc(usdcTokenBalance.balance)
     : "0.00";
 
   useEffect(() => {
