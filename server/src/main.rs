@@ -17,7 +17,7 @@ async fn main() {
     let db = Db::new().await.expect("Failed to initialize DB");
 
     tracing::debug!("Initializing redis");
-    let redis_pool = redis::init_redis(&db.pool.clone()).await;
+    let redis_pool = redis::init_redis(&db.pool.clone(), &env).await;
 
     let config = AppState {
         db: db.pool.clone(),

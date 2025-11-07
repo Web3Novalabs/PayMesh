@@ -4,10 +4,12 @@ use bb8_redis::{RedisConnectionManager, bb8};
 use redis::AsyncCommands;
 use sqlx::PgPool;
 
+use crate::libs::config::Env;
+
 pub type RedisPool = bb8::Pool<RedisConnectionManager>;
 
-pub async fn init_redis(pool: &PgPool) -> RedisPool {
-    let redis_url = env::var("REDIS_URL").unwrap_or_else(|_| "redis://localhost:6379".to_string());
+pub async fn init_redis(pool: &PgPool, config: &Env) -> RedisPool {
+    let redis_url = config.redis_url.clone();
     let manager = RedisConnectionManager::new(redis_url).expect("init redis failed");
 
     let redis_pool = bb8::Pool::builder()
