@@ -80,3 +80,11 @@ export interface GroupTransactionData {
   share_usdc: string;
   share_usdt: string;
 }
+
+export type SplitType = "equal" | "manual";
+
+export interface Member {
+  id: string;
+  address: string;
+  percentage?: number;
+}

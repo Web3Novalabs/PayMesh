@@ -10,6 +10,7 @@ import {
 import { Plus, Search } from "lucide-react";
 import { useState } from "react";
 import GroupCard from "./components/group-card";
+import Link from "next/link";
 
 export default function Page() {
   const [selectedValue, setSelectedValue] = useState("ALL");
@@ -45,9 +46,12 @@ export default function Page() {
             />
           </div>
         </div>
-        <button className="bg-purple-bg flex items-center gap-2 py-2 px-6 rounded-full text-text-white">
+        <Link
+          href="/groups/new"
+          className="bg-purple-bg flex items-center gap-2 py-2 px-6 rounded-full text-text-white"
+        >
           <Plus /> Create new group
-        </button>
+        </Link>
       </div>
       <div className="grid grid-cols-3 gap-4">
         <GroupCard />
