@@ -65,11 +65,7 @@ pub async fn create_group(
         map_sqlx_error(&e)
     })?;
 
-    {
-        let mut cache = state.cache.write().await;
-        cache.insert(group_address.to_string());
-    }
-
+    state.add_group_address(group_address).await?;
     for group_member in payload.members {
         let member_percentage: BigDecimal = group_member.percentage.into();
         sqlx::query!(
@@ -314,8 +310,6 @@ pub async fn get_groups(State(state): State<AppState>) -> Result<impl IntoRespon
 pub async fn get_all_group_addresses(
     State(state): State<AppState>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let cache = RwLockReadGuard::map(state.cache.read().await, |f| f).clone();
-    let vec_cache: Vec<String> = cache.into_iter().collect();
-
+    let vec_cache = state.get_all_group_addresses().await?;
     Ok((StatusCode::OK, Json(vec_cache)))
 }

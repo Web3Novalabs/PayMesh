@@ -1,6 +1,6 @@
 use server::{
     AppState,
-    libs::{cache::init_cache, config::Env, db::Db, logging::init_tracing, router::router},
+    libs::{config::Env, db::Db, logging::init_tracing, redis, router::router},
 };
 use tokio::net::TcpListener;
 
@@ -16,27 +16,27 @@ async fn main() {
     tracing::debug!("Initializing db");
     let db = Db::new().await.expect("Failed to initialize DB");
 
-    tracing::debug!("Initializing cache");
-    let cache = init_cache(&db.pool.clone()).await;
+    tracing::debug!("Initializing redis");
+    let redis_pool = redis::init_redis(&db.pool.clone()).await;
 
     let config = AppState {
         db: db.pool.clone(),
-        cache,
+        redis: redis_pool,
         env,
     };
 
     {
-        let cache = config.cache.clone();
+        let redis_pool = config.redis.clone();
         let db = config.db.clone();
         tokio::spawn(async move {
             let mut interval = tokio::time::interval(std::time::Duration::from_secs(300));
             loop {
-                let new_cache = init_cache(&db).await;
-                *cache.write().await = new_cache.read().await.clone();
+                tracing::info!("Refreshing redis cache");
+                redis::refresh_cache(&db, &redis_pool).await;
                 interval.tick().await;
             }
         });
-        tracing::info!("Cache Refreshed");
+        tracing::info!("Started cache refresher task");
     }
 
     tracing::debug!("Running Migrations");

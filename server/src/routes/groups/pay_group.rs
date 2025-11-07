@@ -49,7 +49,7 @@ pub async fn pay_group(
         ApiError::BadRequest("Invalid token amount")
     })?;
 
-    if !state.cache.read().await.contains(&group_address) {
+    if !state.has_group_address(&group_address).await? {
         return Err(ApiError::NotFound("Group doesnt exist"));
     }
 

@@ -141,6 +141,8 @@ pub async fn create_crowd_funding(
         ApiError::Internal("Failed to commit transaction")
     })?;
 
+    state.add_crowd_funding_address(&pool_address).await?;
+
     tracing::info!("Crowd funding created: {}", pool_address);
 
     Ok(StatusCode::CREATED)
@@ -473,10 +475,7 @@ pub async fn resolve_crowd_funding(
 pub async fn get_all_crowd_funding_addresses(
     State(state): State<AppState>,
 ) -> Result<impl IntoResponse, ApiError> {
-    let crowd_funding_addresses = sqlx::query_scalar!(r#"SELECT pool_address FROM crowd_funding"#,)
-        .fetch_all(&state.db)
-        .await
-        .map_err(|e| map_sqlx_error(&e))?;
+    let crowd_funding_addresses = state.get_all_crowd_funding_addresses().await?;
 
     Ok(Json(crowd_funding_addresses))
 }
