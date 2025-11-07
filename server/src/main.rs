@@ -1,6 +1,6 @@
 use server::{
     AppState,
-    libs::{config::Env, db::Db, logging::init_tracing, redis, router::router},
+    libs::{config::{Env, Network}, db::Db, logging::init_tracing, redis, router::router},
 };
 use tokio::net::TcpListener;
 
@@ -11,7 +11,7 @@ async fn main() {
     init_tracing();
 
     tracing::debug!("Initializing env");
-    let env = Env::init();
+    let env = Env::init(Network::Mainnet);
 
     tracing::debug!("Initializing db");
     let db = Db::new().await.expect("Failed to initialize DB");
