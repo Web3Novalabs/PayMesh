@@ -134,7 +134,7 @@
   position: relative;
   align-items: center;
   /* padding: 1.5rem 5rem;  */
-  border-radius: 4px; /* fully rounded like your screenshot */
+  border-radius: 40px; /* fully rounded like your screenshot */
   background: linear-gradient(90deg, #434672, #755a5a);
   z-index: 0;
 }
@@ -143,8 +143,8 @@
   content: "";
   position: absolute;
   inset: 1.15px; /* border thickness */
-  border-radius: 4px; /* keep same rounded shape */
-  background: #191e28; /* inner background (same as your container bg) */
+  border-radius: 40px; /* keep same rounded shape */
+  background: #0c121d; /* inner background (same as your container bg) */
   z-index: -1;
 }
 
