@@ -500,7 +500,10 @@ Every contribution counts — let's build something amazing together! 💫
                   {/* {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
                     2
                   )}{" "} */}
-                  {targetAmount} USDC
+                  {formatAmountUsdc(
+                    usdcBalance?.token_history?.[0]?.balance as string
+                  )}{" "}
+                  USDC
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
