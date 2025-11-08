@@ -279,7 +279,13 @@ const CreateNewGroup = () => {
     }
     return false; // No duplicates
   };
-
+  console.log(
+    {
+      b: Number(balance?.formatted),
+      el: (+formData.usage * (ONE_STK * 4)) / 10 ** 18,
+    },
+    Number(balance?.formatted) < (+formData.usage * (ONE_STK * 4)) / 10 ** 18
+  );
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -317,7 +323,10 @@ const CreateNewGroup = () => {
       return;
     }
 
-    if (balance?.formatted && Number(balance.formatted) < +formData.usage) {
+    if (
+      balance?.formatted &&
+      Number(balance.formatted) < (+formData.usage * (ONE_STK * 4)) / 10 ** 18
+    ) {
       toast.error(`Insufficient balance, Top Up!`);
       return;
     }
@@ -357,7 +366,7 @@ const CreateNewGroup = () => {
           entrypoint: "approve",
           calldata: [
             PAYMESH_ADDRESS, // spender
-            cairo.uint256(+formData?.usage * ONE_STK),
+            cairo.uint256(+formData?.usage * (ONE_STK * 4)),
             // "1000000000000000000",
             // "0"
           ],
@@ -854,7 +863,7 @@ const CreateNewGroup = () => {
                 Cost per use:
               </h3>
               <p className="text-[#E2E2E2] text-base sm:text-base font-bold">
-                {creationFee ? creationFee.toFixed(2) : "1"} STRK
+                {creationFee ? creationFee.toFixed(2) : "4"} STRK
               </p>
             </div>
 
@@ -873,7 +882,7 @@ const CreateNewGroup = () => {
               </h3>
               <p className="text-[#E2E2E2] text-base sm:text-lg font-bold">
                 STRK
-                {Number(Number(formData.usage)).toFixed(2)}
+                {Number(Number(formData.usage) * 4).toFixed(2)}
               </p>
             </div>
           </div>
