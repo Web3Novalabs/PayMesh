@@ -247,6 +247,12 @@ pub mod CrowdFund {
         fn get_pool_creation_fee(self: @ContractState) -> u256 {
             self.pool_usage_fee.read()
         }
+        fn set_pool_creation_fee(ref self: ContractState, fee: u256) {
+            let caller = get_caller_address();
+            let is_admin = self.accesscontrol.has_role(ADMIN_ROLE, caller);
+            assert(is_admin, 'caller not admin or EMG admin');
+            self.pool_usage_fee.write(fee)
+        }
         fn get_pool(self: @ContractState, pool_id: u256) -> Pool {
             let mut pool: Pool = self.pools.read(pool_id);
             let balance = self.get_pool_balance(pool.pool_address);
