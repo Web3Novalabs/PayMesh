@@ -146,81 +146,69 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Back Button */}
-      <button
-        onClick={onBack}
-        className="flex items-center cursor-pointer gap-2 text-[#8398AD] hover:text-[#DFDFE0] transition-colors duration-200"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Dashboard
-      </button>
+    <div className="space-y-6 mt-16">
+      <div className="grid grid-cols-1 sm:grid-cols-24 justify-between bg-[#FFFFFF05] rounded-lg border border-[#232542]">
+        <div className=" col-span-10 border-r border-[#232542] p-10">
+          <button
+            onClick={onBack}
+            className="flex items-center cursor-pointer bg-[#FFFFFF0D] border border-[#FFFFFF1A] rounded-full py-2 px-4 gap-2 text-[#8398AD] hover:text-[#DFDFE0] transition-colors duration-200"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </button>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-8">
-        {/* Crowd Funding Details Section */}
-        <div className="space-y-4 border-b border-[#FFFFFF0D] pb-10">
-          <h2 className="text-lg font-semibold text-[#E2E2E2]">
-            Crowd Funding Details
-          </h2>
+          <div className="pt-10 space-y-4">
+            <h1 className="text-[28px] font-bold text-[#DFDFE0] font-anton">
+              PAYMESH FUNDRAISER
+            </h1>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-[#E2E2E2]">
-              Name
-            </label>
-            <Input
-              type="text"
-              placeholder="Enter name for your crowd funding"
-              value={formData.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
-              className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-[#E2E2E2]">
-              Description
-            </label>
-            <Textarea
-              placeholder="Enter description for your crowd funding"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
-            />
+            <p className="text-[#8398AD] text-base">
+              Enter the required details to create a crowd funding
+            </p>
           </div>
         </div>
 
-        {/* Set Amount Target/Threshold Section */}
-        <div className="space-y-4 border-b border-[#FFFFFF0D] pb-10">
-          <h2 className="text-lg font-semibold text-[#E2E2E2]">
-            Set Amount Target/Threshold
-          </h2>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Token Type */}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-8 p-10 col-span-14">
+          {/* Crowd Funding Details Section */}
+          <div className="space-y-4">
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-[#E2E2E2]">
-                Token Type
+              <label className="block text-lg font-light text-[#E2E2E2]">
+                Enter a name that best describes what you are crowd funding for.
               </label>
-              <Select
-                value={formData.tokenType}
-                onValueChange={(value) => handleInputChange("tokenType", value)}
-              >
-                <SelectTrigger className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D]">
-                  <SelectValue placeholder="Select token" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1F2937] border border-[#FFFFFF0D] text-[#8398AD]">
-                  {/* <SelectItem value="strk">STRK</SelectItem> */}
-                  <SelectItem value="usdc">USDC</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input
+                type="text"
+                placeholder="Enter name for your fundraiser"
+                value={formData.name}
+                onChange={(e) => handleInputChange("name", e.target.value)}
+                className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-4xl text-[#8398AD] border border-[#232542] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
+              />
             </div>
 
-            {/* Target Amount */}
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-[#E2E2E2]">
-                Target in Amount
+            <div className="space-y-4">
+              <label className="e text-lg font-light text-[#E2E2E2]">
+                Describes the idea behind the crowd funding.
               </label>
+
+              <Textarea
+                placeholder="Enter description for your fundraiser"
+                value={formData.description}
+                onChange={(e) =>
+                  handleInputChange("description", e.target.value)
+                }
+                className="w-full py-4 sm:py-6 px-3 sm:px-4 mt-4 bg-[#FFFFFF0D] min-h-[12rem] max-h-[30rem] rounded-lg text-sm text-[#8398AD] border border-[#232542] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D] overflow-y-auto resize-y [field-sizing:auto]"
+              />
+            </div>
+          </div>
+
+          {/* Set Amount Target/Threshold Section */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-light text-[#E2E2E2]">
+              Set Amount Target/Threshold.
+            </h2>
+
+            <div className="">
+              {/* Target Amount */}
               <Input
                 type="number"
                 placeholder="$0"
@@ -228,46 +216,43 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
                 onChange={(e) =>
                   handleInputChange("targetAmount", e.target.value)
                 }
-                className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
+                className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] text-sm rounded-4xl text-[#8398AD] border border-[#232542] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D]"
               />
             </div>
           </div>
-        </div>
 
-        {/* Receiver Address Section */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-[#E2E2E2]">
-            Receiver Address When Target is Met
-          </h2>
+          {/* Receiver Address Section */}
+          <div className="space-y-4">
+            <h2 className="text-lg font-light text-[#E2E2E2]">
+              Input beneficiary’s address.
+            </h2>
 
-          <div className="space-y-2 mt-2">
-            <label className="block text-sm font-medium text-[#E2E2E2]">
-              Wallet address
-            </label>
-            <Input
-              type="text"
-              placeholder="enter wallet address"
-              value={formData.walletAddress}
-              onChange={(e) =>
-                handleInputChange("walletAddress", e.target.value)
-              }
-              className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] rounded-sm text-[#8398AD] border border-[#FFFFFF0D] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D] font-mono"
-            />
+            <div className="space-y-2 mt-2">
+              <Input
+                type="text"
+                placeholder="Enter wallet address"
+                value={formData.walletAddress}
+                onChange={(e) =>
+                  handleInputChange("walletAddress", e.target.value)
+                }
+                className="w-full py-4 sm:py-6 px-3 sm:px-4 bg-[#FFFFFF0D] text-sm rounded-4xl text-[#8398AD] border border-[#232542] placeholder:text-[#8398AD] focus:outline-none focus:ring-0 focus:border-[#FFFFFF0D] font-mono"
+              />
+            </div>
           </div>
-        </div>
 
-        {/* Submit Button */}
-        <div className="pt-3 pb-10 md:pb-20">
-          <button
-            disabled={isSubmitting}
-            type="submit"
-            className="w-full sm:w-auto px-5 py-4 bg-gradient-to-r from-[#434672] to-[#755a5a] text-white font-semibold rounded-sm hover:opacity-90 transition-opacity duration-200 cursor-pointer flex items-center justify-center gap-2"
-          >
-            <span className="text-2xl font-bold">+</span>
-            {isSubmitting ? "creating pool....." : "Create Crowd Funding"}
-          </button>
-        </div>
-      </form>
+          {/* Submit Button */}
+          <div className="pt-3 pb-10 md:pb-20">
+            <button
+              disabled={isSubmitting}
+              type="submit"
+              className="w-full sm:w-fit px-16 py-2.5 bg-[#4950B1] text-white font-semibold text-sm rounded-4xl hover:opacity-90 transition-opacity duration-200 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span className="text-2xl font-semibold">+</span>
+              {isSubmitting ? "creating...." : "Create"}
+            </button>
+          </div>
+        </form>
+      </div>
 
       {/* {isSubmitting && (
         <Loading
