@@ -1,12 +1,15 @@
+use std::time::Duration;
+
 use axum::{
     Router,
     http::{
         HeaderName, Method, StatusCode,
         header::{AUTHORIZATION, CONTENT_TYPE},
-    }, routing::get,
+    },
+    routing::get,
 };
 use axum_prometheus::PrometheusMetricLayer;
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
 use utoipa_axum::routes;
@@ -42,6 +45,10 @@ pub fn router(state: AppState) -> Router {
         .with_state(state)
         .layer(prometheus_layer)
         .layer(cors)
+        .layer((
+            TraceLayer::new_for_http(),
+            TimeoutLayer::new(Duration::from_secs(10)),
+        ))
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })
         .split_for_parts();
 
