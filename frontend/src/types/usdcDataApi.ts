@@ -36,3 +36,11 @@ export type pool = {
     total_numbers_of_donations: string;
   };
 };
+
+export interface FormData {
+  name: string;
+  description: string;
+  tokenType: string;
+  targetAmount: string;
+  walletAddress: string;
+}

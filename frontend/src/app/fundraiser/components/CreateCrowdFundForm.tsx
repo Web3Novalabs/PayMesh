@@ -2,13 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import { create_pool } from "@/hooks/blockchainWriteFunction";
 import { useAccount } from "@starknet-react/core";
@@ -18,14 +11,7 @@ import toast from "react-hot-toast";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { useGetBalance } from "@/utils/contract";
-
-export interface FormData {
-  name: string;
-  description: string;
-  tokenType: string;
-  targetAmount: string;
-  walletAddress: string;
-}
+import { FormData } from "@/types/usdcDataApi";
 
 interface CreateCrowdFundFormProps {
   onBack: () => void;
@@ -119,6 +105,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
       // Manually trigger a refetch after pool creation
       console.log("Pool created, triggering refetch...");
       refetchPools();
+      onSubmit();
     });
   };
 
@@ -241,7 +228,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
           </div>
 
           {/* Submit Button */}
-          <div className="pt-3 pb-10 md:pb-20">
+          <div className="py-6">
             <button
               disabled={isSubmitting}
               type="submit"
