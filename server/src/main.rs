@@ -11,7 +11,7 @@ async fn main() {
     init_tracing();
 
     tracing::debug!("Initializing env");
-    let env = Env::init(Network::Mainnet);
+    let env = Env::init(Network::Sepolia);
 
     tracing::debug!("Initializing db");
     let db = Db::new().await.expect("Failed to initialize DB");

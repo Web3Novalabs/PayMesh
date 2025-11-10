@@ -1,5 +1,3 @@
-use std::env;
-
 use bb8_redis::{RedisConnectionManager, bb8};
 use redis::AsyncCommands;
 use sqlx::PgPool;
@@ -10,6 +8,7 @@ pub type RedisPool = bb8::Pool<RedisConnectionManager>;
 
 pub async fn init_redis(pool: &PgPool, config: &Env) -> RedisPool {
     let redis_url = config.redis_url.clone();
+    println!("Connecting to Redis at {}", redis_url);
     let manager = RedisConnectionManager::new(redis_url).expect("init redis failed");
 
     let redis_pool = bb8::Pool::builder()

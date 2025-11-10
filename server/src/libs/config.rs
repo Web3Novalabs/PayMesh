@@ -1,5 +1,3 @@
-use core::net;
-
 use dotenvy::from_filename;
 
 #[derive(Debug, Clone)]

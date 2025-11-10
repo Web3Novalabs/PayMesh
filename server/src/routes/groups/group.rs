@@ -6,7 +6,6 @@ use axum::{
 };
 use sqlx::types::BigDecimal;
 use std::collections::HashMap;
-use tokio::sync::RwLockReadGuard;
 
 use crate::{
     AppState,
