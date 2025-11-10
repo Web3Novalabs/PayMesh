@@ -3,8 +3,9 @@ use axum::{
     http::{
         HeaderName, Method, StatusCode,
         header::{AUTHORIZATION, CONTENT_TYPE},
-    },
+    }, routing::get,
 };
+use axum_prometheus::PrometheusMetricLayer;
 use tower_http::cors::CorsLayer;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
@@ -29,13 +30,17 @@ pub fn router(state: AppState) -> Router {
             HeaderName::from_static("paymesh-api-key"),
         ]);
 
+    let (prometheus_layer, metric_handle) = PrometheusMetricLayer::pair();
+
     let (router, api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .routes(routes!(health::health_check))
         .nest("/users", routes::user::router())
         .nest("/groups", routes::groups::router())
         .nest("/admin", routes::admin::router())
         .nest("/crowdfunding", routes::crowd_funding::router())
+        .route("/metrics", get(|| async move { metric_handle.render() }))
         .with_state(state)
+        .layer(prometheus_layer)
         .layer(cors)
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })
         .split_for_parts();
