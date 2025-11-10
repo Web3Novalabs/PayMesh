@@ -1,6 +1,7 @@
 import { FormData } from "@/app/dashboard/crowd-fund/components/CreateCrowdFundForm";
 import {
   myProvider,
+  normalizeAddress,
   ONE_STK,
   ONE_USDC,
   strkTokenAddress,
@@ -19,9 +20,9 @@ import {
 const usdc =
   "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 export const CROWDFUNDINGADDRESS =
-  "0x02c92666029b207dc882c267d7b55c3fe4178e9f550f7188cd49adb85f963623";
-  // "0x03e58267891dff9318e6e715336b84b515547173dee464d251d0aae3ed19e22a"; // the last before main, money in it
-// "0x05a37b08ab67fba4de346b7db2c16e68c59c408bb6ce4e7d3deeecc9ec3f2723"; // mainnet testing contract
+  "0x02c92666029b207dc882c267d7b55c3fe4178e9f550f7188cd49adb85f963623"; // lastest mainnet contract address
+// "0x03e58267891dff9318e6e715336b84b515547173dee464d251d0aae3ed19e22a"; // second CA the last before main, money in it
+// "0x05a37b08ab67fba4de346b7db2c16e68c59c408bb6ce4e7d3deeecc9ec3f2723"; // third mainnet testing contract
 // "0x05371e167ec1a1884734895bd25aa66765829d1b040f66fc757d1f4ce13aa401";
 // "0x02625bd794f2e623270c244b9871306747addee48c2b449f6a6dce75120e0841"; // mainnet
 // "0x021f66a88f2be9de6ccf5414362c1d5319c5de6dbcb889852424acf860f8475d"; // mainnet
@@ -59,29 +60,28 @@ export const create_pool = async (
     toast.error("input a valid contract address");
     return;
   }
-  const formated_description = removeNonASCII(description);
+  // const formated_description = removeNonASCII(description);
 
   // handler();
   try {
-    console.log(
-      "Blockchain function - Starting create_pool"
-      // formated_description
-    );
+    // console.log(
+    //   "Blockchain function - Starting create_pool"
+    //   // formated_description
+    // );
     setIsSubmitting(true);
 
     if (account != undefined) {
-      console.log("hey");
       const Call = {
         contractAddress: CROWDFUNDINGADDRESS,
         entrypoint: "create_pool",
         calldata: CallData.compile({
-          name: byteArray.byteArrayFromString(name),
+          name: byteArray.byteArrayFromString(""),
           target: cairo.uint256(+targetAmount * ONE_USDC),
           beneficiary: walletAddress,
-          description: byteArray.byteArrayFromString(formated_description),
+          description: byteArray.byteArrayFromString(""),
         }),
       };
-      console.log(Call);
+      // console.log(Call);
       const approveCall = {
         contractAddress:
           "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d",
@@ -89,29 +89,30 @@ export const create_pool = async (
         calldata: [
           CROWDFUNDINGADDRESS, // spender
           // cairo.uint256(ONE_STK),
-          "1000000000000000000",
+          "4000000000000000000",
           "0",
         ],
       };
       const multicallData = [approveCall, Call];
-      console.log(multicallData);
-      const feeDetails: PaymasterDetails = {
-        feeMode: {
-          mode: "sponsored",
-        },
-      };
+      // console.log(multicallData);
+      // const feeDetails: PaymasterDetails = {
+      //   feeMode: {
+      //     mode: "sponsored",
+      //   },
+      // };
 
-      const feeEstimation = await account?.estimatePaymasterTransactionFee(
-        [...multicallData],
-        feeDetails
-      );
+      // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+      //   [...multicallData],
+      //   feeDetails
+      // );
 
-      const result = await account?.executePaymasterTransaction(
-        [...multicallData],
-        feeDetails,
-        feeEstimation?.suggested_max_fee_in_gas_token
-      );
-      // const result = await account.execute(multicallData);
+      // const result = await account?.executePaymasterTransaction(
+      //   [...multicallData],
+      //   feeDetails,
+      //   feeEstimation?.suggested_max_fee_in_gas_token
+      // );
+
+      const result = await account.execute(multicallData);
 
       const status = await myProvider.waitForTransaction(
         result?.transaction_hash as string
@@ -121,17 +122,25 @@ export const create_pool = async (
       const poolAddress = (status as any)?.events?.[3]?.data?.[0];
       poolAddrQr = poolAddress as string;
 
-      console.log("Pool address extracted:", poolAddress);
-      setPoolAddress(poolAddress as string);
+      const address = `0x${normalizeAddress(poolAddress)}`;
+      // console.log(address, "addr");
+      await create_crowd_funding(
+        address,
+        account.address,
+        name,
+        (+targetAmount * ONE_USDC).toString(),
+        description
+      );
+      setPoolAddress(address as string);
 
       //   setIsOpen(true);
-      console.log("Blockchain function - Setting isSuccess to true");
+      // console.log("Blockchain function - Setting isSuccess to true");
       setIsSuccess(true);
       //   onSubmit();
-      console.log(result);
+      // console.log(result);
 
       console.log(status);
-      console.log("Blockchain function - Successfully completed");
+      // console.log("Blockchain function - Successfully completed");
     }
   } catch (error) {
     console.error("Blockchain function - Error occurred:", error);
@@ -253,4 +262,84 @@ export const donate = async (
     );
     setIsLoading(false);
   }
+};
+
+// const updatePool = async (
+//   pool_address: string,
+//   creator_address: string,
+//   name: string,
+//   description: string
+// ) => {
+//   console.log("Crowd updated ", pool_address);
+
+//   try {
+//     const response = await fetch(
+//       `${process.env.NEXT_PUBLIC_API_URL}/crowdfunding/${pool_address}`,
+//       {
+//         method: "PUT",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           creator_address: creator_address,
+//           description: description,
+//           name: name,
+//         }),
+//       }
+//     );
+
+//     if (!response.ok) {
+//       const errorText = await response.text(); // Capture response body
+//       throw new Error(
+//         `HTTP error! Status: ${response.status}, Body: ${errorText}`
+//       );
+//     }
+
+//     const data = await response.json();
+//     console.log("Response:", data);
+//     return data;
+//   } catch (error) {
+//     console.log("Error updating pool:", error);
+//   }
+// };
+const create_crowd_funding = async (
+  pool_address: string,
+  creator_address: string,
+  name: string,
+  target_amount: string,
+  description: string
+) => {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/crowdfunding`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "paymesh-api-key": `${process.env.NEXT_PUBLIC_PAYMESH_API}`,
+        },
+        body: JSON.stringify({
+          creator_address: creator_address,
+          name: name,
+          pool_address: pool_address,
+          target_amount: target_amount,
+          description: description,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text(); // Capture response body
+      throw new Error(
+        `HTTP error! Status: ${response.status}, Body: ${errorText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log("Response:", data);
+    return data;
+  } catch (error) {
+    console.log("Error updating pool:", error);
+  }
+  console.log("Crowd funding created: ", pool_address);
 };

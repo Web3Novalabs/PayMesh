@@ -13,8 +13,8 @@ const NavItems = [
     link: "/dashboard/create-new-group",
   },
   {
-    name: "Waitlist",
-    link: "/waitlist",
+    name: "Funding Raising",
+    link: "/dashboard/crowd-fund",
   },
 ];
 

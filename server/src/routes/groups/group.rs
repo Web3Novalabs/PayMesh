@@ -37,7 +37,7 @@ use crate::{
 )]
 pub async fn create_group(
     State(state): State<AppState>,
-    AuthApiKey(_hello): AuthApiKey,
+    AuthApiKey: AuthApiKey,
     Json(payload): Json<GroupRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let usage_remaining: BigDecimal = payload.usage_remaining.into();

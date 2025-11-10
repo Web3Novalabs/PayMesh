@@ -47,11 +47,11 @@ const LandingPage = () => {
 
       <div className="flex items-center justify-center flex-col mx-auto mt-12 sm:mt-16 md:mt-24 text-center px-4 sm:px-6 md:px-0">
         <div className="bg-[#FFFFFF0D] text-white w-fit mx-auto py-2.5 px-5 rounded-sm text-sm">
-          <p>Trustworthy group funding on StarkNet</p>
+          <p>Trustworthy group funding on Starknet</p>
         </div>
 
         <div className="">
-          <h1 className="bg-gradient-to-r from-[#DFDFE0] to-[#282B31] bg-clip-text pt-6 pb-0 text-transparent font-semibold text-[24px] sm:text-[30px] md:text-[50px]">
+          <h1 className="bg-gradient-to-r from-[#abb0b9] to-[#DFDFE0] bg-clip-text pt-6 pb-0 text-transparent font-semibold text-[24px] sm:text-[30px] md:text-[50px]">
             Transparent group funding on Starknet
           </h1>
 

@@ -19,15 +19,12 @@ import { CROWDFUNDINGADDRESS, donate } from "@/hooks/blockchainWriteFunction";
 import { toast } from "react-hot-toast";
 import { getTwitterShareUrl } from "@/utils/shareUtils";
 import QRCode from "react-qr-code";
-import { CallData, PaymasterDetails } from "starknet";
-import { myProvider, ONE_STK } from "@/utils/contract";
-import { copyToClipboard } from "@/lib/utils";
+import { CallData } from "starknet";
+import { myProvider, ONE_STK, normalizeAddress } from "@/utils/contract";
+import { copyToClipboard, truncateAddress } from "@/lib/utils";
 
-interface ContributeModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isSuccess: boolean;
-}
+const USDC_TOKEN_ADDRESS =
+  "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 
 interface UsdcBalanceProps {
   crowd_funding: {
@@ -35,15 +32,24 @@ interface UsdcBalanceProps {
     creator_address: string;
     id: number;
     is_complete: boolean;
+    name: string;
+    pool_address: string;
+    description: string;
   };
   token_history: Array<{
     token_address: string;
     balance: string;
   }>;
   donation_count: {
-    total_donors: string;
-    total_numbers_of_donations: string;
+    total_donors: number;
+    total_numbers_of_donations: number;
   };
+}
+
+interface ContributeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  isSuccess: boolean;
 }
 
 const ContributeModal: React.FC<ContributeModalProps> = ({
@@ -58,7 +64,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
   const { id } = params;
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   const { account } = useAccount();
-  console.log(pool);
+  // console.log(pool);
   // const balance = useGetBalance(account?.address || "0x0");
   // Handle success state close modal and show success toast
   useEffect(() => {
@@ -201,7 +207,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                 />
                 <span className="text-[#DFDFE0]">Public donation</span>
               </label>
-              <label className="flex items-center space-x-3 cursor-pointer">
+              {/* <label className="flex items-center space-x-3 cursor-pointer">
                 <input
                   type="radio"
                   name="privacy"
@@ -210,7 +216,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                   className="w-4 h-4 text-[#434672] bg-[#FFFFFF0D] border-[#FFFFFF0D] focus:ring-[#434672]"
                 />
                 <span className="text-[#DFDFE0]">Anonymous donation</span>
-              </label>
+              </label> */}
             </div>
 
             {/* Anonymous donation requirement notice */}
@@ -282,13 +288,13 @@ const FundingDetailsPage = () => {
   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
 
   const crowdFundingAddr: string = pool?.pool_address
-    ? (pool.pool_address as bigint).toString()
+    ? "0x" + normalizeAddress((pool.pool_address as bigint).toString())
     : "";
 
   const getUsdcBalance = useCallback(async () => {
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/crowdfunding/${crowdFundingAddr}`
+        `${process.env.NEXT_PUBLIC_API_URL}/crowdfunding/${crowdFundingAddr}`
       );
 
       if (!response.ok) {
@@ -311,8 +317,14 @@ const FundingDetailsPage = () => {
     ? formatAmountUsdc(usdcBalance.crowd_funding.target_amount)
     : "0.00";
 
-  const amountRaised = usdcBalance?.token_history?.[0]?.balance
-    ? formatAmountUsdc(usdcBalance.token_history[0].balance)
+  const usdcTokenBalance = usdcBalance?.token_history?.find((token) =>
+    token.token_address
+      ? token.token_address.toLowerCase() === USDC_TOKEN_ADDRESS.toLowerCase()
+      : false
+  );
+
+  const amountRaised = usdcTokenBalance?.balance
+    ? formatAmountUsdc(usdcTokenBalance.balance)
     : "0.00";
 
   useEffect(() => {
@@ -391,24 +403,24 @@ Every contribution counts — let's build something amazing together! 💫
         // };
 
         const multicallData = [swiftpayCall];
-        // const result = await account.execute(multicallData);
+        const result = await account.execute(multicallData);
 
-        const feeDetails: PaymasterDetails = {
-          feeMode: {
-            mode: "sponsored",
-          },
-        };
+        // const feeDetails: PaymasterDetails = {
+        //   feeMode: {
+        //     mode: "sponsored",
+        //   },
+        // };
 
-        const feeEstimation = await account?.estimatePaymasterTransactionFee(
-          [...multicallData],
-          feeDetails
-        );
+        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        //   [...multicallData],
+        //   feeDetails
+        // );
 
-        const result = await account?.executePaymasterTransaction(
-          [...multicallData],
-          feeDetails,
-          feeEstimation?.suggested_max_fee_in_gas_token
-        );
+        // const result = await account?.executePaymasterTransaction(
+        //   [...multicallData],
+        //   feeDetails,
+        //   feeEstimation?.suggested_max_fee_in_gas_token
+        // );
 
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
@@ -468,7 +480,7 @@ Every contribution counts — let's build something amazing together! 💫
   return (
     <div className="min-h-screen mb-10 relative">
       {/* Pool Completed Overlay */}
-      {pool.is_completed && (
+      {pool?.is_completed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000036] bg-opacity-50 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-[#1F2937] border border-[#10B981] rounded-lg p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="w-16 h-16 bg-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -485,21 +497,30 @@ Every contribution counts — let's build something amazing together! 💫
               <div className="flex justify-between items-center text-sm">
                 <span className="text-[#6EE7B7]">Final Amount Raised:</span>
                 <span className="text-[#10B981] font-bold">
-                  {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
+                  {/* {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
                     2
+                  )}{" "} */}
+                  {formatAmountUsdc(
+                    usdcBalance?.token_history?.[0]?.balance as string
                   )}{" "}
                   USDC
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-[#6EE7B7]">Target Goal:</span>
-                <span className="text-[#DFDFE0]">
-                  {Number.parseFloat(pool.target.toString()).toFixed(2)} USDC
-                </span>
+                <span className="text-[#DFDFE0]">{targetAmount} USDC</span>
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
                 <span className="text-[#51be58]">Donors:</span>
-                <span className="text-[#DFDFE0]">{pool.donors}</span>
+                <span className="text-[#DFDFE0]">
+                  {usdcBalance?.donation_count?.total_donors || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-[#6EE7B7] font-medium">
+                  Date Created:
+                </span>
+                <span className="text-[#DFDFE0]">{pool.create_at}</span>
               </div>
             </div>
             <button
@@ -515,7 +536,9 @@ Every contribution counts — let's build something amazing together! 💫
       {/* Header */}
       <div
         className={`mb-8 border-b border-[#FFFFFF0D] pb-8 ${
-          pool.is_completed ? "blur-sm pointer-events-none" : ""
+          usdcBalance?.crowd_funding?.is_complete
+            ? "blur-sm pointer-events-none"
+            : ""
         }`}
       >
         <button
@@ -537,28 +560,33 @@ Every contribution counts — let's build something amazing together! 💫
           pool.is_completed ? "blur-sm pointer-events-none" : ""
         }`}
       >
-        <div className="flex items-center gap-4">
-          <span className="text-sm text-[#8398AD]">Share this campaign:</span>
+        <div className="flex items-center flex-wrap gap-2 sm:gap-4">
+          <span className="text-xs sm:text-sm text-[#8398AD] whitespace-nowrap">
+            Share this campaign:
+          </span>
+
           <button
             onClick={handleShareOnTwitter}
-            className="flex items-center gap-2 bg-black hover:bg-gray-800 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer"
+            className="flex items-center gap-1 sm:gap-2 bg-black hover:bg-gray-800 text-white px-2 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium cursor-pointer"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
             </svg>
-            <span>Share on X</span>
+            <span className="whitespace-nowrap">Share on X</span>
           </button>
 
           <button
             onClick={handleCopyShareLink}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm font-medium cursor-pointer ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg transition-colors text-xs sm:text-sm font-medium cursor-pointer ${
               shareLinkCopied
                 ? "bg-green-600 text-white"
                 : "bg-[#434672] hover:bg-[#755A5A] text-white"
             }`}
           >
             <Copy className="w-4 h-4" />
-            <span>{shareLinkCopied ? "Copied!" : "Copy Link"}</span>
+            <span className="whitespace-nowrap">
+              {shareLinkCopied ? "Copied!" : "Copy Link"}
+            </span>
           </button>
         </div>
       </div>
@@ -571,7 +599,11 @@ Every contribution counts — let's build something amazing together! 💫
         <span className="text-[#434672] font-semibold">
           FundRaising Address:
         </span>
-        <span className="text-[#cad4dd]">{crowdFundingAddr}</span>
+        <span className="text-[#cad4dd]">
+          {window.innerWidth < 880
+            ? truncateAddress(crowdFundingAddr)
+            : crowdFundingAddr}
+        </span>
         <button
           onClick={() => handleCopyToClipboard(crowdFundingAddr)}
           className="text-gray-400 hover:text-white transition-colors cursor-pointer"
@@ -586,7 +618,9 @@ Every contribution counts — let's build something amazing together! 💫
 
       <div
         className={`grid grid-cols-1 lg:grid-cols-3 gap-8 ${
-          pool.is_completed ? "blur-sm pointer-events-none" : ""
+          usdcBalance?.crowd_funding?.is_complete
+            ? "blur-sm pointer-events-none"
+            : ""
         }`}
       >
         {/* Main Content */}
@@ -604,6 +638,18 @@ Every contribution counts — let's build something amazing together! 💫
               </div>
 
               <div className="space-y-2">
+                <h2 className="text-white font-extrabold text-xl">
+                  {usdcBalance?.crowd_funding.is_complete
+                    ? 100
+                    : Math.min(
+                        (Number.parseFloat(pool.balance.toString()) /
+                          1e18 /
+                          Number.parseFloat(pool.target.toString())) *
+                          100,
+                        100
+                      ).toFixed(2)}
+                  %
+                </h2>{" "}
                 <div className="w-full bg-[#282e38] rounded-full h-2.5">
                   <div
                     className={`bg-blue-600 h-2.5 rounded-full transition-all duration-300`}
@@ -638,7 +684,9 @@ Every contribution counts — let's build something amazing together! 💫
               Description
             </h3>
             <p className="text-[#8398AD] text-sm leading-relaxed">
-              {pool?.description ? pool?.description : "No description"}
+              {usdcBalance?.crowd_funding?.description
+                ? usdcBalance?.crowd_funding?.description
+                : pool.description}
             </p>
           </div>
         </div>

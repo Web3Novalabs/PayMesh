@@ -125,7 +125,7 @@ const CreateNewGroup = () => {
     try {
       const result = await checkAddressNetwork(address);
 
-      console.log(`Address ${address} validation:`, result);
+      // console.log(`Address ${address} validation:`, result);
 
       // Update member with validation results
       setFormData((prev) => ({
@@ -279,7 +279,13 @@ const CreateNewGroup = () => {
     }
     return false; // No duplicates
   };
-
+  console.log(
+    {
+      b: Number(balance?.formatted),
+      el: (+formData.usage * (ONE_STK * 4)) / 10 ** 18,
+    },
+    Number(balance?.formatted) < (+formData.usage * (ONE_STK * 4)) / 10 ** 18
+  );
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -317,7 +323,10 @@ const CreateNewGroup = () => {
       return;
     }
 
-    if (balance?.formatted && Number(balance.formatted) < +formData.usage) {
+    if (
+      balance?.formatted &&
+      Number(balance.formatted) < (+formData.usage * (ONE_STK * 4)) / 10 ** 18
+    ) {
       toast.error(`Insufficient balance, Top Up!`);
       return;
     }
@@ -328,7 +337,7 @@ const CreateNewGroup = () => {
       // const amount = parseFloat(formData.amount);
 
       if (account != undefined && formData.usage) {
-        console.log("formData.members", formData.members);
+        // console.log("formData.members", formData.members);
 
         const formattedMembers = formData.members
           .filter((member) => member.addr.trim() !== "")
@@ -337,11 +346,11 @@ const CreateNewGroup = () => {
             percentage: Number(member.percentage),
           }));
 
-        console.log("form dataDDDDDDDDDDD xxxxxxxxxx:", {
-          name: formData.name,
-          usage: formData.usage,
-          formattedMembers,
-        });
+        // console.log("form dataDDDDDDDDDDD xxxxxxxxxx:", {
+        //   name: formData.name,
+        //   usage: formData.usage,
+        //   formattedMembers,
+        // });
 
         const swiftpayCall = {
           contractAddress: PAYMESH_ADDRESS,
@@ -357,14 +366,14 @@ const CreateNewGroup = () => {
           entrypoint: "approve",
           calldata: [
             PAYMESH_ADDRESS, // spender
-            cairo.uint256(+formData?.usage * ONE_STK),
+            cairo.uint256(+formData?.usage * (ONE_STK * 4)),
             // "1000000000000000000",
             // "0"
           ],
         };
 
         const multicallData = [approveCall, swiftpayCall];
-        // const result = await account.execute(multicallData)
+        // const result = await account.execute(multicallData);
 
         const feeDetails: PaymasterDetails = {
           feeMode: {
@@ -383,13 +392,11 @@ const CreateNewGroup = () => {
           feeEstimation?.suggested_max_fee_in_gas_token
         );
 
-        const status = await myProvider.waitForTransaction(
-          result?.transaction_hash as string
-        );
+        await myProvider.waitForTransaction(result?.transaction_hash as string);
 
-        console.log(result);
+        // console.log(result);
         setResultHash(result.transaction_hash);
-        console.log(status);
+        // console.log(status);
       }
 
       // Reset form
@@ -856,7 +863,7 @@ const CreateNewGroup = () => {
                 Cost per use:
               </h3>
               <p className="text-[#E2E2E2] text-base sm:text-base font-bold">
-                {creationFee ? creationFee.toFixed(2) : "1"} STRK
+                {creationFee ? creationFee.toFixed(2) : "4"} STRK
               </p>
             </div>
 
@@ -875,7 +882,7 @@ const CreateNewGroup = () => {
               </h3>
               <p className="text-[#E2E2E2] text-base sm:text-lg font-bold">
                 STRK
-                {Number(Number(formData.usage)).toFixed(2)}
+                {Number(Number(formData.usage) * 4).toFixed(2)}
               </p>
             </div>
           </div>

@@ -113,9 +113,9 @@ export const normalizeAddress = (address: string): string => {
 };
 
 export const compareAddresses = (addr1: string, addr2: string): boolean => {
+  if (!addr1 || !addr2) return false;
   const normalized1 = normalizeAddress(addr1.toLowerCase());
   const normalized2 = normalizeAddress(addr2.toLowerCase());
-
   return normalized1 === normalized2;
 };
 
@@ -134,7 +134,7 @@ export const checkAddressNetwork = async (address: string) => {
     // Try to get nonce - if it works, address exists on mainnet
     const nonce = await mainnetProvider.getNonceForAddress(formattedAddress);
 
-    console.log(`Mainnet nonce for ${formattedAddress}:`, nonce);
+    // console.log(`Mainnet nonce for ${formattedAddress}:`, nonce);
 
     // If nonce is not "0x0", address exists on mainnet
     if (nonce && nonce !== "0x0") {
@@ -144,9 +144,9 @@ export const checkAddressNetwork = async (address: string) => {
     }
   } catch (error) {
     if (error instanceof Error) {
-      console.log("Address not found on mainnet:", error.message);
+      // console.log("Address not found on mainnet:", error.message);
     } else {
-      console.log("Address not found on mainnet:", error);
+      // console.log("Address not found on mainnet:", error);
     }
     return null; // Address doesn't exist on mainnet
   }

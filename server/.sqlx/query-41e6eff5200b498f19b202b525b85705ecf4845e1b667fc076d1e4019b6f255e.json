@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                        UPDATE crowd_funding\n                        SET is_complete = true\n                        WHERE id = $1\n                        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "41e6eff5200b498f19b202b525b85705ecf4845e1b667fc076d1e4019b6f255e"
+}

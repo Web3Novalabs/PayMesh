@@ -147,8 +147,6 @@ const MyGroupsPage = () => {
   // Check if wallet is connected
   const isWalletConnected = !!address;
 
-  // Show loading component while data is being fetched
-
   // Show wallet connection message if not connected
   if (!isWalletConnected) {
     return (

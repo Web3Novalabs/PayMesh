@@ -13,7 +13,9 @@ pub fn router() -> OpenApiRouter<AppState> {
         .routes(routes!(crowd_funding_routes::donate_to_crowd_funding))
         .routes(routes!(
             crowd_funding_routes::get_all_crowd_funding_addresses
-        ));
+        ))
+        .routes(routes!(crowd_funding_routes::get_all_crowd_funding_details))
+        .routes(routes!(crowd_funding_routes::update_crowd_funding));
     // .routes(routes!(crowd_funding_routes::get_crowd_funding_by_address))
     // .routes(routes!(crowd_funding_routes::get_crowd_funding_by_id))
 

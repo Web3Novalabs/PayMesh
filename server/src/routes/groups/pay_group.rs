@@ -36,7 +36,7 @@ struct Amount {
 )]
 pub async fn pay_group(
     State(state): State<AppState>,
-    AuthApiKey(_hello): AuthApiKey,
+    AuthApiKey: AuthApiKey,
     Path(group_address): Path<String>,
     Json(payload): Json<CallContractRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
@@ -119,7 +119,7 @@ pub async fn pay_group(
 )]
 pub async fn store_payment_distribution_history(
     State(state): State<AppState>,
-    AuthApiKey(_hello): AuthApiKey,
+    AuthApiKey: AuthApiKey,
     Path(group_address): Path<String>,
     Json(payload): Json<PayGroupRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
