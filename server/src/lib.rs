@@ -60,10 +60,13 @@ impl AppState {
 
     async fn get_all_group_addresses(&self) -> Result<Vec<String>, ApiError> {
         let mut conn = self.redis.get().await.expect("Error connecting to redis");
-        let addresses: Vec<String> = conn.smembers("group_funding_addresses").await.map_err(|e| {
-            tracing::error!("Error getting group addresses from redis: {:?}", e);
-            ApiError::Internal("Error getting group addresses from redis")
-        })?;
+        let addresses: Vec<String> =
+            conn.smembers("group_funding_addresses")
+                .await
+                .map_err(|e| {
+                    tracing::error!("Error getting group addresses from redis: {:?}", e);
+                    ApiError::Internal("Error getting group addresses from redis")
+                })?;
         Ok(addresses)
     }
 
@@ -86,10 +89,13 @@ impl AppState {
 
     async fn get_all_crowd_funding_addresses(&self) -> Result<Vec<String>, ApiError> {
         let mut conn = self.redis.get().await.expect("Error connecting to redis");
-        let addresses: Vec<String> = conn.smembers("crowd_funding_addresses").await.map_err(|e| {
-            tracing::error!("Error getting crowd funding addresses from redis: {:?}", e);
-            ApiError::Internal("Error getting crowd funding addresses from redis")
-        })?;
+        let addresses: Vec<String> =
+            conn.smembers("crowd_funding_addresses")
+                .await
+                .map_err(|e| {
+                    tracing::error!("Error getting crowd funding addresses from redis: {:?}", e);
+                    ApiError::Internal("Error getting crowd funding addresses from redis")
+                })?;
         Ok(addresses)
     }
 }
