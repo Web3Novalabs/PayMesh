@@ -215,23 +215,8 @@ export const donate = async (
         };
         console.log();
         const multicallData = [approveCall, Call];
-        const feeDetails: PaymasterDetails = {
-          feeMode: {
-            mode: "sponsored",
-          },
-        };
 
-        const feeEstimation = await account?.estimatePaymasterTransactionFee(
-          [...multicallData],
-          feeDetails
-        );
-
-        const result = await account?.executePaymasterTransaction(
-          [...multicallData],
-          feeDetails,
-          feeEstimation?.suggested_max_fee_in_gas_token
-        );
-        // const result = await account.execute(multicallData);
+        const result = await account.execute(multicallData);
 
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
