@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/select";
 import { AlertTriangle, ArrowLeft, ShieldCheck } from "lucide-react";
 import { create_pool } from "@/hooks/blockchainWriteFunction";
-import { useAccount } from "@Starknet-react/core";
 import toast from "react-hot-toast";
 import Loading from "../../components/Loading";
 import QRcodeCrowdfund from "../../components/QRcodeCrowdfund";
@@ -19,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { useGetBalance } from "@/utils/contract";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useAccount } from "@starknet-react/core";
 
 export interface FormData {
   name: string;
