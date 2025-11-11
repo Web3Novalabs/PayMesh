@@ -101,6 +101,9 @@ pub mod AutoShare {
         >, // group_id -> paid_usage_count eg if the user paid for 20 usages then its going to be 20
         usage_count: Map<
             u256, u256,
+        >, // group_id to the usage_count rn, ie how many usages he has remaining
+        fixed_group_expect_amount: Map<
+            u256, u256,
         > // group_id to the usage_count rn, ie how many usages he has remaining
     }
 
@@ -293,7 +296,118 @@ pub mod AutoShare {
 
             contract_address_for_group
         }
+        fn create_group_fixed_fee(
+            ref self: ContractState,
+            name: ByteArray,
+            members: Array<GroupMember>,
+            usage_count: u256,
+        ) -> ContractAddress {
+            assert(get_caller_address() != contract_address_const::<0>(), ERROR_ZERO_ADDRESS);
+            let member_count: usize = members.len();
+            assert(member_count >= 2, 'member is less than 2');
 
+            let mut total_fixed_amount: u256 = 0;
+            let mut i: usize = 0;
+
+            // Check for duplicate address and calculate total fixed amount
+            while i < member_count {
+                let m = members.at(i).clone();
+                // For fixed fee, percentage field now represents the fixed amount each member
+                // should get
+                total_fixed_amount += m.percentage.into();
+                let mut j: usize = i + 1;
+                while j < member_count {
+                    let duplicate = m.addr == members.at(j).clone().addr;
+                    assert(!duplicate, 'list contain dublicate address');
+                    j += 1;
+                }
+                i += 1;
+            }
+
+            let caller = get_caller_address();
+            assert(caller != contract_address_const::<0>(), ERROR_ZERO_ADDRESS);
+
+            let id = self.group_count.read() + 1;
+
+            let mut group = Group {
+                id,
+                name: name.clone(),
+                usage_limit_reached: false,
+                creator: get_caller_address(),
+                date: get_block_timestamp(),
+                group_address: get_caller_address(),
+                total_amount: 0,
+            };
+            self.groups.write(id, group.clone());
+
+            i = 0;
+            while i < member_count {
+                self.group_members.entry(id).push(members.at(i).clone());
+                i += 1;
+            }
+
+            // Store the expected amount for this group
+            self.fixed_group_expect_amount.write(id, total_fixed_amount);
+
+            // Collect pool creation fee
+            let fee = self._get_group_usage_amount(usage_count);
+            self._collect_group_creation_fee(caller, fee);
+            self.group_count.write(id);
+
+            let mut constructor_calldata: Array<felt252> = array![];
+            (
+                id,
+                group.clone(),
+                self.emergency_withdraw_address.read(),
+                members.clone(),
+                self.token_address.read(),
+                self.ownable.owner(),
+                get_caller_address(),
+            )
+                .serialize(ref constructor_calldata);
+
+            let (contract_address_for_group, _) = deploy_syscall(
+                self.child_contract_class_hash.read(), 0, constructor_calldata.span(), false,
+            )
+                .unwrap();
+            self.group_addresses.write(id, contract_address_for_group);
+            self.group_addresses_map.write(contract_address_for_group, id);
+            self.groups_created_by_address.entry(caller).push(id);
+
+            let len = self.token_count.read();
+            let child_contract = IAutoshareChildDispatcher {
+                contract_address: contract_address_for_group,
+            };
+            child_contract.set_and_approve_main_contract(get_contract_address());
+            for i in 1..=len {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                let child_contract = IAutoshareChildDispatcher {
+                    contract_address: contract_address_for_group,
+                };
+                child_contract.set_supported_token(token_address);
+            }
+
+            self.usage_count.write(id, usage_count);
+            self.group_usage_paid_history.entry(id).push(usage_count);
+            self.group_usage_paid.entry(id).write(usage_count);
+            self
+                .emit(
+                    Event::GroupCreated(
+                        GroupCreated {
+                            group_address: contract_address_for_group,
+                            group_id: id,
+                            creator: get_caller_address(),
+                            name,
+                            usage_count,
+                            members: members,
+                        },
+                    ),
+                );
+            group.group_address = contract_address_for_group;
+            self.groups.write(id, group.clone());
+
+            contract_address_for_group
+        }
         fn get_group(self: @ContractState, group_id: u256) -> Group {
             let group: Group = self.groups.read(group_id);
             group
@@ -515,124 +629,138 @@ pub mod AutoShare {
 
             let len = self.token_count.read();
             let mut pay_happen = false;
-            for i in 1..=len {
-                let token_address: ContractAddress = self.supported_tokens.read(i);
-                let balance = self
-                    ._check_token_balance_of_group_by_tokens(group_address, token_address);
-                if balance > 0 {
-                    let mut usage_count = self.usage_count.read(group_id);
-                    assert(
-                        usage_count > 0 || !group.clone().usage_limit_reached,
-                        'Max Usage Renew Subscription',
-                    );
-                    let mut members_arr: Array<MemberShare> = ArrayTrait::new();
-                    for member in 0..group_members_vec.len() {
-                        let member: GroupMember = group_members_vec.at(member).read();
-                        let members_money: u256 = balance
-                            * member.percentage.try_into().unwrap()
-                            / 100;
-                        let member_share: MemberShare = MemberShare {
-                            addr: member.addr, share: members_money,
-                        };
-                        // now transfer from group address to member address
-                        members_arr.append(member_share);
-                        let token = IERC20Dispatcher { contract_address: token_address };
-                        token.transfer_from(group_address, member.addr, members_money);
+            let expected_amount = self.fixed_group_expect_amount.read(group_id);
+            if expected_amount != 0 {
+                for i in 1..=len {
+                    let token_address: ContractAddress = self.supported_tokens.read(i);
+                    let balance = self
+                        ._check_token_balance_of_group_by_tokens(group_address, token_address);
+                    if balance > 0 {
+                        self
+                            ._distribute_fixed_amount_group(
+                                group_id, group_address, token_address, balance, expected_amount,
+                            )
                     }
-                    pay_happen = true;
-
-                    usage_count -= 1;
-                    if usage_count == 0 {
-                        group.usage_limit_reached = true;
-                    }
-                    group.total_amount += balance;
-                    self.groups.write(group_id, group.clone());
-                    // once paid, we decrement the planned usage count
-                    self.usage_count.write(group_id, usage_count);
-                    self
-                        .emit(
-                            Event::GroupPaid(
-                                GroupPaid {
-                                    group_address,
-                                    amount: balance,
-                                    paid_by: get_caller_address(),
-                                    paid_at: get_block_timestamp(),
-                                    members: members_arr,
-                                    usage_count: usage_count,
-                                    token_address,
-                                },
-                            ),
+                }
+            } else {
+                for i in 1..=len {
+                    let token_address: ContractAddress = self.supported_tokens.read(i);
+                    let balance = self
+                        ._check_token_balance_of_group_by_tokens(group_address, token_address);
+                    if balance > 0 {
+                        let mut usage_count = self.usage_count.read(group_id);
+                        assert(
+                            usage_count > 0 || !group.clone().usage_limit_reached,
+                            'Max Usage Renew Subscription',
                         );
+                        let mut members_arr: Array<MemberShare> = ArrayTrait::new();
+                        for member in 0..group_members_vec.len() {
+                            let member: GroupMember = group_members_vec.at(member).read();
+                            let members_money: u256 = balance
+                                * member.percentage.try_into().unwrap()
+                                / 100;
+                            let member_share: MemberShare = MemberShare {
+                                addr: member.addr, share: members_money,
+                            };
+                            // now transfer from group address to member address
+                            members_arr.append(member_share);
+                            let token = IERC20Dispatcher { contract_address: token_address };
+                            token.transfer_from(group_address, member.addr, members_money);
+                        }
+                        pay_happen = true;
+
+                        usage_count -= 1;
+                        if usage_count == 0 {
+                            group.usage_limit_reached = true;
+                        }
+                        group.total_amount += balance;
+                        self.groups.write(group_id, group.clone());
+                        // once paid, we decrement the planned usage count
+                        self.usage_count.write(group_id, usage_count);
+                        self
+                            .emit(
+                                Event::GroupPaid(
+                                    GroupPaid {
+                                        group_address,
+                                        amount: balance,
+                                        paid_by: get_caller_address(),
+                                        paid_at: get_block_timestamp(),
+                                        members: members_arr,
+                                        usage_count: usage_count,
+                                        token_address,
+                                    },
+                                ),
+                            );
+                    }
                 }
             }
-
             assert(pay_happen, 'no payment made');
         }
 
-        fn request_group_update(
-            ref self: ContractState,
-            group_id: u256,
-            new_name: ByteArray,
-            new_members: Array<GroupMember>,
-        ) {
-            let mut group: Group = self.get_group(group_id);
-            assert(group.id != 0, ERR_GROUP_NOT_FOUND);
-            let caller = get_caller_address();
-            assert(caller == group.creator, 'caller is not the group creator');
+        // fn request_group_update(
+        //     ref self: ContractState,
+        //     group_id: u256,
+        //     new_name: ByteArray,
+        //     new_members: Array<GroupMember>,
+        // ) {
+        //     let mut group: Group = self.get_group(group_id);
+        //     assert(group.id != 0, ERR_GROUP_NOT_FOUND);
+        //     let caller = get_caller_address();
+        //     assert(caller == group.creator, 'caller is not the group creator');
 
-            let mut sum: u32 = 0;
-            let mut i: usize = 0;
+        //     let mut sum: u32 = 0;
+        //     let mut i: usize = 0;
 
-            // This code checks for duplicate addresses among group members
-            let member_count = new_members.len();
-            while i < member_count {
-                let m = new_members.at(i).clone();
-                sum += m.percentage.try_into().unwrap();
-                let mut j: usize = i + 1;
-                while j < member_count {
-                    let duplicate = m.addr == new_members.at(j).clone().addr;
-                    assert(!duplicate, 'list contain duplicate address');
-                    j += 1;
-                }
-                i += 1;
-            }
-            assert(sum == 100, 'total percentage must be 100');
+        //     // This code checks for duplicate addresses among group members
+        //     let member_count = new_members.len();
+        //     while i < member_count {
+        //         let m = new_members.at(i).clone();
+        //         sum += m.percentage.try_into().unwrap();
+        //         let mut j: usize = i + 1;
+        //         while j < member_count {
+        //             let duplicate = m.addr == new_members.at(j).clone().addr;
+        //             assert(!duplicate, 'list contain duplicate address');
+        //             j += 1;
+        //         }
+        //         i += 1;
+        //     }
+        //     assert(sum == 100, 'total percentage must be 100');
 
-            // Store the new members separately
-            let mut i: usize = 0;
-            let member_count = new_members.len();
-            while i < member_count {
-                let member = new_members.at(i);
+        //     // Store the new members separately
+        //     let mut i: usize = 0;
+        //     let member_count = new_members.len();
+        //     while i < member_count {
+        //         let member = new_members.at(i);
 
-                self.update_request_new_members.entry(group_id).append().write(*member);
-                i += 1;
-            }
+        //         self.update_request_new_members.entry(group_id).append().write(*member);
+        //         i += 1;
+        //     }
 
-            let update_request = GroupUpdateRequest {
-                group_id, new_name: new_name.clone(), requester: caller, fee_paid: false,
-            };
+        //     let update_request = GroupUpdateRequest {
+        //         group_id, new_name: new_name.clone(), requester: caller, fee_paid: false,
+        //     };
 
-            // Collect the update fee
-            self._collect_group_update_fee(caller);
+        //     // Collect the update fee
+        //     self._collect_group_update_fee(caller);
 
-            // set fee_paid to true after collecting the fee
-            let mut update_request_paid = update_request.clone();
-            update_request_paid.fee_paid = true;
-            self.update_requests.write(group_id, update_request_paid);
+        //     // set fee_paid to true after collecting the fee
+        //     let mut update_request_paid = update_request.clone();
+        //     update_request_paid.fee_paid = true;
+        //     self.update_requests.write(group_id, update_request_paid);
 
-            self.has_pending_update.write(group_id, true);
+        //     self.has_pending_update.write(group_id, true);
 
-            self
-                .emit(
-                    Event::GroupUpdateRequested(
-                        GroupUpdateRequested {
-                            group_id, requester: caller, new_name: new_name.clone(),
-                        },
-                    ),
-                );
+        //     self
+        //         .emit(
+        //             Event::GroupUpdateRequested(
+        //                 GroupUpdateRequested {
+        //                     group_id, requester: caller, new_name: new_name.clone(),
+        //                 },
+        //             ),
+        //         );
 
-            self._execute_group_update(group_id);
-        }
+        //     self._execute_group_update(group_id);
+        // }
 
         fn get_group_balance(self: @ContractState, group_address: ContractAddress) -> u256 {
             self._check_token_balance_of_child(group_address)
@@ -841,6 +969,100 @@ pub mod AutoShare {
 
             // Emit the GroupUpdated event
             self.emit(Event::GroupUpdated(GroupUpdated { group_id, old_name, new_name }));
+        }
+
+        fn _distribute_fixed_amount_group(
+            ref self: ContractState,
+            group_id: u256,
+            group_address: ContractAddress,
+            token_address: ContractAddress,
+            balance: u256,
+            expected_amount: u256,
+        ) {
+            let mut group = self.groups.read(group_id);
+            let group_members_vec = self.group_members.entry(group_id);
+
+            let mut usage_count = self.usage_count.read(group_id);
+            assert(
+                usage_count > 0 || !group.clone().usage_limit_reached,
+                'Max Usage Renew Subscription',
+            );
+
+            let mut members_arr: Array<MemberShare> = ArrayTrait::new();
+
+            // If balance equals expected amount, distribute fixed amounts directly
+            if balance == expected_amount {
+                for member in 0..group_members_vec.len() {
+                    let member: GroupMember = group_members_vec.at(member).read();
+                    // For fixed groups, percentage field stores the fixed amount
+                    let members_money: u256 = member.percentage.into();
+
+                    let member_share: MemberShare = MemberShare {
+                        addr: member.addr, share: members_money,
+                    };
+                    members_arr.append(member_share);
+
+                    let token = IERC20Dispatcher { contract_address: token_address };
+                    token.transfer_from(group_address, member.addr, members_money);
+                }
+            } else {
+                // Balance is different from expected, calculate proportional distribution
+                // First distribute the base expected amounts
+                let mut total_distributed: u256 = 0;
+
+                for member in 0..group_members_vec.len() {
+                    let member: GroupMember = group_members_vec.at(member).read();
+                    let base_amount: u256 = member.percentage.into();
+
+                    // Calculate this member's share including their portion of the extra/shortage
+                    // Formula: base_amount + (base_amount / expected_amount) * (balance -
+                    // expected_amount)
+                    let proportion: u256 = (base_amount * 10000)
+                        / expected_amount; // Using 10000 for precision
+                    let members_money: u256 = (balance * proportion) / 10000;
+
+                    total_distributed += members_money;
+
+                    let member_share: MemberShare = MemberShare {
+                        addr: member.addr, share: members_money,
+                    };
+                    members_arr.append(member_share);
+
+                    let token = IERC20Dispatcher { contract_address: token_address };
+                    token.transfer_from(group_address, member.addr, members_money);
+                }
+
+                // Handle any remaining dust due to rounding (send to first member)
+                let remaining = balance - total_distributed;
+                if remaining > 0 {
+                    let first_member: GroupMember = group_members_vec.at(0).read();
+                    let token = IERC20Dispatcher { contract_address: token_address };
+                    token.transfer_from(group_address, first_member.addr, remaining);
+                }
+            }
+
+            usage_count -= 1;
+            if usage_count == 0 {
+                group.usage_limit_reached = true;
+            }
+            group.total_amount += balance;
+            self.groups.write(group_id, group.clone());
+            self.usage_count.write(group_id, usage_count);
+
+            self
+                .emit(
+                    Event::GroupPaid(
+                        GroupPaid {
+                            group_address,
+                            amount: balance,
+                            paid_by: get_caller_address(),
+                            paid_at: get_block_timestamp(),
+                            members: members_arr,
+                            usage_count: usage_count,
+                            token_address,
+                        },
+                    ),
+                );
         }
     }
 }
