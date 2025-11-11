@@ -84,8 +84,10 @@ pub mod CrowdFundChild {
             for i in 1..=supported_tokens_count {
                 let token_address: ContractAddress = self.supported_tokens.read(i);
                 let token = IERC20Dispatcher { contract_address: token_address };
-                let balance = token.balance_of(get_caller_address());
-                token.transfer(self.emergency_withdraw_address.read(), balance);
+                let balance = token.balance_of(get_contract_address());
+                if balance > 0 {
+                    token.transfer(self.emergency_withdraw_address.read(), balance);
+                }
             }
         }
 

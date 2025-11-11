@@ -1805,3 +1805,84 @@ fn test_admin_calling_pay_function_should_panic_if_removed() {
     contract_address.paymesh(group_address);
     stop_cheat_caller_address(contract_address.contract_address);
 }
+
+#[test]
+fn test_emergency_withdraw_function() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_autoshare_contract();
+
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // Create a group
+    let mut members = ArrayTrait::new();
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, 2_000_000_000_000_000_000);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    // token balance before of creator
+    let creator_balance_before = usdc_dispatcher.balance_of(CREATOR_ADDR());
+    assert(
+        creator_balance_before == 900_000_000_000_000_000_000_000_000_000_000,
+        'Creator balance incorrect',
+    );
+    // get contract balance before
+    let contract_balance_before = usdc_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'Contract balance incorrect');
+
+    let creator = usdc_dispatcher.balance_of(CREATOR_ADDR());
+    println!("creator balance {}", creator);
+    // create group
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 60 });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 });
+    contract_address.create_group("TestGroup", members, 2);
+    stop_cheat_caller_address(contract_address.contract_address);
+    let group_address = contract_address.get_group_address(1);
+
+    let allowance = usdc_dispatcher.allowance(group_address, contract_address.contract_address);
+    println!("child contrac allowance usdc {}", allowance);
+    let allowance = usdt_dispatcher.allowance(group_address, contract_address.contract_address);
+    println!("child contrac allowance usdt {}", allowance);
+    let allowance = erc20_dispatcher.allowance(group_address, contract_address.contract_address);
+    println!("child contrac allowance strk {}", allowance);
+    let user_2_usdc = usdc_dispatcher.balance_of(USER2_ADDR());
+    println!("user 2 usdc balance {}", user_2_usdc);
+    let allowance = usdc_dispatcher.allowance(CREATOR_ADDR(), contract_address.contract_address);
+    println!("contract allowance before {}", allowance);
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, 5_000_000_000_000_000_000);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    start_cheat_caller_address(usdt_dispatcher.contract_address, CREATOR_ADDR());
+    usdt_dispatcher.approve(contract_address.contract_address, 5_000_000_000_000_000_000);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    // send 1000 usdc to the group
+    let group_address = contract_address.get_group_address(1);
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+    let allowance = usdc_dispatcher.allowance(CREATOR_ADDR(), contract_address.contract_address);
+    println!("contract allowance after{}", allowance);
+
+    // transfer 100 usdt to the group
+    start_cheat_caller_address(usdt_dispatcher.contract_address, CREATOR_ADDR());
+    usdt_dispatcher.transfer(group_address, 1_000_000_000_000_000_000);
+    stop_cheat_caller_address(usdt_dispatcher.contract_address);
+
+    let strk_balance = erc20_dispatcher.balance_of(EMERGENCY_WITHDRAW_ADDR());
+    println!("strk balance before {}", strk_balance);
+    let usdc_balance = usdc_dispatcher.balance_of(EMERGENCY_WITHDRAW_ADDR());
+    println!("usdc balance before {}", usdc_balance);
+
+    let child_contract_instance = IAutoshareChildDispatcher { contract_address: group_address };
+    start_cheat_caller_address(group_address, ADMIN_ADDR());
+    child_contract_instance.emergency_withdraw();
+    stop_cheat_caller_address(group_address);
+    let usdc_balance = usdc_dispatcher.balance_of(EMERGENCY_WITHDRAW_ADDR());
+    println!("usdc balance final {}", usdc_balance);
+}

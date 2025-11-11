@@ -649,3 +649,96 @@ fn test_error_paymesh_caller_not_auth() {
     contract_address.paymesh(pool_address0);
     stop_cheat_caller_address(contract_address.contract_address);
 }
+
+#[test]
+fn test_emergency_withdraw() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+    // let token = erc20_dispatcher.contract_address;
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // check contract balance
+    let contract_balance_before = usdc_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'contract balance should be 0');
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    erc20_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    usdc_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    // create a pool with target amount of 10 USDC
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let pool_address0 = contract_address
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR(), "pet");
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // donate
+    start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 10);
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance is {}", strk_balance);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, USER2_ADDR());
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance before {}", usdc_balance);
+    usdc_dispatcher.transfer(pool_address0, ONE_STRK * 10);
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance after {}", usdc_balance);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    let strk_balance = erc20_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial strk balance before {}", strk_balance);
+
+    let usdc_balance = usdc_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial usdc balance before {}", usdc_balance);
+
+    start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
+    contract_address.paymesh_donate(pool_address0, ONE_STRK * 10);
+    stop_cheat_caller_address(contract_address.contract_address);
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance after {}", strk_balance);
+
+    // get pool balance
+    let get_pool = contract_address.get_pool(1);
+    assert(get_pool.donors == 1, 'wrong pool donor');
+    assert(get_pool.balance == ONE_STRK * 10, 'wrong pool balance');
+    let balance = contract_address.get_pool_balance(pool_address0);
+    assert(balance == ONE_STRK * 10, 'balance not up to date');
+
+    // start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    // contract_address.paymesh(pool_address0);
+    // stop_cheat_caller_address(contract_address.contract_address);
+
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance final {}", strk_balance);
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance final {}", usdc_balance);
+
+    let strk_balance = erc20_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial strk balance after {}", strk_balance);
+
+    let usdc_balance = usdc_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial usdc balance after {}", usdc_balance);
+
+    let child_contract_instance = ICrowdFundChildDispatcher { contract_address: pool_address0 };
+    start_cheat_caller_address(pool_address0, ADMIN_ADDR());
+    child_contract_instance.emergency_withdraw();
+    stop_cheat_caller_address(pool_address0);
+
+    let strk_balance = erc20_dispatcher.balance_of(EMERGENCY_WITHDRAW_ADDR());
+    println!("strk balance final {}", strk_balance);
+    let usdc_balance = usdc_dispatcher.balance_of(EMERGENCY_WITHDRAW_ADDR());
+    println!("usdc balance final {}", usdc_balance);
+}

@@ -96,9 +96,15 @@ pub mod AutoshareChild {
 
         fn emergency_withdraw(ref self: ContractState) {
             self.assert_only_admin();
-            let token = IERC20Dispatcher { contract_address: self.token_address.read() };
-            let balance = self._check_token_balance(get_contract_address());
-            token.transfer(self.emergency_withdraw_address.read(), balance);
+            let supported_tokens_count = self.token_count.read();
+            for i in 1..=supported_tokens_count {
+                let token_address: ContractAddress = self.supported_tokens.read(i);
+                let token = IERC20Dispatcher { contract_address: token_address };
+                let balance = token.balance_of(get_contract_address());
+                if balance > 0 {
+                    token.transfer(self.emergency_withdraw_address.read(), balance);
+                }
+            }
         }
 
         fn set_and_approve_main_contract(
