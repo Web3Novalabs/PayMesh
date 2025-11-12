@@ -37,7 +37,8 @@ pub mod AutoShare {
     };
     use crate::base::types::{Group, GroupMember, GroupUpdateRequest};
     use crate::interfaces::iautoshare::IAutoShare;
-    // const ONE_STRK: u256 = 1_000_000_000_000_000_000;
+    const PRECISION: u256 = 1_000;
+    // const PRECISION: u256 = 1_000_000_000_000_000_000;
 
     // components definition
     component!(path: UpgradeableComponent, storage: upgradeable, event: UpgradeableEvent);
@@ -197,7 +198,7 @@ pub mod AutoShare {
             let member_count: usize = members.len();
             assert(member_count >= 2, 'member is less than 2');
 
-            let mut sum: u32 = 0;
+            let mut sum: u256 = 0;
             let mut i: usize = 0;
 
             // check for duplicate address and
@@ -215,7 +216,7 @@ pub mod AutoShare {
             }
             let caller = get_caller_address();
             assert(caller != contract_address_const::<0>(), ERROR_ZERO_ADDRESS);
-            assert(sum == 100, 'cummulative share not 100%');
+            assert(sum >= 99 * PRECISION && sum <= 100 * PRECISION, 'cummulative share not 100%');
             let id = self.group_count.read() + 1;
 
             let mut group = Group {
@@ -528,9 +529,9 @@ pub mod AutoShare {
                     let mut members_arr: Array<MemberShare> = ArrayTrait::new();
                     for member in 0..group_members_vec.len() {
                         let member: GroupMember = group_members_vec.at(member).read();
-                        let members_money: u256 = balance
-                            * member.percentage.try_into().unwrap()
-                            / 100;
+                        let members_money: u256 = (balance
+                            * (member.percentage.try_into().unwrap()))
+                            / (100 * PRECISION);
                         let member_share: MemberShare = MemberShare {
                             addr: member.addr, share: members_money,
                         };
@@ -567,6 +568,14 @@ pub mod AutoShare {
             }
 
             assert(pay_happen, 'no payment made');
+
+            if pay_happen {
+                let remaining_balance = self._check_token_balance_of_child(group_address);
+                if remaining_balance > 0 {
+                    let token = IERC20Dispatcher { contract_address: self.token_address.read() };
+                    token.transfer_from(group_address, get_contract_address(), remaining_balance);
+                }
+            }
         }
 
         fn request_group_update(
