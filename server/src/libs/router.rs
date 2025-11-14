@@ -35,6 +35,7 @@ pub fn router(state: AppState) -> Router {
         .nest("/groups", routes::groups::router())
         .nest("/admin", routes::admin::router())
         .nest("/crowdfunding", routes::crowd_funding::router())
+        .nest("/analytics", routes::analytics::router())
         .with_state(state)
         .layer(cors)
         .fallback(|| async { (StatusCode::UNAUTHORIZED, "UNAUTHORIZED ORIGIN") })
