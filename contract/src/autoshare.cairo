@@ -639,7 +639,8 @@ pub mod AutoShare {
                         self
                             ._distribute_fixed_amount_group(
                                 group_id, group_address, token_address, balance, expected_amount,
-                            )
+                            );
+                        pay_happen = true;
                     }
                 }
             } else {
@@ -979,6 +980,8 @@ pub mod AutoShare {
             balance: u256,
             expected_amount: u256,
         ) {
+            let expected_amount = self.fixed_group_expect_amount.read(group_id);
+
             let mut group = self.groups.read(group_id);
             let group_members_vec = self.group_members.entry(group_id);
 
@@ -990,7 +993,7 @@ pub mod AutoShare {
 
             let mut members_arr: Array<MemberShare> = ArrayTrait::new();
 
-            // If balance equals expected amount, distribute fixed amounts directly
+            //distribute fixed amounts
             if balance == expected_amount {
                 for member in 0..group_members_vec.len() {
                     let member: GroupMember = group_members_vec.at(member).read();
@@ -1005,18 +1008,48 @@ pub mod AutoShare {
                     let token = IERC20Dispatcher { contract_address: token_address };
                     token.transfer_from(group_address, member.addr, members_money);
                 }
-            } else {
-                // Balance is different from expected, calculate proportional distribution
-                // First distribute the base expected amounts
+            } else if balance > expected_amount {
+                // when balance is more than expected, distribute to user by including the extra
                 let mut total_distributed: u256 = 0;
 
                 for member in 0..group_members_vec.len() {
                     let member: GroupMember = group_members_vec.at(member).read();
                     let base_amount: u256 = member.percentage.into();
 
-                    // Calculate this member's share including their portion of the extra/shortage
-                    // Formula: base_amount + (base_amount / expected_amount) * (balance -
-                    // expected_amount)
+                    // Calculate this member's share including their portion of the extra
+                    // Formula: (base_amount / expected_amount) * balance
+                    let proportion: u256 = (base_amount * 10000)
+                        / expected_amount; // Using 10000 for precision
+                    let members_money: u256 = (balance * proportion) / 10000;
+
+                    total_distributed += members_money;
+
+                    let member_share: MemberShare = MemberShare {
+                        addr: member.addr, share: members_money,
+                    };
+                    members_arr.append(member_share);
+
+                    let token = IERC20Dispatcher { contract_address: token_address };
+                    token.transfer_from(group_address, member.addr, members_money);
+                }
+
+                // Handle any remaining dust due to rounding (send to first member)
+                let remaining = balance - total_distributed;
+                if remaining > 0 {
+                    let first_member: GroupMember = group_members_vec.at(0).read();
+                    let token = IERC20Dispatcher { contract_address: token_address };
+                    token.transfer_from(group_address, first_member.addr, remaining);
+                }
+            } else {
+                // Balance is LESS than expected, distribute proportionally with the shortage
+                let mut total_distributed: u256 = 0;
+
+                for member in 0..group_members_vec.len() {
+                    let member: GroupMember = group_members_vec.at(member).read();
+                    let base_amount: u256 = member.percentage.into();
+
+                    // Calculate this member's reduced share based on available balance
+                    // Formula: (base_amount / expected_amount) * balance
                     let proportion: u256 = (base_amount * 10000)
                         / expected_amount; // Using 10000 for precision
                     let members_money: u256 = (balance * proportion) / 10000;

@@ -188,14 +188,14 @@ pub fn group_member_two() -> Array<GroupMember> {
 
     members
 }
-
-pub fn group_member_five() -> Array<GroupMember> {
+pub fn fixed_group_member_amount_five() -> Array<GroupMember> {
     let mut members = ArrayTrait::new();
-    members.append(GroupMember { addr: USER1_ADDR(), percentage: 20 });
-    members.append(GroupMember { addr: USER2_ADDR(), percentage: 20 });
-    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 20 });
-    members.append(GroupMember { addr: USER3_ADDR(), percentage: 20 });
-    members.append(GroupMember { addr: EMERGENCY_WITHDRAW_ADDR(), percentage: 20 });
+    members.append(GroupMember { addr: USER1_ADDR(), percentage: 200 });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 200 });
+    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 200 });
+    members.append(GroupMember { addr: USER3_ADDR(), percentage: 200 });
+    members.append(GroupMember { addr: EMERGENCY_WITHDRAW_ADDR(), percentage: 200 });
+    members.append(GroupMember { addr: USER6_ADDR(), percentage: 200 });
 
     members
 }
