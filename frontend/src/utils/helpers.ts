@@ -1,5 +1,6 @@
-import { Member } from "@/types/group";
+import { CreateGroupFormData, GroupMemberShare, Member } from "@/types/group";
 import { RefObject } from "react";
+import { checkAddressNetwork } from "./contract";
 
 export const getNetworkColor = (
   mainnet: string,
@@ -48,49 +49,121 @@ export const gradientStops = gradientColors
   .join(", ");
 
 // group utils
-type SetMembers = React.Dispatch<React.SetStateAction<Member[]>>;
-export const handleAddMember = (members: Member[], setMembers: SetMembers) => {
+type SetForm = React.Dispatch<React.SetStateAction<CreateGroupFormData>>;
+export const handleAddMember = (
+  members: GroupMemberShare[],
+  setMembers: SetForm
+) => {
   const newId = (
-    Math.max(...members.map((m) => Number.parseInt(m.id)), 0) + 1
+    Math.max(...members.map((m) => Number.parseInt(m?.id ?? "")), 0) + 1
   ).toString();
-  setMembers([...members, { id: newId, address: "", percentage: 0 }]);
+  setMembers((prev) => {
+    return {
+      ...prev,
+      members: [...members, { id: newId, addr: "", percentage: 0 }],
+    };
+  });
 };
 
 export const handleRemoveMember = (
   id: string,
-  setMembers: SetMembers,
-  members: Member[]
+  setMembers: SetForm,
+  members: GroupMemberShare[]
 ) => {
   if (members.length > 1) {
-    setMembers(members.filter((m) => m.id !== id));
+    setMembers((prev) => {
+      return { ...prev, members: members.filter((m) => m.id !== id) };
+    });
+  }
+};
+
+// Function to validate a single address
+const validateAddress = async (
+  address: string,
+  id: string,
+  setFormData: SetForm
+) => {
+  // Skip empty or very short addresses
+  if (!address || address.trim().length < 10) {
+    return;
+  }
+
+  // Set validating state
+  setFormData((prev) => ({
+    ...prev,
+    members: prev.members.map((member) =>
+      member.id === id ? { ...member, isValidating: true } : member
+    ),
+  }));
+
+  try {
+    const result = await checkAddressNetwork(address);
+    // Update member with validation results
+    setFormData((prev) => ({
+      ...prev,
+      members: prev.members.map((member) =>
+        member.id === id
+          ? {
+              ...member,
+              isValidating: false,
+              networkResult: result,
+            }
+          : member
+      ),
+    }));
+  } catch (error) {
+    console.error("Error validating address:", error);
+    setFormData((prev) => ({
+      ...prev,
+      members: prev.members.map((member) =>
+        member.id === id
+          ? {
+              ...member,
+              isValidating: false,
+              networkResult: null,
+            }
+          : member
+      ),
+    }));
   }
 };
 
 export const handleAddressChange = (
   id: string,
   value: string,
-  setMembers: SetMembers,
-  members: Member[]
+  setMembers: SetForm,
+  members: GroupMemberShare[]
 ) => {
-  setMembers(members.map((m) => (m.id === id ? { ...m, address: value } : m)));
+  setMembers((prev) => {
+    setTimeout(() => {
+      validateAddress(value, id, setMembers);
+    }, 1000);
+    return {
+      ...prev,
+      members: members.map((m) => (m.id === id ? { ...m, addr: value } : m)),
+    };
+  });
 };
 
 export const handlePercentageChange = (
   id: string,
   value: string,
-  setMembers: SetMembers,
-  members: Member[]
+  setMembers: SetForm,
+  members: GroupMemberShare[]
 ) => {
-  setMembers(
-    members.map((m) =>
-      m.id === id ? { ...m, percentage: Number.parseFloat(value) || 0 } : m
-    )
-  );
+  setMembers((prev) => {
+    return {
+      ...prev,
+      members: members.map((m) =>
+        m.id === id ? { ...m, percentage: Number.parseFloat(value) || 0 } : m
+      ),
+    };
+  });
 };
 
 export const handleCSVImport = (
   event: React.ChangeEvent<HTMLInputElement>,
-  setMembers: SetMembers,
+  setMembers: SetForm,
   fileInputRef: RefObject<HTMLInputElement | null>
 ) => {
   const file = event.target.files?.[0];
@@ -109,12 +182,14 @@ export const handleCSVImport = (
         )
         .map((line, index) => ({
           id: (index + 1).toString(),
-          address: line.trim(),
+          addr: line.trim(),
           percentage: 0,
         }));
 
       if (addresses.length > 0) {
-        setMembers(addresses);
+        setMembers((prev) => {
+          return { ...prev, members: addresses };
+        });
       }
     } catch (error) {
       console.error("Error parsing CSV:", error);
@@ -127,4 +202,45 @@ export const handleCSVImport = (
   if (fileInputRef?.current) {
     fileInputRef.current.value = "";
   }
+};
+
+export const distributeEvenly = (
+  members: GroupMemberShare[],
+  setMembers: SetForm
+) => {
+  const memberCount = members.length;
+
+  if (memberCount === 0) return;
+
+  const basePercentage = Math.floor((100 / memberCount) * 100) / 100;
+  const totalDistributed = basePercentage * memberCount;
+  const remainder = Number((100 - totalDistributed).toFixed(2));
+
+  setMembers((prev) => ({
+    ...prev,
+    members: prev.members.map((member, index) => ({
+      ...member,
+      percentage:
+        index === 0
+          ? Number((basePercentage + remainder).toFixed(2))
+          : basePercentage,
+    })),
+  }));
+};
+
+export const manualDistribute = (
+  members: GroupMemberShare[],
+  setMembers: SetForm
+) => {
+  const memberCount = members.length;
+
+  if (memberCount === 0) return;
+
+  setMembers((prev) => ({
+    ...prev,
+    members: prev.members.map((member) => ({
+      ...member,
+      percentage: 0,
+    })),
+  }));
 };

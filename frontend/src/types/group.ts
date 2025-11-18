@@ -88,3 +88,18 @@ export interface Member {
   address: string;
   percentage?: number;
 }
+
+export interface CreateGroupFormData {
+  name: string;
+  usage: string;
+  members: GroupMemberShare[];
+  agreeTerms: boolean;
+}
+
+export interface GroupMemberShare {
+  id: string;
+  addr: string;
+  percentage?: number;
+  isValidating?: boolean;
+  networkResult?: string | null;
+}

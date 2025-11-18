@@ -1,7 +1,16 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CreateGroupFormData } from "@/types/group";
 
-export default function PoolDescription() {
+type SetForm = React.Dispatch<React.SetStateAction<CreateGroupFormData>>;
+export default function PoolDescription({
+  defaultName,
+  setForm,
+}: {
+  defaultName: string;
+  setForm: SetForm;
+}) {
+  // console.log(defaultName.word());
   return (
     <>
       <div className="grid gap-6">
@@ -10,10 +19,14 @@ export default function PoolDescription() {
           <label htmlFor="">Enter a group name.</label>
           <Input
             placeholder="enter name..."
+            value={defaultName}
+            onChange={(e) =>
+              setForm((prev) => ({ ...prev, name: e.target.value }))
+            }
             className="border border-moon-blue p-6 rounded-full"
           />
         </div>
-        <div className="grid gap-3">
+        <div className="grid gap-3 opacity-0">
           <label htmlFor="">Enter group descriptions</label>
           <Textarea className="border border-moon-blue min-h-[300px]" />
         </div>

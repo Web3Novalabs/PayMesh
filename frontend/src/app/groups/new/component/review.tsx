@@ -1,9 +1,15 @@
-"use client";
+import { CreateGroupFormData } from "@/types/group";
 import { formatAddress } from "@/utils/helpers";
-import { useState } from "react";
 
-export default function Review() {
-  const [agreeTerms, setAgreeTerms] = useState(false);
+type SetForm = React.Dispatch<React.SetStateAction<CreateGroupFormData>>;
+export default function Review({
+  setFormData,
+  formData,
+}: {
+  setFormData: SetForm;
+  formData: CreateGroupFormData;
+}) {
+  console.log(formData);
   return (
     <div className="text-white md:p-8 pt-0 md:pt-0 flex flex-col overflow-x-hidden gap-6">
       <h1 className="text-xl md:text-2xl font-medium">Review</h1>
@@ -35,49 +41,54 @@ export default function Review() {
             </tr>
           </thead>
           <tbody>
-            <tr
-              className="border-b border-moon-blue  text-sm border-dark-border-gray last:border-b-0 transition-colors py-4"
-              role="row"
-            >
-              <td
-                className="bg-inherit px-4 py-5"
-                role="gridcell"
-                aria-label=""
-              >
-                1
-              </td>
-              <td
-                className="z-10 px-4 py-5 font-medium text-center"
-                role="gridcell"
-                aria-label={``}
-              >
-                <span className="md:hidden">
-                  {formatAddress("0x4A7d5cB67eA4F6e4B7cC3B3aE3f8fD9bB2cF9a1B")}
-                </span>
-                <span className="hidden md:block">
-                  0x4A7d5cB67eA4F6e4B7cC3B3aE3f8fD9bB2cF9a1B
-                </span>
-              </td>
-              <td
-                className="px-4 py-5 text-xs md:text-sm text-end"
-                role="gridcell"
-                aria-label=""
-              >
-                Equal split
-              </td>
-            </tr>
+            {formData.members.map((member, key) => {
+              return (
+                <tr
+                  key={key}
+                  className="border-b border-moon-blue  text-sm border-dark-border-gray last:border-b-0 transition-colors py-4"
+                  role="row"
+                >
+                  <td
+                    className="bg-inherit px-4 py-5"
+                    role="gridcell"
+                    aria-label=""
+                  >
+                    1
+                  </td>
+                  <td
+                    className="z-10 px-4 py-5 font-medium text-center"
+                    role="gridcell"
+                    aria-label={``}
+                  >
+                    <span className="md:hidden">
+                      {formatAddress(member.addr)}
+                    </span>
+                    <span className="hidden md:block">{member.addr}</span>
+                  </td>
+                  <td
+                    className="px-4 py-5 text-xs md:text-sm text-end"
+                    role="gridcell"
+                    aria-label=""
+                  >
+                    {member.percentage}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
         <div className="flex items-center gap-3 cursor-pointer">
           <button
             onClick={() => {
-              setAgreeTerms((prev) => !prev);
+              setFormData((prev) => {
+                return { ...prev, agreeTerms: !prev.agreeTerms };
+              });
             }}
             className={` rounded-full  border-moon-blue p-1.5 border`}
           >
             <div
               className={`${
-                agreeTerms ? "bg-[#4950B1]" : "bg-none"
+                formData.agreeTerms ? "bg-[#4950B1]" : "bg-none"
               } w-3.5 h-3.5 rounded-full`}
             />
           </button>
