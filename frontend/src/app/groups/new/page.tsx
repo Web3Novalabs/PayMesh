@@ -8,12 +8,18 @@ import Review from "./component/review";
 import { initialize } from "@paunovic/random-words";
 import { CreateGroupFormData } from "@/types/group";
 import toast from "react-hot-toast";
-import { checkAddressNetwork } from "@/utils/contract";
+import { checkAddressNetwork, useGetBalance } from "@/utils/contract";
 import { useRouter } from "next/navigation";
+import { useAccount } from "@starknet-react/core";
+import { createGroup } from "@/hooks/blockchainWriteFunction";
 
 export default function Page() {
   const router = useRouter();
   const [section, setSection] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resultHash, setResultHash] = useState("");
+  const { account,address } = useAccount()
+  const balance = useGetBalance(address || "0x0");
   const randomWord = initialize({ countryCode: "us" })
     .word()
     .toLocaleUpperCase();
@@ -56,6 +62,10 @@ export default function Page() {
   );
 
   function next() {
+    if (!account) {
+      toast.error("No account connected");
+      return;
+    }
     if (section == 2 && totalPercentage !== 100) {
       toast.error("Total percentage must be exactly 100%");
       return;
@@ -88,9 +98,35 @@ export default function Page() {
       toast.error("Please select a usage");
       return;
     }
-    setSection((prev) => prev + 1);
+    if (section == 4 && !formData.agreeTerms) {
+      toast.error("Please accept the terms by checking the checkbox");
+      return;
+    }
+
+    if (
+      section == 4 &&
+      balance?.formatted &&
+      Number(balance.formatted) < +formData.usage
+    ) {
+      toast.error(`Insufficient balance, Top Up!`);
+      return;
+    }
+    if (section <= 3) {
+      setSection((prev) => prev + 1); 
+    }
+    if (section == 4) {
+      createGroup(
+        formData,
+        setIsSubmitting,
+        account,
+        setResultHash,
+        setFormData
+      );
+    }
   }
+
   function prev() {
+    if (section == 1) return
     setSection((prev) => prev - 1);
   }
   return (
@@ -144,7 +180,7 @@ export default function Page() {
             onClick={next}
             className="rounded-full px-4 py-3 bg-purple-bg w-fit h-fit"
           >
-            Next
+            {section === 4 ? "Create Group" : "Next"}
           </button>
         </div>
       </div>
