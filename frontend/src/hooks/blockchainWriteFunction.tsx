@@ -4,6 +4,7 @@ import {
   normalizeAddress,
   ONE_STK,
   ONE_USDC,
+  PAYMESH_ADDRESS,
   strkTokenAddress,
 } from "@/utils/contract";
 // @ts-expect-error typhoon-sdk has incorrect type declarations
@@ -16,6 +17,7 @@ import {
   CallData,
   PaymasterDetails,
 } from "starknet";
+import { CreateGroupFormData } from "@/types/group";
 
 const usdc =
   "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
@@ -29,7 +31,8 @@ export const CROWDFUNDINGADDRESS =
 type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
 type SetPoolAddress = (address: string) => void;
-
+type SetResultHash = (txHash: string) => void;
+export type SetFormData = React.Dispatch<React.SetStateAction<CreateGroupFormData>>;
 export let poolAddrQr: string = "";
 function removeNonASCII(text: string) {
   return text.replace(/[^\x00-\x7F]/g, "");
@@ -261,6 +264,99 @@ export const donate = async (
       "Blockchain function - Finally block, setting isLoading to false"
     );
     setIsLoading(false);
+  }
+};
+
+export const createGroup = async (
+  formData: CreateGroupFormData,
+  setIsSubmitting: SetIsSubmitting,
+  account: AccountInterface,
+  setResultHash: SetResultHash,
+  setFormData: SetFormData
+) => {
+  setIsSubmitting(true);
+
+  try {
+    if (account != undefined && formData.usage) {
+      // console.log("formData.members", formData.members);
+
+      const formattedMembers = formData.members
+        .filter((member) => member.addr.trim() !== "")
+        .map((member) => ({
+          addr: member.addr.trim(),
+          percentage: cairo.uint256(Number(member.percentage) * 1000),
+        }));
+      console.log(formattedMembers, "fmt")
+      // const totalPercentage = formattedMembers.reduce(
+      //   (sum, member) => sum + member.percentage,
+      //   0
+      // );
+      // console.log("Total percentage:", totalPercentage);
+      // console.log("form dataDDDDDDDDDDD xxxxxxxxxx:", {
+      //   name: formData.name,
+      //   usage: formData.usage,
+      //   formattedMembers,
+      // });
+
+      const call = {
+        contractAddress: PAYMESH_ADDRESS,
+        entrypoint: "create_group",
+        calldata: CallData.compile({
+          name: byteArray.byteArrayFromString(formData.name),
+          members: formattedMembers,
+          usage_count: cairo.uint256(+formData?.usage),
+        }),
+      };
+      const approveCall = {
+        contractAddress: strkTokenAddress,
+        entrypoint: "approve",
+        calldata: [
+          PAYMESH_ADDRESS, // spender
+          cairo.uint256(+formData?.usage * ONE_STK),
+          // "1000000000000000000",
+          // "0"
+        ],
+      };
+
+      const multicallData = [approveCall, call];
+      // const result = await account.execute(multicallData);
+
+      const feeDetails: PaymasterDetails = {
+        feeMode: {
+          mode: "sponsored",
+        },
+      };
+
+      const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        [...multicallData],
+        feeDetails
+      );
+
+      const result = await account?.executePaymasterTransaction(
+        [...multicallData],
+        feeDetails,
+        feeEstimation?.suggested_max_fee_in_gas_token
+      );
+console.log(result)
+      await myProvider.waitForTransaction(result?.transaction_hash as string);
+      setResultHash(result.transaction_hash);
+    }
+
+    // Reset form
+    setFormData({
+      name: "",
+      usage: "",
+      members: [
+        { addr: "", percentage: 0, id: "1" },
+        { addr: "", percentage: 0, id: "2" },
+      ],
+      agreeTerms: false,
+    });
+  } catch (error) {
+    console.error("Error creating group:", error);
+    toast.error("Failed to create group. Please try again.");
+  } finally {
+    setIsSubmitting(false);
   }
 };
 

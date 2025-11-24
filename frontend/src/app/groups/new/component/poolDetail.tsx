@@ -1,14 +1,15 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { SetFormData } from "@/hooks/blockchainWriteFunction";
 import { CreateGroupFormData } from "@/types/group";
 
-type SetForm = React.Dispatch<React.SetStateAction<CreateGroupFormData>>;
+
 export default function PoolDescription({
   defaultName,
   setForm,
 }: {
   defaultName: string;
-  setForm: SetForm;
+  setForm: SetFormData;
 }) {
   // console.log(defaultName.word());
   return (
@@ -21,7 +22,10 @@ export default function PoolDescription({
             placeholder="enter name..."
             value={defaultName}
             onChange={(e) =>
-              setForm((prev) => ({ ...prev, name: e.target.value }))
+              setForm((prev: CreateGroupFormData) => ({
+                ...prev,
+                name: e.target.value,
+              }))
             }
             className="border border-moon-blue p-6 rounded-full"
           />

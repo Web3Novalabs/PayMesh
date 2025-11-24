@@ -7,7 +7,6 @@ interface QRcodeProps {
   isLoadingBalance: boolean;
   copySuccess: boolean;
   copyToClipboard: () => void;
-  resetForm: () => void;
   closeModal: () => void;
 }
 
@@ -16,7 +15,6 @@ export default function QRcode({
   isLoadingBalance,
   copySuccess,
   copyToClipboard,
-  resetForm,
   closeModal,
 }: QRcodeProps) {
   return (
@@ -26,7 +24,6 @@ export default function QRcode({
         <button
           onClick={() => {
             closeModal();
-            resetForm();
           }}
           className="absolute top-2 sm:top-4 right-2 sm:right-4 w-7 h-7 sm:w-8 sm:h-8 bg-[#434672] hover:bg-[#755A5A] text-[#E2E2E2] rounded-full flex items-center justify-center transition-colors cursor-pointer z-10"
         >
@@ -110,9 +107,8 @@ export default function QRcode({
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full">
             <Link
-              href="/dashboard/my-groups"
+              href="#"
               onClick={() => {
-                resetForm();
                 closeModal();
               }}
               className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#434672] cursor-pointer text-white w-full rounded-lg font-medium transition-colors text-sm sm:text-base"
@@ -122,13 +118,13 @@ export default function QRcode({
             <button
               onClick={() =>
                 window.open(
-                  `https://mainnet.starkscan.co/contract/${groupAddress}`,
+                  `https://voyager.online/contract/${groupAddress}`,
                   "_blank"
                 )
               }
               className="px-4 sm:px-6 py-2.5 sm:py-3 bg-[#755A5A] cursor-pointer text-white w-full rounded-lg font-medium transition-colors text-sm sm:text-base"
             >
-              View on Starkscan
+              View on Voyager
             </button>
           </div>
         </div>

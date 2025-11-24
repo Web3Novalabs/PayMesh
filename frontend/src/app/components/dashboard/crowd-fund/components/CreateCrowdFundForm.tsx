@@ -13,7 +13,7 @@ import { ArrowLeft } from "lucide-react";
 import { create_pool } from "@/hooks/blockchainWriteFunction";
 import { useAccount } from "@starknet-react/core";
 import toast from "react-hot-toast";
-import Loading from "../../components/Loading";
+import Loading from "../../../Loading";
 import QRcodeCrowdfund from "../../components/QRcodeCrowdfund";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetAllPools } from "@/hooks/useContractInteraction";

@@ -81,7 +81,7 @@ export interface GroupTransactionData {
   share_usdt: string;
 }
 
-export type SplitType = "equal" | "manual";
+export type SplitType = "equal" | "manual" | "";
 
 export interface Member {
   id: string;

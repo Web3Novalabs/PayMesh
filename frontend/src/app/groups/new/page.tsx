@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PoolDescription from "./component/poolDetail";
 import { MembersConfiguration } from "./component/poolMembers";
 import UsageCount from "./component/usageCount";
@@ -8,12 +8,35 @@ import Review from "./component/review";
 import { initialize } from "@paunovic/random-words";
 import { CreateGroupFormData } from "@/types/group";
 import toast from "react-hot-toast";
-import { checkAddressNetwork } from "@/utils/contract";
+import {
+  myProvider,
+  strkTokenAddress,
+  useGetBalance,
+} from "@/utils/contract";
 import { useRouter } from "next/navigation";
+import { useAccount, useTransactionReceipt } from "@starknet-react/core";
+import { createGroup } from "@/hooks/blockchainWriteFunction";
+import Link from "next/link";
+import QRcode from "@/app/components/QRcode";
+import Loading from "@/app/components/Loading";
+import { Contract } from "starknet";
+import Sidebar from "./component/sidebar";
+import Content from "./component/content";
+import NavigationButtons from "./component/sectionNav";
 
 export default function Page() {
   const router = useRouter();
   const [section, setSection] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [resultHash, setResultHash] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [groupBalance, setGroupBalance] = useState<string>("0");
+  const [groupAddress, setGroupAddress] = useState("");
+  const [isLoadingBalance, setIsLoadingBalance] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const { account, address } = useAccount();
+  const balance = useGetBalance(address || "0x0");
+  const [hasProcessedTransaction, setHasProcessedTransaction] = useState(false);
   const randomWord = initialize({ countryCode: "us" })
     .word()
     .toLocaleUpperCase();
@@ -35,18 +58,107 @@ export default function Page() {
     agreeTerms: false,
   });
 
-  // Check for duplicate addresses
+  const fetchGroupBalance = async (groupAddr: string) => {
+    if (!groupAddr) return;
+
+    setIsLoadingBalance(true);
+    try {
+      const strkContract = new Contract(
+        [
+          {
+            name: "balanceOf",
+            type: "function",
+            inputs: [{ name: "account", type: "felt" }],
+            outputs: [{ name: "balance", type: "Uint256" }],
+            state_mutability: "view",
+          },
+        ],
+        strkTokenAddress,
+        myProvider
+      );
+
+      const result = await strkContract.balanceOf(groupAddr);
+
+      const balanceValue = result.balance;
+
+      const balanceInStrk =
+        parseFloat(balanceValue.toString()) / Math.pow(10, 18);
+      setGroupBalance(balanceInStrk.toFixed(4));
+    } catch (error) {
+      console.error("Error fetching group balance:", error);
+      setGroupBalance("Error");
+    } finally {
+      setIsLoadingBalance(false);
+    }
+  };
+
+  const { data, error } = useTransactionReceipt({
+    hash: resultHash,
+  });
+
+  useEffect(() => {
+    let m;
+    if (!data || hasProcessedTransaction) return;
+    if (
+      data.value &&
+      typeof data.value === "object" &&
+      "events" in data.value &&
+      Array.isArray(data.value.events)
+    ) {
+      m = data.value.events[3]?.data[0];
+      m = m.replace("0x", "0x0");
+      setGroupAddress(m);
+      setIsSuccess(true);
+      setHasProcessedTransaction(true);
+      toast.success("Group created successfully! 🎉");
+      fetchGroupBalance(m);
+    } else {
+      m = undefined;
+    }
+  }, [data, error, hasProcessedTransaction]);
+
+  useEffect(() => {
+    return () => {
+      setIsSuccess(false);
+      setGroupAddress("");
+      setGroupBalance("0");
+      setHasProcessedTransaction(false);
+      setResultHash("");
+    };
+  }, []);
+
+  const forceCloseModal = () => {
+    setIsSuccess(false);
+    setGroupAddress("");
+    setGroupBalance("0");
+    setIsSubmitting(false);
+    setCopySuccess(false);
+    setIsLoadingBalance(false);
+    setHasProcessedTransaction(false);
+    setResultHash("");
+  };
+
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(groupAddress);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy: ", err);
+    }
+  };
+
   const checkDuplicateAddresses = () => {
     const addresses = formData.members
       .map((member) => member.addr.trim().toLowerCase())
-      .filter((addr) => addr !== ""); // Only check non-empty addresses
+      .filter((addr) => addr !== "");
 
     const uniqueAddresses = new Set(addresses);
 
     if (addresses.length !== uniqueAddresses.size) {
-      return true; // Has duplicates
+      return true;
     }
-    return false; // No duplicates
+    return false;
   };
 
   const totalPercentage = formData.members.reduce(
@@ -56,6 +168,10 @@ export default function Page() {
   );
 
   function next() {
+    if (!account) {
+      toast.error("No account connected");
+      return;
+    }
     if (section == 2 && totalPercentage !== 100) {
       toast.error("Total percentage must be exactly 100%");
       return;
@@ -88,65 +204,60 @@ export default function Page() {
       toast.error("Please select a usage");
       return;
     }
-    setSection((prev) => prev + 1);
+    if (section == 4 && !formData.agreeTerms) {
+      toast.error("Please accept the terms by checking the checkbox");
+      return;
+    }
+
+    if (
+      section == 4 &&
+      balance?.formatted &&
+      Number(balance.formatted) < +formData.usage
+    ) {
+      toast.error(`Insufficient balance, Top Up!`);
+      return;
+    }
+    if (section <= 3) {
+      setSection((prev) => prev + 1);
+    }
+    if (section == 4) {
+      createGroup(
+        formData,
+        setIsSubmitting,
+        account,
+        setResultHash,
+        setFormData
+      );
+    }
   }
+
   function prev() {
+    if (section == 1) return;
     setSection((prev) => prev - 1);
   }
+
   return (
-    <section className="md:grid text-text-white md:grid-cols-[1fr_2fr] border border-moon-blue rounded-[8px] bg-card-bg items-start min-h-[750px]">
-      <div className="p-5 md:p-10 grid gap-10">
-        <button
-          onClick={() => {
-            router.back();
-          }}
-          className="rounded-full w-fit border border-dim-white-border text-text-white py-3 px-4 capitalize bg-dim-gray"
-        >
-          back
-        </button>
-        <div className="grid gap-3">
-          <h1 className="font-anton font-normal text-[28px] uppercase">
-            Create new group
-          </h1>
-          <p className="text-text-gray font-dmsans text-base">
-            Create a funding group, share a single deposit address, and
-            automatically distribute funds to members.
-          </p>
-        </div>
-      </div>
+    <section className="xl:grid text-text-white md:grid-cols-[1fr_2fr] border border-moon-blue rounded-[8px] bg-card-bg items-start min-h-[750px]">
+      <Sidebar />
       <div className="p-5 md:p-10 text-text-white border-t md:border-t-0 md:border-l border-moon-blue text-[18px] grid gap-28 h-full">
-        {section === 1 && (
-          <PoolDescription defaultName={formData.name} setForm={setFormData} />
-        )}
-        {section === 2 && (
-          <MembersConfiguration
-            members={formData.members}
-            setMembers={setFormData}
-          />
-        )}
-        {section === 3 && (
-          <UsageCount setFormData={setFormData} formData={formData} />
-        )}
-        {section === 4 && (
-          <Review setFormData={setFormData} formData={formData} />
-        )}
-        <div className="flex justify-between items-center">
-          <button
-            onClick={prev}
-            disabled={section == 1}
-            className={`${
-              section == 1 ? "opacity-0" : ""
-            }  rounded-full px-4 py-3 bg-dim-gray w-fit h-fit border-dim-white-border border`}
-          >
-            Previous
-          </button>
-          <button
-            onClick={next}
-            className="rounded-full px-4 py-3 bg-purple-bg w-fit h-fit"
-          >
-            Next
-          </button>
-        </div>
+        <Content
+          section={section}
+          formData={formData}
+          setFormData={setFormData}
+        />
+        <NavigationButtons
+          section={section}
+          isSubmitting={isSubmitting}
+          prev={prev}
+          next={next}
+          isSuccess={isSuccess}
+          groupAddress={groupAddress}
+          groupBalance={groupBalance}
+          isLoadingBalance={isLoadingBalance}
+          copySuccess={copySuccess}
+          copyToClipboard={copyToClipboard}
+          forceCloseModal={forceCloseModal}
+        />
       </div>
     </section>
   );

@@ -30,7 +30,7 @@ export default function WalletConnect() {
   if (isConnected) {
     return (
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
+        <div className="hidden md:flex items-center gap-2">
           <div
             className={`w-2 h-2 rounded-full ${
               chain?.id === sepolia.id
@@ -56,7 +56,7 @@ export default function WalletConnect() {
         </div>
         <button
           onClick={() => setShowDisconnectModal(true)}
-          className="relative px-8 py-3 text-white font-mono text-lg rounded-full overflow-hidden flex items-center"
+          className="relative px-8 py-3 text-white font-mono text-sm sm:text-lg rounded-full overflow-hidden flex items-center"
           style={{
             background: "#000000",
             backgroundImage: `linear-gradient(#000000, #000000), linear-gradient(135deg, ${gradientStops})`,

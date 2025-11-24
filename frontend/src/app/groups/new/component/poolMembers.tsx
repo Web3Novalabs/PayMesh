@@ -27,7 +27,7 @@ export function MembersConfiguration({
   members: GroupMemberShare[];
   setMembers: SetMembers;
 }) {
-  const [splitType, setSplitType] = useState<SplitType>("equal");
+  const [splitType, setSplitType] = useState<SplitType>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const totalPercentage = members.reduce((sum, m) => {
@@ -99,7 +99,6 @@ export function MembersConfiguration({
                   }
                   className="border border-moon-blue px-6 bg-card-bg py-7 rounded-full text-text-gray placeholder:text-text-gray"
                 />
-                {/* Validation Status Indicator */}
                 {member.isValidating && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                     <div className="w-5 h-5 border-2 border-[#8398AD] border-t-transparent rounded-full animate-spin"></div>
