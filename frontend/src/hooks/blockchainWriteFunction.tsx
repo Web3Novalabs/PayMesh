@@ -89,7 +89,7 @@ export const create_pool = async (
         calldata: [
           CROWDFUNDINGADDRESS, // spender
           // cairo.uint256(ONE_STK),
-          "1000000000000000000",
+          "4000000000000000000",
           "0",
         ],
       };

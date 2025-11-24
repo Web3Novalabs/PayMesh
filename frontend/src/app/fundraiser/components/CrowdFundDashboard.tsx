@@ -262,7 +262,8 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                 <Link
                   href={`/fundraiser/${
                     funding.pool_address ||
-                    findPool?.crowd_funding?.pool_address
+                    findPool?.crowd_funding?.pool_address ||
+                    funding.id
                   }`}
                   className="w-full sm:w-fit bg-[#FFFFFF0D] cursor-pointer border border-[#FFFFFF0D] text-[#FFFFFF] py-2 px-5 rounded-4xl hover:bg-[#282e38] transition-colors duration-200 text-sm inline-block text-center"
                 >

@@ -18,6 +18,11 @@ export interface FundraiseDetailsProps {
   };
 }
 
+export interface ContributeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
 export type pool = {
   crowd_funding: {
     target_amount: string;

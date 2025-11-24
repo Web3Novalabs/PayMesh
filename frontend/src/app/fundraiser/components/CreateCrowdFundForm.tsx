@@ -256,12 +256,6 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
 
       {isSuccess && poolId && (
         <>
-          {console.log(
-            "Rendering QRcodeCrowdfund - isSuccess is true, poolAddress:",
-            poolAddress,
-            "poolId:",
-            poolId
-          )}
           {/* <QRcodeCrowdfund
             fundAddress={poolAddress}
             groupBalance="0"
@@ -274,22 +268,6 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
             campaignId={poolId}
           /> */}
         </>
-      )}
-
-      {isSuccess && !poolId && (
-        <div className="fixed inset-0 bg-[#000000a3] bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-[#ffffff1e] border-gradient-modal rounded-lg shadow-xl w-full max-w-sm p-6 text-center">
-            <div className="mb-4">
-              <div className="w-16 h-16 border-4 border-[#434672] border-t-[#755A5A] rounded-full animate-spin mx-auto"></div>
-            </div>
-            <h2 className="text-xl font-bold text-[#ffffff] mb-2">
-              Pool Created Successfully!
-            </h2>
-            <p className="text-[#8398AD] text-sm">
-              Waiting for pool to be indexed...
-            </p>
-          </div>
-        </div>
       )}
     </div>
   );

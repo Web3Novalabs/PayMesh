@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Copy, Share2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, Share2 } from "lucide-react";
 import handshakeIcon from "../../../../public/Handshake.svg";
 import calendarIcon from "../../../../public/CalendarDots.svg";
 import qrCode from "../../../../public/qr-code.svg";
@@ -8,14 +8,23 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { FundraiseDetailsProps } from "@/types/usdcDataApi";
-import { formatAmountUsdc } from "@/lib/utils";
+import {
+  copyToClipboard,
+  formatAmountUsdc,
+  truncateAddress,
+} from "@/lib/utils";
+import { useGetPool } from "@/hooks/useContractInteraction";
+import ContributeModal from "./components/ContributeModal";
 
-const Details = () => {
+const FundraiseDetails = () => {
   const router = useRouter();
   const params = useParams();
   const fundRaiseAddr = params.id;
+  const [copySuccess, setCopySuccess] = useState(false);
   const [fetchFundraiseDetails, setFetchFundraiseDetails] =
     useState<FundraiseDetailsProps | null>(null);
+  // const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
 
   const fetchDetails = useCallback(async () => {
     try {
@@ -54,6 +63,16 @@ const Details = () => {
     ? formatAmountUsdc(fetchFundraiseDetails.token_history[0].balance)
     : "0.00";
 
+  const handleCopyToClipboard = async (text: string) => {
+    await copyToClipboard(text, () => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    });
+  };
+
+  const isSmallScreen =
+    typeof window !== "undefined" && window.innerWidth < 880;
+
   return (
     <div className="space-y-6 my-16">
       <button
@@ -82,10 +101,28 @@ const Details = () => {
             </h3>
 
             <span className="text-[#E2E2E2] text-sm">
-              {fetchFundraiseDetails?.crowd_funding?.pool_address}
+              {window.innerWidth < 880
+                ? truncateAddress(
+                    (fundRaiseAddr as string) ??
+                      fetchFundraiseDetails?.crowd_funding?.pool_address
+                  )
+                : fetchFundraiseDetails?.crowd_funding?.pool_address}
             </span>
 
-            <Copy className="w-4 h-4 text-[#8398AD] cursor-pointer" />
+            <button
+              onClick={() =>
+                handleCopyToClipboard(
+                  fetchFundraiseDetails?.crowd_funding?.pool_address || "0x0123"
+                )
+              }
+              className="text-[#8398AD] hover:text-white transition-colors cursor-pointer"
+            >
+              {copySuccess ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </button>
           </div>
         </div>
 
@@ -153,11 +190,14 @@ const Details = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="bg-[#FFFFFF0D] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-pointer">
+            <button className="bg-[#FFFFFF0D] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-not-allowed">
               Resolve Pool
             </button>
 
-            <button className="bg-[#4950B1] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-pointer">
+            <button
+              onClick={() => setIsContributeModalOpen(true)}
+              className="bg-[#4950B1] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-pointer"
+            >
               Donate now
             </button>
           </div>
@@ -191,8 +231,16 @@ const Details = () => {
           </div>
         </div>
       </div>
+
+      {/* Contribute Modal */}
+      {isContributeModalOpen && (
+        <ContributeModal
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+        />
+      )}
     </div>
   );
 };
 
-export default Details;
+export default FundraiseDetails;
