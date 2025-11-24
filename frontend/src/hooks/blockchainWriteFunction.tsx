@@ -32,7 +32,7 @@ type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
 type SetPoolAddress = (address: string) => void;
 type SetResultHash = (txHash: string) => void;
-type SetFormData = (formData: CreateGroupFormData) => void;
+export type SetFormData = React.Dispatch<React.SetStateAction<CreateGroupFormData>>;
 export let poolAddrQr: string = "";
 function removeNonASCII(text: string) {
   return text.replace(/[^\x00-\x7F]/g, "");
@@ -284,14 +284,14 @@ export const createGroup = async (
         .filter((member) => member.addr.trim() !== "")
         .map((member) => ({
           addr: member.addr.trim(),
-          percentage: Number(member.percentage)*1000,
+          percentage: cairo.uint256(Number(member.percentage) * 1000),
         }));
       console.log(formattedMembers, "fmt")
-      const totalPercentage = formattedMembers.reduce(
-        (sum, member) => sum + member.percentage,
-        0
-      );
-      console.log("Total percentage:", totalPercentage);
+      // const totalPercentage = formattedMembers.reduce(
+      //   (sum, member) => sum + member.percentage,
+      //   0
+      // );
+      // console.log("Total percentage:", totalPercentage);
       // console.log("form dataDDDDDDDDDDD xxxxxxxxxx:", {
       //   name: formData.name,
       //   usage: formData.usage,

@@ -37,8 +37,8 @@ import group1icon from "../../../../../public/PlusCircle.svg";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
 import group4icon from "../../../../../public/UsersFour.svg";
-import QRcode from "../components/QRcode";
-import Loading from "../components/Loading";
+import QRcode from "../../QRcode";
+import Loading from "../../Loading";
 import { Trash2 } from "lucide-react";
 import { useContractFetch } from "@/hooks/useContractInteraction";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
@@ -1017,7 +1017,7 @@ const CreateNewGroup = () => {
           isLoadingBalance={isLoadingBalance}
           copySuccess={copySuccess}
           copyToClipboard={copyToClipboard}
-          resetForm={resetForm}
+          // resetForm={resetForm}
           closeModal={forceCloseModal}
         />
       )}

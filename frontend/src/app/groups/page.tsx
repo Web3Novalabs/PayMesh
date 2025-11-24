@@ -89,13 +89,13 @@ export default function Page() {
 
   return (
     <section className="w-full grid gap-10">
-      <div className="flex justify-between items-center w-full">
-        <div className="flex justify-between items-center gap-4">
+      <div className="flex justify-between flex-wrap items-center w-full  gap-4">
+        <div className="flex justify-between items-center gap-4 w-full sm:w-fit">
           <div
             className={`border border-moon-blue rounded-full p-3 transition-transform duration-200 `}
           >
             <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="w-full bg-[#FFFFFF0D] border py-4 sm:py-6 px-3 sm:px-4 rounded-sm border-[#FFFFFF0D] text-[#8398AD] !text-sm sm:!text-base">
+              <SelectTrigger className="border-none text-white">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent className="bg-[#1F2937] border border-[#FFFFFF0D] w-full">
@@ -125,7 +125,7 @@ export default function Page() {
               </SelectContent>
             </Select>
           </div>
-          <div className="border border-moon-blue rounded-full p-3 flex">
+          <div className="border border-moon-blue rounded-full p-3 flex w-full sm:w-fit">
             <Search className="text-text-white" />
             <Input
               type="text"
@@ -138,12 +138,12 @@ export default function Page() {
         </div>
         <Link
           href="/groups/new"
-          className="bg-purple-bg flex items-center gap-2 py-2 px-6 rounded-full text-text-white"
+          className="w-full sm:w-fit bg-purple-bg flex items-center justify-center gap-2 py-2 min-h-[48px] md:py-2 px-6 rounded-full text-text-white"
         >
           <Plus /> Create new group
         </Link>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {[...(filteredGroups || [])]
           // .reverse()
           .sort((a, b) => {

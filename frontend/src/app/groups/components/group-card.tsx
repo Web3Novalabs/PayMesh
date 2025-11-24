@@ -11,7 +11,8 @@ export default function GroupCard({
   address: string;
   }) {
   const groupMember = useGroupMember(group?.id);
-    const role = compareAddresses(group?.creator, address);
+  const role = compareAddresses(group?.creator, address);
+  console.log(group)
   return (
     <div className="border bg-card-bg border-moon-blue text-text-white rounded-[8px] py-5 grid gap-5">
       <div className="flex justify-between items-center px-4">
