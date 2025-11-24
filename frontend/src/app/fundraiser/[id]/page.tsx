@@ -5,10 +5,54 @@ import handshakeIcon from "../../../../public/Handshake.svg";
 import calendarIcon from "../../../../public/CalendarDots.svg";
 import qrCode from "../../../../public/qr-code.svg";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { FundraiseDetailsProps } from "@/types/usdcDataApi";
+import { formatAmountUsdc } from "@/lib/utils";
 
 const Details = () => {
   const router = useRouter();
+  const params = useParams();
+  const fundRaiseAddr = params.id;
+  const [fetchFundraiseDetails, setFetchFundraiseDetails] =
+    useState<FundraiseDetailsProps | null>(null);
+
+  const fetchDetails = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/crowdfunding/${fundRaiseAddr}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch fundraise details");
+      }
+
+      const data = await response.json();
+      console.log("FETCH FUNDRAISE DETAILS: ", data);
+      setFetchFundraiseDetails(data);
+    } catch (error) {
+      console.error("Error fetching fundraise details:", error);
+    }
+  }, [fundRaiseAddr]);
+
+  useEffect(() => {
+    fetchDetails();
+
+    // Poll every 5 seconds
+    const interval = setInterval(() => {
+      fetchDetails();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fundRaiseAddr, fetchDetails]);
+
+  const targetAmount = fetchFundraiseDetails?.crowd_funding?.target_amount
+    ? formatAmountUsdc(fetchFundraiseDetails.crowd_funding.target_amount)
+    : "0.00";
+
+  const amountRaised = fetchFundraiseDetails?.token_history?.[0]?.balance
+    ? formatAmountUsdc(fetchFundraiseDetails.token_history[0].balance)
+    : "0.00";
 
   return (
     <div className="space-y-6 my-16">
@@ -24,7 +68,7 @@ const Details = () => {
         <div className=" flex items-center justify-between flex-col px-6 sm:flex-row gap-4 border-b border-[#232542] py-4">
           <div className="flex items-center space-x-4">
             <h2 className="text-[#E2E2E2] font-semibold text-base leading-tight">
-              Fundraiser Name
+              {fetchFundraiseDetails?.crowd_funding?.name}
             </h2>
             <div className="flex items-center gap-2 bg-[#FFFFFF] rounded-full px-3 py-1.5 cursor-pointer">
               <span className="text-[#030407] text-sm">Share</span>
@@ -38,7 +82,7 @@ const Details = () => {
             </h3>
 
             <span className="text-[#E2E2E2] text-sm">
-              0x062dcfb96e87e035135d13bf6c420c2f514c005a679b75cee45eed8d4e395aa4
+              {fetchFundraiseDetails?.crowd_funding?.pool_address}
             </span>
 
             <Copy className="w-4 h-4 text-[#8398AD] cursor-pointer" />
@@ -52,7 +96,9 @@ const Details = () => {
               <h3 className="text-[#8398AD] border-r border-[#8398AD] pr-2">
                 Amount Raised
               </h3>
-              <span className="text-[#E2E2E2] text-sm">20.00 USDC</span>
+              <span className="text-[#E2E2E2] text-sm">
+                {amountRaised} USDC
+              </span>
             </div>
 
             {/* Target Amount */}
@@ -60,7 +106,9 @@ const Details = () => {
               <h3 className="text-[#8398AD] border-r border-[#8398AD] pr-2">
                 Target Amount
               </h3>
-              <span className="text-[#E2E2E2] text-sm">570.00 USDC</span>
+              <span className="text-[#E2E2E2] text-sm">
+                {targetAmount} USDC
+              </span>
             </div>
 
             {/* Donors */}
@@ -76,7 +124,9 @@ const Details = () => {
 
               <div className="text-[#8398AD] text-sm flex flex-col items-center justify-center">
                 <span className="text-[#8398AD] font-semibold">Donors:</span>
-                <span className="text-[#DFDFE0] font-semibold">7</span>
+                <span className="text-[#DFDFE0] font-semibold">
+                  {fetchFundraiseDetails?.donation_count?.total_donors}
+                </span>
               </div>
             </div>
 
@@ -122,24 +172,7 @@ const Details = () => {
           </h2>
 
           <div className="text-[#8398AD] text-sm leading-relaxed px-6 space-y-4 flex-1">
-            <p>
-              I am currently applying for a visa that will allow me to pursue
-              higher education. While this opportunity is life-changing, the
-              visa application process comes with significant costs, including
-              application fees, travel to the embassy, documentation, medical
-              checks, and other related expenses.
-            </p>
-            <p>
-              I am reaching out for support to cover these costs and ensure I
-              don&apos;t miss this chance. Every contribution, no matter the
-              size, brings me one step closer to achieving this goal. Your
-              support is not just financial—it&apos;s an investment in my
-              future, my dreams, and the opportunities that lie ahead.
-            </p>
-            <p>
-              Together, we can make this possible. Thank you for believing in me
-              and for being part of this journey.
-            </p>
+            {fetchFundraiseDetails?.crowd_funding?.description}
           </div>
         </div>
 

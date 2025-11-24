@@ -1,10 +1,11 @@
-export interface UsdcBalanceProps {
+export interface FundraiseDetailsProps {
   crowd_funding: {
     target_amount: string;
     creator_address: string;
     id: number;
     is_complete: boolean;
     description: string;
+    pool_address: string;
     name: string;
   };
   token_history: Array<{

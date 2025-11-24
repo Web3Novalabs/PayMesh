@@ -22,3 +22,7 @@ export async function copyToClipboard(
     onError?.(err);
   }
 }
+
+export function formatAmountUsdc(amount: string | number) {
+  return (Number(amount) / 1e6).toFixed(2);
+}
