@@ -1956,8 +1956,8 @@ fn test_emergency_withdraw_function() {
     println!("creator balance {}", creator);
     // create group
     start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
-    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 60 });
-    members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 });
+    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 60 * PRECISION });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 * PRECISION });
     contract_address.create_group("TestGroup", members, 2);
     stop_cheat_caller_address(contract_address.contract_address);
     let group_address = contract_address.get_group_address(1);
