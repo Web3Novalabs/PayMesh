@@ -13,6 +13,7 @@ pub struct CrowdFunding {
     pub target_amount: String,
     pub is_complete: bool,
     pub description: String,
+    pub created_at: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
