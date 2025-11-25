@@ -100,6 +100,9 @@ fn test_crowd_fund_flow() {
     assert(get_pool.target == ONE_STRK * 5, 'wrong pool target');
     assert(get_pool.pool_address == pool1_address, 'wrong pool address');
 
+    // get pool by address and confirm it matches
+    let get_pool_by_address = contract_address.get_pool_by_address(pool1_address);
+    assert(get_pool_by_address.name == "john doe school fee", 'wrong pool name');
     // donate
     start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
     erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 10);
