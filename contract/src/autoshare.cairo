@@ -578,70 +578,70 @@ pub mod AutoShare {
             }
         }
 
-        fn request_group_update(
-            ref self: ContractState,
-            group_id: u256,
-            new_name: ByteArray,
-            new_members: Array<GroupMember>,
-        ) {
-            let mut group: Group = self.get_group(group_id);
-            assert(group.id != 0, ERR_GROUP_NOT_FOUND);
-            let caller = get_caller_address();
-            assert(caller == group.creator, 'caller is not the group creator');
+        // fn request_group_update(
+        //     ref self: ContractState,
+        //     group_id: u256,
+        //     new_name: ByteArray,
+        //     new_members: Array<GroupMember>,
+        // ) {
+        //     let mut group: Group = self.get_group(group_id);
+        //     assert(group.id != 0, ERR_GROUP_NOT_FOUND);
+        //     let caller = get_caller_address();
+        //     assert(caller == group.creator, 'caller is not the group creator');
 
-            let mut sum: u32 = 0;
-            let mut i: usize = 0;
+        //     let mut sum: u32 = 0;
+        //     let mut i: usize = 0;
 
-            // This code checks for duplicate addresses among group members
-            let member_count = new_members.len();
-            while i < member_count {
-                let m = new_members.at(i).clone();
-                sum += m.percentage.try_into().unwrap();
-                let mut j: usize = i + 1;
-                while j < member_count {
-                    let duplicate = m.addr == new_members.at(j).clone().addr;
-                    assert(!duplicate, 'list contain duplicate address');
-                    j += 1;
-                }
-                i += 1;
-            }
-            assert(sum == 100, 'total percentage must be 100');
+        //     // This code checks for duplicate addresses among group members
+        //     let member_count = new_members.len();
+        //     while i < member_count {
+        //         let m = new_members.at(i).clone();
+        //         sum += m.percentage.try_into().unwrap();
+        //         let mut j: usize = i + 1;
+        //         while j < member_count {
+        //             let duplicate = m.addr == new_members.at(j).clone().addr;
+        //             assert(!duplicate, 'list contain duplicate address');
+        //             j += 1;
+        //         }
+        //         i += 1;
+        //     }
+        //     assert(sum == 100, 'total percentage must be 100');
 
-            // Store the new members separately
-            let mut i: usize = 0;
-            let member_count = new_members.len();
-            while i < member_count {
-                let member = new_members.at(i);
+        //     // Store the new members separately
+        //     let mut i: usize = 0;
+        //     let member_count = new_members.len();
+        //     while i < member_count {
+        //         let member = new_members.at(i);
 
-                self.update_request_new_members.entry(group_id).append().write(*member);
-                i += 1;
-            }
+        //         self.update_request_new_members.entry(group_id).append().write(*member);
+        //         i += 1;
+        //     }
 
-            let update_request = GroupUpdateRequest {
-                group_id, new_name: new_name.clone(), requester: caller, fee_paid: false,
-            };
+        //     let update_request = GroupUpdateRequest {
+        //         group_id, new_name: new_name.clone(), requester: caller, fee_paid: false,
+        //     };
 
-            // Collect the update fee
-            self._collect_group_update_fee(caller);
+        //     // Collect the update fee
+        //     self._collect_group_update_fee(caller);
 
-            // set fee_paid to true after collecting the fee
-            let mut update_request_paid = update_request.clone();
-            update_request_paid.fee_paid = true;
-            self.update_requests.write(group_id, update_request_paid);
+        //     // set fee_paid to true after collecting the fee
+        //     let mut update_request_paid = update_request.clone();
+        //     update_request_paid.fee_paid = true;
+        //     self.update_requests.write(group_id, update_request_paid);
 
-            self.has_pending_update.write(group_id, true);
+        //     self.has_pending_update.write(group_id, true);
 
-            self
-                .emit(
-                    Event::GroupUpdateRequested(
-                        GroupUpdateRequested {
-                            group_id, requester: caller, new_name: new_name.clone(),
-                        },
-                    ),
-                );
+        //     self
+        //         .emit(
+        //             Event::GroupUpdateRequested(
+        //                 GroupUpdateRequested {
+        //                     group_id, requester: caller, new_name: new_name.clone(),
+        //                 },
+        //             ),
+        //         );
 
-            self._execute_group_update(group_id);
-        }
+        //     self._execute_group_update(group_id);
+        // }
 
         fn get_group_balance(self: @ContractState, group_address: ContractAddress) -> u256 {
             self._check_token_balance_of_child(group_address)
