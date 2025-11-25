@@ -76,7 +76,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   // Copy address to clipboard
   const copyToClipboard = async () => {
     try {
-      await navigator.clipboard.writeText(formData.walletAddress);
+      await navigator.clipboard.writeText(poolAddress);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
     } catch (err) {
@@ -93,7 +93,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted - handleSubmit called");
+    // console.log("Form submitted - handleSubmit called");
     // onSubmit(formData);
     if (!account) {
       return toast.error("Connect Wallet to continue");
@@ -105,10 +105,10 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
     }
 
     // Reset success state before creating new pool
-    console.log("Setting isSuccess to false before creating pool");
+    // console.log("Setting isSuccess to false before creating pool");
     setIsSuccess(false);
     setPoolAddress(""); // Reset pool address
-    console.log("Calling create_pool function", formData);
+    // console.log("Calling create_pool function", formData);
     create_pool(
       formData,
       account,
@@ -291,7 +291,7 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
             poolId
           )}
           <QRcodeCrowdfund
-            fundAddress={poolAddress || formData.walletAddress}
+            fundAddress={poolAddress}
             groupBalance="0"
             isLoadingBalance={false}
             copySuccess={copySuccess}

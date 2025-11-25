@@ -4,6 +4,7 @@ import "./globals.css";
 import { StarknetProvider } from "./providers/StarknetProvider";
 import { QueryProvider } from "./providers/QueryProvider";
 import { Toaster } from "react-hot-toast";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -92,6 +93,7 @@ export default function RootLayout({
         <QueryProvider>
           <StarknetProvider>
             {children}
+            <Analytics />
             <Toaster
               position="top-right"
               toastOptions={{

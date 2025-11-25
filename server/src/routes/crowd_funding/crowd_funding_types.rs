@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use validator::Validate;
 
-#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Serialize, Deserialize, ToSchema, sqlx::FromRow)]
 pub struct CrowdFunding {
     pub id: i32,
     pub name: String,
@@ -12,6 +12,7 @@ pub struct CrowdFunding {
     pub creator_address: String,
     pub target_amount: String,
     pub is_complete: bool,
+    pub description: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
@@ -41,6 +42,15 @@ pub struct CreateCrowdFundingRequest {
     #[validate(custom(function = "validate_address"))]
     pub creator_address: String,
     pub target_amount: String,
+    pub description: String,
+}
+
+#[derive(Debug, Deserialize, ToSchema, Validate)]
+pub struct UpdateCrowdFundingRequest {
+    #[validate(custom(function = "validate_address"))]
+    pub creator_address: String,
+    pub name: String,
+    pub description: String,
 }
 
 #[derive(Debug, Deserialize, ToSchema, Validate)]

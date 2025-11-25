@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT total_amount FROM crowd_funding_token_balances WHERE crowd_funding_id = $1 AND token_address = $2",
+  "query": "SELECT total_amount FROM crowd_funding_token_balances WHERE crowd_funding_id = $1 AND token_address = $2 FOR UPDATE",
   "describe": {
     "columns": [
       {
@@ -19,5 +19,5 @@
       false
     ]
   },
-  "hash": "85ee414e2eede50e18bf6b8fceea79d0d4762d46f565b9faface63c61dff9bfc"
+  "hash": "d62e569938102728ae8cc4985ac9f225bb0641dc2702abf479ff345c34a111bd"
 }

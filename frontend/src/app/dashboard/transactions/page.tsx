@@ -18,7 +18,7 @@ import { truncateAddress } from "@/lib/utils";
 import { Search } from "lucide-react";
 
 const TransactionsPage = () => {
-  const [filter, setFilter] = useState("strk");
+  const [filter, setFilter] = useState("usdc");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [transaction, setTransaction] = useState<GroupTransactionData[]>([]);
@@ -27,9 +27,7 @@ const TransactionsPage = () => {
   async function getTransaction() {
     try {
       setIsLoading(true);
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups`
-      );
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/groups`);
       if (!response.ok) {
         throw new Error("Failed to fetch transaction");
       }
@@ -198,9 +196,12 @@ const TransactionsPage = () => {
                     .slice(startIndex, endIndex)
                     .map((transactionItem, index) => {
                       const tokenAmount = getTokenAmount(transactionItem);
-                      const groupName = decodeGroupName(
-                        transactionItem.group_data.group_name
-                      );
+                      const groupName =
+                        transactionItem.group_data.group_name.startsWith("0x")
+                          ? decodeGroupName(
+                              transactionItem.group_data.group_name
+                            )
+                          : transactionItem.group_data.group_name;
                       const { date, time } = formatDate(
                         transactionItem.group_data.created_at
                       );

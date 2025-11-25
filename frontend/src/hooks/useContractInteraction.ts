@@ -231,7 +231,7 @@ export function useGetAllPools() {
     [],
     CROWDFUNDINGADDRESS
   );
-  console.log("pools---- ", pools);
+  // console.log("pools---- ", pools);
   useEffect(() => {
     if (!pools) return; //
     const poolData: Pool[] = [];
@@ -405,7 +405,7 @@ export function useGetGroupsUsage(id: number | undefined) {
     if (!usage && !usageCount) return;
     const m = +usageCount.toString();
     const count = +usage[0].toString();
-    console.log("count", count);
+    // console.log("count", count);
     const cal = count - m;
     const equate = cal ? `${count}/${cal}` : `${count}/${count}`;
     setTransaction(equate);
