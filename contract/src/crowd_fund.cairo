@@ -260,6 +260,14 @@ pub mod CrowdFund {
             pool
         }
 
+        fn get_pool_by_address(self: @ContractState, pool_address: ContractAddress) -> Pool {
+            let pool_id: u256 = self.pool_addresses_map.read(pool_address);
+            let mut pool: Pool = self.pools.read(pool_id);
+            let balance = self.get_pool_balance(pool.pool_address);
+            pool.balance = balance;
+            pool
+        }
+
         fn get_donor_count(self: @ContractState, pool_id: u256) -> u256 {
             let donor = self.pool_donors_count.read(pool_id);
             donor
