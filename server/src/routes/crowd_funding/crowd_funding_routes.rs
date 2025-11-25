@@ -54,7 +54,8 @@ pub async fn get_crowd_funding(
                 creator_address, 
                 target_amount::text as "target_amount!", 
                 is_complete,
-                description
+                description,
+                created_at::text as "created_at!"
             FROM crowd_funding 
             WHERE pool_address = $1
         "#,
@@ -176,7 +177,7 @@ pub async fn update_crowd_funding(
     })?;
 
     let existing_row = sqlx::query!(
-        r#"SELECT id, name, pool_address, creator_address, target_amount::TEXT as "target_amount!", is_complete, description 
+        r#"SELECT id, name, pool_address, creator_address, target_amount::TEXT as "target_amount!", is_complete, description, created_at::text as "created_at!"
            FROM crowd_funding WHERE pool_address = $1"#,
         &pool_address
     )
@@ -193,6 +194,7 @@ pub async fn update_crowd_funding(
             target_amount: row.target_amount,
             is_complete: row.is_complete,
             description: row.description,
+            created_at: row.created_at,
         }
     } else {
         return Err(ApiError::NotFound("Crowd funding not found"));
@@ -270,7 +272,7 @@ pub async fn donate_to_crowd_funding(
 
     let crowd_funding = sqlx::query_as!(
         CrowdFunding,
-        r#"SELECT id, name, pool_address, creator_address, target_amount::text as "target_amount!", is_complete , description FROM crowd_funding WHERE pool_address = $1"#,
+        r#"SELECT id, name, pool_address, creator_address, target_amount::text as "target_amount!", is_complete , description, created_at::text as "created_at!" FROM crowd_funding WHERE pool_address = $1"#,
         crowd_funding_address
     )
     .fetch_optional(&mut *tx)
@@ -429,7 +431,7 @@ pub async fn resolve_crowd_funding(
 
     let crowd_funding = sqlx::query_as!(
         CrowdFunding,
-        r#"SELECT id, name, pool_address, creator_address, target_amount::text as "target_amount!", is_complete , description FROM crowd_funding WHERE pool_address = $1"#,
+        r#"SELECT id, name, pool_address, creator_address, target_amount::text as "target_amount!", is_complete , description, created_at::text as "created_at!" FROM crowd_funding WHERE pool_address = $1"#,
         crowd_funding_address
     )
     .fetch_optional(&state.db)
@@ -512,7 +514,8 @@ pub async fn get_all_crowd_funding_details(
                 creator_address, 
                 target_amount::text as "target_amount!", 
                 is_complete,
-                description
+                description,
+                created_at::text as "created_at!"
             FROM crowd_funding 
             WHERE pool_address = $1
         "#,
