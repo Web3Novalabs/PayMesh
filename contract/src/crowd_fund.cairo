@@ -317,6 +317,14 @@ pub mod CrowdFund {
         fn get_platform_percentage(self: @ContractState) -> u256 {
             self.platform_percentage.read()
         }
+        fn get_pool_by_address(self: @ContractState, address: ContractAddress) -> Pool {
+            let pool_id: u256 = self.pool_addresses_map.read(address);
+            assert(pool_id != 0, 'pool id is 0');
+            let mut pool: Pool = self.pools.read(pool_id);
+            let balance = self.get_pool_balance(pool.pool_address);
+            pool.balance = balance;
+            pool
+        }
         fn get_platform_fee_token(self: @ContractState) -> ContractAddress {
             self.fee_token.read()
         }
