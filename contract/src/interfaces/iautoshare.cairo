@@ -52,12 +52,12 @@ pub trait IAutoShare<TContractState> {
     fn paymesh(ref self: TContractState, group_address: ContractAddress);
     fn get_group_balance(self: @TContractState, group_address: ContractAddress) -> u256;
 
-    fn request_group_update(
-        ref self: TContractState,
-        group_id: u256,
-        new_name: ByteArray,
-        new_members: Array<GroupMember>,
-    );
+    // fn request_group_update(
+    //     ref self: TContractState,
+    //     group_id: u256,
+    //     new_name: ByteArray,
+    //     new_members: Array<GroupMember>,
+    // );
     // fn approve_group_update(ref self: TContractState, group_id: u256);
     // // fn reject_group_update(ref self: TContractState, group_id: u256);
     // fn execute_group_update(ref self: TContractState, group_id: u256);

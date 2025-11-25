@@ -3,8 +3,8 @@ use contract::interfaces::icrowdfund::{ICrowdFundDispatcher, ICrowdFundDispatche
 use openzeppelin::token::erc20::interface::{IERC20Dispatcher, IERC20DispatcherTrait};
 use snforge_std::{start_cheat_caller_address, stop_cheat_caller_address};
 use crate::test_util::{
-    ADMIN_ADDR, CREATOR_ADDR, EMERGENCY_WITHDRAW_ADDR, ONE_STRK, USER1_ADDR, USER2_ADDR, USER3_ADDR,
-    deploy_crowdfund_contract, group_member_ten, group_member_two,
+    ADMIN_ADDR, AUTO_SWAP_ADDR, CREATOR_ADDR, EMERGENCY_WITHDRAW_ADDR, ONE_STRK, USER1_ADDR,
+    USER2_ADDR, USER3_ADDR, deploy_crowdfund_contract, group_member_ten, group_member_two,
 };
 
 
@@ -17,6 +17,7 @@ fn test_get_supported_tokens_error() {
     contract_address.set_supported_token(erc20_dispatcher.contract_address);
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
 
     let tokens = contract_address.get_supported_token();
     assert(tokens.len() == 3, 'should be 3');
@@ -32,6 +33,7 @@ fn test_add_same_token_error() {
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
     stop_cheat_caller_address(contract_address.contract_address);
 }
 #[test]
@@ -43,6 +45,7 @@ fn test_get_supported_tokens_success() {
     contract_address.set_supported_token(erc20_dispatcher.contract_address);
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
     stop_cheat_caller_address(contract_address.contract_address);
 
     let tokens = contract_address.get_supported_token();
@@ -58,6 +61,8 @@ fn test_crowd_fund_flow() {
     contract_address.set_supported_token(erc20_dispatcher.contract_address);
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
     // check contract balance
     let contract_balance_before = erc20_dispatcher.balance_of(contract_address.contract_address);
@@ -158,6 +163,8 @@ fn test_create_crowd_fund_pool() {
     contract_address.set_supported_token(erc20_dispatcher.contract_address);
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
@@ -194,6 +201,8 @@ fn test_create_crowd_fund_pool_with_multiple_accounts() {
     contract_address.set_supported_token(erc20_dispatcher.contract_address);
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
@@ -299,6 +308,8 @@ fn test_paymesh_donate() {
     contract_address.set_supported_token(erc20_dispatcher.contract_address);
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
@@ -351,6 +362,8 @@ fn test_get_all_pools() {
     contract_address.set_supported_token(erc20_dispatcher.contract_address);
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
@@ -410,6 +423,8 @@ fn test_multitoken_donation() {
     contract_address.set_supported_token(erc20_dispatcher.contract_address);
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
     contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
@@ -489,6 +504,8 @@ fn test_donate_to_non_exixting_pool() {
 
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     // check contract balance
@@ -521,6 +538,8 @@ fn test_error_donating_to_end_pool() {
 
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
@@ -584,6 +603,8 @@ fn test_error_paymesh_caller_not_auth() {
 
     start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
     contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
     stop_cheat_caller_address(contract_address.contract_address);
 
     start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
@@ -630,4 +651,97 @@ fn test_error_paymesh_caller_not_auth() {
     start_cheat_caller_address(contract_address.contract_address, USER3_ADDR());
     contract_address.paymesh(pool_address0);
     stop_cheat_caller_address(contract_address.contract_address);
+}
+
+#[test]
+fn test_emergency_withdraw() {
+    let (contract_address, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher) =
+        deploy_crowdfund_contract();
+    // let token = erc20_dispatcher.contract_address;
+    start_cheat_caller_address(contract_address.contract_address, ADMIN_ADDR());
+    contract_address.set_supported_token(erc20_dispatcher.contract_address);
+    contract_address.set_supported_token(usdc_dispatcher.contract_address);
+    contract_address.set_supported_token(usdt_dispatcher.contract_address);
+    contract_address.set_auto_swapping_address(AUTO_SWAP_ADDR());
+    contract_address.set_platform_fee_token(erc20_dispatcher.contract_address);
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // check contract balance
+    let contract_balance_before = usdc_dispatcher.balance_of(contract_address.contract_address);
+    assert(contract_balance_before == 0, 'contract balance should be 0');
+
+    start_cheat_caller_address(erc20_dispatcher.contract_address, CREATOR_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    erc20_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, CREATOR_ADDR());
+    usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 100);
+    usdc_dispatcher.transfer(USER2_ADDR(), ONE_STRK * 100);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    // create a pool with target amount of 10 USDC
+    start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    let pool_address0 = contract_address
+        .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR(), "pet");
+    stop_cheat_caller_address(contract_address.contract_address);
+
+    // donate
+    start_cheat_caller_address(erc20_dispatcher.contract_address, USER2_ADDR());
+    erc20_dispatcher.approve(contract_address.contract_address, ONE_STRK * 10);
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance is {}", strk_balance);
+    stop_cheat_caller_address(erc20_dispatcher.contract_address);
+
+    start_cheat_caller_address(usdc_dispatcher.contract_address, USER2_ADDR());
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance before {}", usdc_balance);
+    usdc_dispatcher.transfer(pool_address0, ONE_STRK * 10);
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance after {}", usdc_balance);
+    stop_cheat_caller_address(usdc_dispatcher.contract_address);
+
+    let strk_balance = erc20_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial strk balance before {}", strk_balance);
+
+    let usdc_balance = usdc_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial usdc balance before {}", usdc_balance);
+
+    start_cheat_caller_address(contract_address.contract_address, USER2_ADDR());
+    contract_address.paymesh_donate(pool_address0, ONE_STRK * 10);
+    stop_cheat_caller_address(contract_address.contract_address);
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance after {}", strk_balance);
+
+    // get pool balance
+    let get_pool = contract_address.get_pool(1);
+    assert(get_pool.donors == 1, 'wrong pool donor');
+    assert(get_pool.balance == ONE_STRK * 10, 'wrong pool balance');
+    let balance = contract_address.get_pool_balance(pool_address0);
+    assert(balance == ONE_STRK * 10, 'balance not up to date');
+
+    // start_cheat_caller_address(contract_address.contract_address, CREATOR_ADDR());
+    // contract_address.paymesh(pool_address0);
+    // stop_cheat_caller_address(contract_address.contract_address);
+
+    let strk_balance = erc20_dispatcher.balance_of(pool_address0);
+    println!("strk balance final {}", strk_balance);
+    let usdc_balance = usdc_dispatcher.balance_of(pool_address0);
+    println!("usdc balance final {}", usdc_balance);
+
+    let strk_balance = erc20_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial strk balance after {}", strk_balance);
+
+    let usdc_balance = usdc_dispatcher.balance_of(USER1_ADDR());
+    println!("beneficial usdc balance after {}", usdc_balance);
+
+    let child_contract_instance = ICrowdFundChildDispatcher { contract_address: pool_address0 };
+    start_cheat_caller_address(pool_address0, ADMIN_ADDR());
+    child_contract_instance.emergency_withdraw();
+    stop_cheat_caller_address(pool_address0);
+
+    let strk_balance = erc20_dispatcher.balance_of(EMERGENCY_WITHDRAW_ADDR());
+    println!("strk balance final {}", strk_balance);
+    let usdc_balance = usdc_dispatcher.balance_of(EMERGENCY_WITHDRAW_ADDR());
+    println!("usdc balance final {}", usdc_balance);
 }

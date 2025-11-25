@@ -84,6 +84,7 @@ pub mod CrowdFund {
         platform_percentage: u256,
         pool_balance: Map<ContractAddress, Token>,
         fee_token: ContractAddress,
+        auto_swapping_address: ContractAddress,
     }
 
     #[event]
@@ -186,6 +187,7 @@ pub mod CrowdFund {
                 self.token_address.read(),
                 self.ownable.owner(),
                 get_caller_address(),
+                self.auto_swapping_address.read(),
             )
                 .serialize(ref constructor_calldata);
 
@@ -328,6 +330,18 @@ pub mod CrowdFund {
 
         fn get_platform_percentage(self: @ContractState) -> u256 {
             self.platform_percentage.read()
+        }
+        fn get_platform_fee_token(self: @ContractState) -> ContractAddress {
+            self.fee_token.read()
+        }
+        fn get_auto_swapping_address(self: @ContractState) -> ContractAddress {
+            self.auto_swapping_address.read()
+        }
+        fn set_auto_swapping_address(ref self: ContractState, auto_swappr: ContractAddress) {
+            let caller = get_caller_address();
+            let caller = self.accesscontrol.has_role(ADMIN_ROLE, caller);
+            assert(caller, 'Unauthorize caller');
+            self.auto_swapping_address.write(auto_swappr);
         }
         fn set_donation_token(ref self: ContractState, new_donation_token: ContractAddress) {
             let caller = get_caller_address();
