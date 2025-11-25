@@ -3,7 +3,7 @@ use starknet::ContractAddress;
 #[derive(Serde, Drop, Copy, starknet::Store, PartialEq, Debug)]
 pub struct GroupMember {
     pub addr: ContractAddress,
-    pub percentage: u8,
+    pub percentage: u256,
 }
 
 // Group type
