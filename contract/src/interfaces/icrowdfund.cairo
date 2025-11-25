@@ -20,8 +20,6 @@ pub trait ICrowdFund<TContractState> {
     fn get_all_pools(self: @TContractState) -> Array<Pool>;
     // get a specific pool by pool id
     fn get_pool(self: @TContractState, pool_id: u256) -> Pool;
-    // get a specific pool by pool address
-    fn get_pool_by_address(self: @TContractState, address: ContractAddress) -> Pool;
     // paymesh to a pool beneficiary and donate to a pool
     fn paymesh_donate(ref self: TContractState, pool_address: ContractAddress, amount: u256);
     //  get a specific crowd funding donation count
