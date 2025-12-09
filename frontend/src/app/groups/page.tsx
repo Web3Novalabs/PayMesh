@@ -3,7 +3,9 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -13,7 +15,9 @@ import GroupCard from "./components/group-card";
 import Link from "next/link";
 import { GroupData, useAddressCreatedGroups, useGroupAddressHasSharesIn } from "@/hooks/useContractInteraction";
 import { useAccount } from "@starknet-react/core";
-import { SelectGroup, SelectLabel } from "@radix-ui/react-select";
+
+import LoadingState from "./components/loading-state";
+import EmptyState from "./components/empty-state";
 
 export default function Page() {
   const [selectedValue, setSelectedValue] = useState("ALL");
@@ -26,7 +30,6 @@ export default function Page() {
   const [searchQuery, setSearchQuery] = useState("");
   const itemsPerPage = 12;
   const [currentPage, setCurrentPage] = useState(1);
-
   useEffect(() => {
     // Show loading while data is being fetched
     if (!transaction && !createdGroup) {
@@ -74,17 +77,7 @@ export default function Page() {
   const endIndex = startIndex + itemsPerPage;
 
   if (isLoading) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-[#434672] border-t-[#755A5A] rounded-full animate-spin mx-auto mb-4"></div>
-          <h2 className="text-xl font-bold text-[#E2E2E2] mb-2">
-            Loading Groups
-          </h2>
-          <p className="text-[#8398AD]">Fetching your groups...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   return (
@@ -92,13 +85,13 @@ export default function Page() {
       <div className="flex justify-between flex-wrap items-center w-full  gap-4">
         <div className="flex justify-between items-center gap-4 w-full sm:w-fit">
           <div
-            className={`border border-moon-blue rounded-full p-3 transition-transform duration-200 `}
+            className={`border border-moon-blue rounded-full p-3 transition-transform duration-200`}
           >
             <Select value={filter} onValueChange={setFilter}>
-              <SelectTrigger className="border-none text-white">
+              <SelectTrigger className="border-none text-white w-[140px]">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
-              <SelectContent className="bg-[#1F2937] border border-[#FFFFFF0D] w-full">
+              <SelectContent className="bg-[#1F2937] border border-[#FFFFFF0D]">
                 <SelectGroup>
                   <SelectLabel className="text-[#E2E2E2]">
                     Filter Groups
@@ -143,17 +136,22 @@ export default function Page() {
           <Plus /> Create new group
         </Link>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[...(filteredGroups || [])]
-          // .reverse()
-          .sort((a, b) => {
-            return Number.parseInt(b.id) - Number.parseInt(a.id);
-          })
-          .slice(startIndex, endIndex)
-          ?.map((group) => (
-            <GroupCard key={group.id} group={group} address={address || ""} />
-          ))}
-      </div>
+      
+      {!isLoading && filteredGroups.length === 0 ? (
+        <EmptyState filter={filter} />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[...(filteredGroups || [])]
+            // .reverse()
+            .sort((a, b) => {
+              return Number.parseInt(b.id) - Number.parseInt(a.id);
+            })
+            .slice(startIndex, endIndex)
+            ?.map((group) => (
+              <GroupCard key={group.id} group={group} address={address || ""} />
+            ))}
+        </div>
+      )}
     </section>
   );
 }

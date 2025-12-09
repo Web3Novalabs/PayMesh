@@ -439,3 +439,16 @@ const create_crowd_funding = async (
   }
   console.log("Crowd funding created: ", pool_address);
 };
+
+// [
+//   {
+//     amountIn: 500,
+//     splitTime: "date",
+//     ts_hash:[""]
+//     mebersShars: [
+//       address: "",
+//       amountReceived: 0,
+//       Userpercentage: 0,
+//     ]
+//   }
+// ]

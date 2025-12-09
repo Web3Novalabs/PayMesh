@@ -35,17 +35,10 @@ import {
   useAddressCreatedGroups,
 } from "@/hooks/useContractInteraction";
 import WalletConnect from "@/app/components/WalletConnect";
-import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
-import {
-  myProvider,
-  normalizeAddress,
-  ONE_STK,
-  PAYMESH_ADDRESS,
-  strkTokenAddress,
-} from "@/utils/contract";
-import { cairo, CallData, PaymasterDetails } from "starknet";
 import { useGetBalance } from "@/utils/contract";
-import toast from "react-hot-toast";
+import { useGroupActions } from "@/hooks/useGroupActions";
+import { normalizeAddress } from "@/utils/contract";
+import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 
 const GroupDetailsPage = () => {
   const params = useParams();
@@ -56,8 +49,7 @@ const GroupDetailsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const groupMember = useGroupMember(params.id as string);
   const { address, account } = useAccount();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isTopUp, setIsTopUp] = useState(false);
+  const { handleSplit, handleTopUp, isSubmitting, isTopUp } = useGroupActions();
 
   const [usage, setUsage] = useState<undefined | string>(undefined);
   const { readData: groupUsage } = useContractFetch(
@@ -153,134 +145,6 @@ const GroupDetailsPage = () => {
 
   const handleBackToGroups = () => {
     router.push("/dashboard/my-groups");
-  };
-
-  const handleSplit = async () => {
-    if (!balance?.formatted) {
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-
-      if (
-        account != undefined &&
-        balance?.formatted &&
-        currentGroup?.groupAddress
-      ) {
-        const swiftpayCall = {
-          contractAddress: PAYMESH_ADDRESS,
-          entrypoint: "paymesh",
-          calldata: CallData.compile({
-            group_address: currentGroup?.groupAddress,
-          }),
-        };
-
-        const approveCall = {
-          contractAddress: strkTokenAddress,
-          entrypoint: "approve",
-          calldata: [
-            PAYMESH_ADDRESS, // spender
-            cairo.uint256(ONE_STK),
-          ],
-        };
-
-        const multicallData = [approveCall, swiftpayCall];
-        // const result = await account.execute(multicallData);
-
-        const feeDetails: PaymasterDetails = {
-          feeMode: {
-            mode: "sponsored",
-          },
-        };
-
-        const feeEstimation = await account?.estimatePaymasterTransactionFee(
-          [...multicallData],
-          feeDetails
-        );
-
-        const result = await account?.executePaymasterTransaction(
-          [...multicallData],
-          feeDetails,
-          feeEstimation?.suggested_max_fee_in_gas_token
-        );
-
-        const status = await myProvider.waitForTransaction(
-          result?.transaction_hash as string
-        );
-
-        console.log(result);
-
-        // setResultHash(result.transaction_hash);
-        console.log(status);
-        toast.success("split succesfull");
-      }
-    } catch (error) {
-      toast.error("Failed to split funds, top up subscription. and try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-  const handleToUp = async () => {
-    if (!balance?.formatted && !params.id) {
-      return;
-    }
-    if (userBalance?.formatted && +userBalance.formatted < 1) {
-      console.log(userBalance);
-      toast.error(`Insufficient balance, Top Up!`);
-      return;
-    }
-    try {
-      setIsTopUp(true);
-
-      if (
-        account != undefined &&
-        balance?.formatted &&
-        currentGroup?.groupAddress
-      ) {
-        const swiftpayCall = {
-          contractAddress: PAYMESH_ADDRESS,
-          entrypoint: "top_subscription",
-          calldata: CallData.compile({
-            // @ts-expect-error parrams is valid
-            group_id: cairo.uint256(+params?.id),
-            new_planned_usage_count: cairo.uint256(1),
-          }),
-        };
-
-        const approveCall = {
-          contractAddress: strkTokenAddress,
-          entrypoint: "approve",
-          calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK)],
-        };
-
-        const multicallData = [approveCall, swiftpayCall];
-        // const result = await account.execute(multicallData);
-
-        const feeDetails: PaymasterDetails = {
-          feeMode: {
-            mode: "sponsored",
-          },
-        };
-
-        const feeEstimation = await account?.estimatePaymasterTransactionFee(
-          [...multicallData],
-          feeDetails
-        );
-
-        await account?.executePaymasterTransaction(
-          [...multicallData],
-          feeDetails,
-          feeEstimation?.suggested_max_fee_in_gas_token
-        );
-        toast.success("Top Up Successful!");
-      }
-    } catch (error) {
-      console.error("Error paying group:", error);
-      toast.error("Failed to top up subscription. Please try again.");
-    } finally {
-      setIsTopUp(false);
-    }
   };
 
   if (isLoading) {
@@ -408,8 +272,11 @@ const GroupDetailsPage = () => {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={handleToUp}
+                onClick={() =>
+                  handleTopUp("1", balance?.formatted, userBalance?.formatted)
+                }
                 className="border-gradient-flow cursor-pointer text-white px-4 py-2 rounded-sm transition-colors"
+                disabled={isTopUp}
               >
                 {isTopUp ? "loading..." : "Top Up"}
               </button>
@@ -417,12 +284,18 @@ const GroupDetailsPage = () => {
               {balance?.formatted != 0 && (
                 <>
                   <button
-                    onClick={handleSplit}
+                    onClick={() =>
+                      handleSplit(
+                        currentGroup?.groupAddress,
+                        balance?.formatted
+                      )
+                    }
                     className={`${
                       isSubmitting ? "cursor-not-allowed" : ""
                     } cursor-pointer border-gradient-flow text-white px-4 py-2 rounded-sm transition-colors`}
+                    disabled={isSubmitting}
                   >
-                    {isSubmitting ? "spliting...." : "Split Funds"}
+                    {isSubmitting ? "splitting...." : "Split Funds"}
                   </button>
                 </>
               )}
