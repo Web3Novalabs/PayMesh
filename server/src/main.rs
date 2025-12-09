@@ -47,7 +47,7 @@ async fn main() {
         .await
         .expect("Failed to create genesis admin");
 
-    let listener = TcpListener::bind("0.0.0.0:8081").await.unwrap();
+    let listener = TcpListener::bind("0.0.0.0:8080").await.unwrap();
     tracing::info!("listening on {}", listener.local_addr().unwrap());
 
     let router = router(config);
