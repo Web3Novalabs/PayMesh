@@ -566,7 +566,7 @@ fn test_error_donating_to_end_pool() {
         .create_pool("Crowd Fund Pool4", ONE_STRK * 10, USER1_ADDR(), "long wire");
     stop_cheat_caller_address(contract_address.contract_address);
 
-    // donate
+    // donate 
     start_cheat_caller_address(usdc_dispatcher.contract_address, USER2_ADDR());
     usdc_dispatcher.approve(contract_address.contract_address, ONE_STRK * 30);
     stop_cheat_caller_address(usdc_dispatcher.contract_address);
