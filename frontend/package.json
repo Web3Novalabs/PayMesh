@@ -20,6 +20,8 @@
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "jspdf": "^3.0.4",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.540.0",
     "next": "15.4.8",
     "qrcode": "^1.5.4",

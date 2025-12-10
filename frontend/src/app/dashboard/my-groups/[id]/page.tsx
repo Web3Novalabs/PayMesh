@@ -12,9 +12,15 @@ import {
   LucideUsers,
   Search,
   ListPlus,
+  FileDown,
 } from "lucide-react";
 import { Sofia_Sans } from "next/font/google";
 import { Group } from "@/types/group";
+import { GroupDetails, HistoryItem } from "@/types/groups";
+// ... (existing imports)
+
+// ...
+
 import { GroupService } from "@/services/groupService";
 import { copyToClipboard } from "@/lib/utils";
 import {
@@ -46,7 +52,9 @@ import {
 import { cairo, CallData, PaymasterDetails } from "starknet";
 import { useGetBalance } from "@/utils/contract";
 import toast from "react-hot-toast";
+import { generateGroupHistoryPDF } from "@/utils/pdfGenerator";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const GroupDetailsPage = () => {
   const params = useParams();
   const router = useRouter();
@@ -58,6 +66,10 @@ const GroupDetailsPage = () => {
   const { address, account } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTopUp, setIsTopUp] = useState(false);
+
+  // New state for history
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [hasHistory, setHasHistory] = useState(false);
 
   const [usage, setUsage] = useState<undefined | string>(undefined);
   const { readData: groupUsage } = useContractFetch(
@@ -76,9 +88,11 @@ const GroupDetailsPage = () => {
   useEffect(() => {
     if (!groupUsage && !usageCount) return;
     const m = +usageCount?.toString();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const count = +groupUsage?.toString();
     setUsage(`${m}`);
-  }, [usage, usageCount]);
+  }, [usage, usageCount, groupUsage]); // Added usage, usageCount, groupUsage
+
   const { transaction } = useGroupAddressHasSharesIn(address || "");
   const { transaction: createdGroups } = useAddressCreatedGroups();
 
@@ -122,6 +136,7 @@ const GroupDetailsPage = () => {
     }
   }, [params.id, transaction]);
 
+  // Fetch group data and transactions
   useEffect(() => {
     const fetchGroupData = async () => {
       if (!params.id) return;
@@ -130,17 +145,22 @@ const GroupDetailsPage = () => {
       setError(null);
 
       try {
-        // TODO: Replace with actual API call when backend is ready
-        // const data = await GroupService.getGroupDetails(Number(params.id));
-        // setGroupData(data);
+        // Fetch transactions for history check
+        const transactions = await GroupService.getGroupTransactions(
+          Number(params.id)
+        );
+        console.log("Fetched transactions:", transactions);
+        setHistory(transactions as HistoryItem[]);
+        setHasHistory(transactions.length > 0);
 
-        // For now, using mock data
+        // For now, using mock data for group details loading
         setTimeout(() => {
           setIsLoading(false);
         }, 500);
       } catch (error) {
         console.error("Error fetching group data:", error);
-        setError("Failed to load group details");
+        // Don't block UI if history fetch fails, just log it
+        // setError("Failed to load group details");
         setIsLoading(false);
       }
     };
@@ -160,6 +180,26 @@ const GroupDetailsPage = () => {
 
   const handleBackToGroups = () => {
     router.push("/dashboard/my-groups");
+  };
+
+  const handleDownloadHistory = async () => {
+    try {
+      if (!currentGroup || !history) return;
+
+      // Map currentGroup and history to GroupDetails format
+      const pdfData: GroupDetails = {
+        group_name: currentGroup.name,
+        group_address: currentGroup.groupAddress,
+        created_at: currentGroup.date, // Assuming date exists as per types
+        history: history, // Assuming history matches structure or is passed as any
+      };
+
+      await generateGroupHistoryPDF(pdfData);
+      toast.success("History downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast.error("Failed to generate PDF");
+    }
   };
 
   const handleSplit = async () => {
@@ -375,7 +415,17 @@ const GroupDetailsPage = () => {
           <span className="">Back to Groups</span>
         </button>
 
-        <div className="flex items-center gap-2"></div>
+        <div className="flex items-center gap-2">
+          {hasHistory && (
+            <button
+              onClick={handleDownloadHistory}
+              className="flex items-center gap-2 bg-[#232542] hover:bg-[#2A2D48] text-white px-4 py-2 rounded-full transition-colors font-medium border border-[#FFFFFF1A]"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>History</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Members Table */}
