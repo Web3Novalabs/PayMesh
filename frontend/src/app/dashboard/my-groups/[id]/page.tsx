@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -136,6 +137,9 @@ const GroupDetailsPage = () => {
     }
   }, [params.id, transaction]);
 
+  // New state for history
+  const [fetchedGroup, setFetchedGroup] = useState<GroupDetails | null>(null);
+
   // Fetch group data and transactions
   useEffect(() => {
     const fetchGroupData = async () => {
@@ -145,13 +149,39 @@ const GroupDetailsPage = () => {
       setError(null);
 
       try {
-        // Fetch transactions for history check
-        const transactions = await GroupService.getGroupTransactions(
-          Number(params.id)
+        // Fetch group details which includes history
+        // We pass params.id directly (can be string address or number)
+        const groupDetails = await GroupService.getGroupDetails(
+          params.id as string
         );
-        console.log("Fetched transactions:", transactions);
-        setHistory(transactions as HistoryItem[]);
-        setHasHistory(transactions.length > 0);
+
+        // Use type assertion cautiously, or mapped properly if needed.
+        // The API returns snake_case which matches GroupDetails interface roughly.
+        // We cast to any to avoid strict mismatch on potentially missing fields during development
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setFetchedGroup(groupDetails as any as GroupDetails);
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let historyData: any[] = [];
+
+        // Check for history in the response (it might be in 'history' property)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (
+          (groupDetails as any).history &&
+          Array.isArray((groupDetails as any).history)
+        ) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          historyData = (groupDetails as any).history;
+        }
+
+        if (Array.isArray(historyData)) {
+          setHistory(historyData as HistoryItem[]);
+          setHasHistory(historyData.length > 0);
+        } else {
+          console.warn("No history found in group details:", groupDetails);
+          setHistory([]);
+          setHasHistory(false);
+        }
 
         // For now, using mock data for group details loading
         setTimeout(() => {
@@ -184,14 +214,51 @@ const GroupDetailsPage = () => {
 
   const handleDownloadHistory = async () => {
     try {
-      if (!currentGroup || !history) return;
+      if ((!currentGroup && !fetchedGroup) || !history) return;
+
+      const groupName =
+        fetchedGroup?.group_name || currentGroup?.name || "Group";
+      const groupAddress =
+        fetchedGroup?.group_address || currentGroup?.groupAddress || "";
+      const groupDate =
+        fetchedGroup?.created_at ||
+        currentGroup?.date ||
+        new Date().toISOString();
+
+      // Map history to ensure correct format (snake_case)
+      const mappedHistory: HistoryItem[] = (history as any[]).map((item) => ({
+        // eslint-disable-line @typescript-eslint/no-explicit-any
+        paid_at:
+          item.paid_at ||
+          item.date ||
+          item.createdAt ||
+          new Date().toISOString(),
+        token_address: item.token_address || item.tokenAddress || "",
+        total_amount_paid:
+          item.total_amount_paid || item.amount || item.totalAmount || "0",
+        tx_hash: item.tx_hash || item.txHash || item.transactionHash || "",
+        members: Array.isArray(item.members)
+          ? (item.members as any[]).map((m) => ({
+              // eslint-disable-line @typescript-eslint/no-explicit-any
+              member_address:
+                m.member_address || m.address || m.memberAddress || "",
+              member_amount:
+                m.member_amount || m.amount || m.memberAmount || "0",
+              member_percentage:
+                m.member_percentage ||
+                m.percentage ||
+                m.memberPercentage ||
+                "0",
+            }))
+          : [],
+      }));
 
       // Map currentGroup and history to GroupDetails format
       const pdfData: GroupDetails = {
-        group_name: currentGroup.name,
-        group_address: currentGroup.groupAddress,
-        created_at: currentGroup.date, // Assuming date exists as per types
-        history: history, // Assuming history matches structure or is passed as any
+        group_name: groupName,
+        group_address: groupAddress,
+        created_at: groupDate,
+        history: mappedHistory,
       };
 
       await generateGroupHistoryPDF(pdfData);
@@ -302,24 +369,24 @@ const GroupDetailsPage = () => {
         };
 
         const multicallData = [approveCall, swiftpayCall];
-        // const result = await account.execute(multicallData);
+       await account.execute(multicallData);
 
-        const feeDetails: PaymasterDetails = {
-          feeMode: {
-            mode: "sponsored",
-          },
-        };
+        // const feeDetails: PaymasterDetails = {
+        //   feeMode: {
+        //     mode: "sponsored",
+        //   },
+        // };
 
-        const feeEstimation = await account?.estimatePaymasterTransactionFee(
-          [...multicallData],
-          feeDetails
-        );
+        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        //   [...multicallData],
+        //   feeDetails
+        // );
 
-        await account?.executePaymasterTransaction(
-          [...multicallData],
-          feeDetails,
-          feeEstimation?.suggested_max_fee_in_gas_token
-        );
+        // await account?.executePaymasterTransaction(
+        //   [...multicallData],
+        //   feeDetails,
+        //   feeEstimation?.suggested_max_fee_in_gas_token
+        // );
         toast.success("Top Up Successful!");
       }
     } catch (error) {

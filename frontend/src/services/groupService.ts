@@ -27,7 +27,7 @@ export class GroupService {
   }
 
   // Get specific group details
-  static async getGroupDetails(groupId: number): Promise<Group> {
+  static async getGroupDetails(groupId: number | string): Promise<Group> {
     try {
       const response = await fetch(`${API_BASE_URL}/groups/${groupId}`);
       if (!response.ok) {
