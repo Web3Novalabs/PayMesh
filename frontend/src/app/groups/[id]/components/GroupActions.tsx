@@ -1,17 +1,24 @@
+import { FileDown } from "lucide-react";
+
+// ... imports
 interface GroupActionsProps {
   onTopUp: () => void;
   onSplit: () => void;
+  onDownloadHistory: () => void;
   isTopUpLoading: boolean;
   isSplitLoading: boolean;
   hasBalance: boolean;
+  hasHistory: boolean;
 }
 
 const GroupActions = ({
   onTopUp,
   onSplit,
+  onDownloadHistory,
   isTopUpLoading,
   isSplitLoading,
   hasBalance,
+  hasHistory,
 }: GroupActionsProps) => {
   return (
     <>
@@ -26,7 +33,7 @@ const GroupActions = ({
           {isTopUpLoading ? "Processing..." : "Top Up"}
         </button>
 
-        {!hasBalance && (
+        {hasBalance && (
           <button
             onClick={onSplit}
             disabled={isSplitLoading}
@@ -35,6 +42,16 @@ const GroupActions = ({
             }`}
           >
             {isSplitLoading ? "Splitting..." : "Split Payment"}
+          </button>
+        )}
+
+        {hasHistory && (
+          <button
+            onClick={onDownloadHistory}
+            className="bg-[#232542] hover:bg-[#2A2D48] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-pointer w-full flex items-center justify-center gap-2 transition-colors"
+          >
+            <FileDown className="w-4 h-4" />
+            <span>History</span>
           </button>
         )}
       </div>

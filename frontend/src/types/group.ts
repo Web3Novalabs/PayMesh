@@ -61,24 +61,29 @@ export interface TransactionData {
 }
 
 export interface GroupTransactionData {
-  group_data: {
-    created_at: string;
-    created_by: string;
-    group_address: string;
-    group_name: string;
+  group_address: string;
+  group_name: string;
+  created_by: string;
+  usage_remaining: string;
+  created_at: string;
+  updated_at: string;
+  members: Array<{
+    member_address: string;
+    member_percentage: string;
+    is_active: boolean;
+    added_at: string;
+  }>;
+  history: Array<{
+    total_amount_paid: string;
+    token_address: string;
+    tx_hash: string;
+    paid_at: string;
     members: Array<{
-      added_at: string;
-      is_active: boolean;
       member_address: string;
+      member_amount: string;
       member_percentage: string;
     }>;
-    updated_at: string;
-    usage_remaining: string;
-  };
-  share_eth: string;
-  share_strk: string;
-  share_usdc: string;
-  share_usdt: string;
+  }>;
 }
 
 export type SplitType = "equal" | "manual" | "";

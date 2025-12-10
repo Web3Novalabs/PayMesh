@@ -1,6 +1,8 @@
 "use client";
 import { ArrowLeft } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
+// import Link from "next/link";
+import toast from "react-hot-toast";
 import { useQuery } from "@tanstack/react-query";
 import { GroupService } from "@/services/groupService";
 import { useBalance, useAccount } from "@starknet-react/core";
@@ -12,6 +14,7 @@ import GroupActions from "./components/GroupActions";
 import MembersTable from "./components/MembersTable";
 import { copyToClipboard } from "@/lib/utils";
 import LoadingState from "@/components/ui/LoadingState";
+import { generateGroupHistoryPDF } from "@/utils/pdfGenerator";
 
 export default function GroupDetail() {
   const router = useRouter();
@@ -64,6 +67,20 @@ export default function GroupDetail() {
   const hasAnyBalance = [usdcBalance, usdtBalance, ethBalance, balance].some(
     (b) => b?.formatted && +b.formatted > 0
   );
+  const handleDownloadHistory = async () => {
+    if (!groupDetails) {
+      toast.error("Group details not loaded yet.");
+      return;
+    }
+    try {
+      await generateGroupHistoryPDF(groupDetails);
+      toast.success("Transaction history downloaded successfully!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Failed to download transaction history.");
+    }
+  };
+
   if (isLoading) {
     return (
       <LoadingState
@@ -134,9 +151,13 @@ export default function GroupDetail() {
               onSplit={() =>
                 handleSplit(params.id as string, balance?.formatted)
               }
+              onDownloadHistory={handleDownloadHistory}
               isTopUpLoading={isTopUp}
               isSplitLoading={isSubmitting}
               hasBalance={hasAnyBalance}
+              hasHistory={
+                !!(groupDetails?.history && groupDetails.history.length > 0)
+              }
             />
           </div>
         </div>
