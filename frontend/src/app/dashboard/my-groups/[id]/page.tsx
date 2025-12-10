@@ -111,9 +111,9 @@ const GroupDetailsPage = () => {
       : ("0x0" as `0x${string}`),
   });
 
-  console.log("usdcBalance", usdcBalance);
-  console.log("usdtBalance", usdtBalance);
-  console.log("ethBalance", ethBalance);
+  // console.log("usdcBalance", usdcBalance);
+  // console.log("usdtBalance", usdtBalance);
+  // console.log("ethBalance", ethBalance);
 
   // Force refresh when params.id changes
   useEffect(() => {
@@ -183,38 +183,38 @@ const GroupDetailsPage = () => {
           }),
         };
 
-        const approveCall = {
-          contractAddress: strkTokenAddress,
-          entrypoint: "approve",
-          calldata: [
-            PAYMESH_ADDRESS, // spender
-            cairo.uint256(ONE_STK),
-          ],
-        };
+        // const approveCall = {
+        //   contractAddress: strkTokenAddress,
+        //   entrypoint: "approve",
+        //   calldata: [
+        //     PAYMESH_ADDRESS, // spender
+        //     cairo.uint256(ONE_STK),
+        //   ],
+        // };
 
-        const multicallData = [approveCall, swiftpayCall];
-        // const result = await account.execute(multicallData);
+        const multicallData = [swiftpayCall];
+        const result = await account.execute(multicallData);
 
-        const feeDetails: PaymasterDetails = {
-          feeMode: {
-            mode: "sponsored",
-          },
-        };
+        // const feeDetails: PaymasterDetails = {
+        //   feeMode: {
+        //     mode: "sponsored",
+        //   },
+        // };
 
-        const feeEstimation = await account?.estimatePaymasterTransactionFee(
-          [...multicallData],
-          feeDetails
-        );
+        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        //   [...multicallData],
+        //   feeDetails
+        // );
 
-        const result = await account?.executePaymasterTransaction(
-          [...multicallData],
-          feeDetails,
-          feeEstimation?.suggested_max_fee_in_gas_token
-        );
+        // const result = await account?.executePaymasterTransaction(
+        //   [...multicallData],
+        //   feeDetails,
+        //   feeEstimation?.suggested_max_fee_in_gas_token
+        // );
 
-        const status = await myProvider.waitForTransaction(
-          result?.transaction_hash as string
-        );
+        // const status = await myProvider.waitForTransaction(
+        //   result?.transaction_hash as string
+        // );
 
         console.log(result);
 
@@ -258,28 +258,28 @@ const GroupDetailsPage = () => {
         const approveCall = {
           contractAddress: strkTokenAddress,
           entrypoint: "approve",
-          calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK)],
+          calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK*4)],
         };
 
         const multicallData = [approveCall, swiftpayCall];
-        // const result = await account.execute(multicallData);
+        await account.execute(multicallData);
 
-        const feeDetails: PaymasterDetails = {
-          feeMode: {
-            mode: "sponsored",
-          },
-        };
+        // const feeDetails: PaymasterDetails = {
+        //   feeMode: {
+        //     mode: "sponsored",
+        //   },
+        // };
 
-        const feeEstimation = await account?.estimatePaymasterTransactionFee(
-          [...multicallData],
-          feeDetails
-        );
+        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        //   [...multicallData],
+        //   feeDetails
+        // );
 
-        await account?.executePaymasterTransaction(
-          [...multicallData],
-          feeDetails,
-          feeEstimation?.suggested_max_fee_in_gas_token
-        );
+        // await account?.executePaymasterTransaction(
+        //   [...multicallData],
+        //   feeDetails,
+        //   feeEstimation?.suggested_max_fee_in_gas_token
+        // );
         toast.success("Top Up Successful!");
       }
     } catch (error) {
