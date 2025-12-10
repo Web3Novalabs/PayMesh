@@ -3,7 +3,7 @@ import autoTable from "jspdf-autotable";
 import { GroupDetails } from "@/types/groups";
 import { MemberStats } from "./aggregators";
 import { COLORS, DISPLAY_TOKENS } from "./config";
-import { getTokenName, formatAmount, formatMemberAmount } from "./formatters";
+import { getTokenName, formatAmount } from "./formatters";
 
 export const drawMembersTable = (
   doc: jsPDF,
@@ -60,30 +60,14 @@ export const drawHistoryTable = (
   history: GroupDetails["history"],
   startY: number
 ) => {
-  const tableColumn = [
-    "Date",
-    "Token",
-    "Total Amount",
-    "Members Detail",
-    "TX Hash",
-  ];
+  const tableColumn = ["Date", "Token", "Total Amount", "TX Hash"];
   const tableRows = history.map((item) => {
-    const membersDetail = item.members
-      .map((m) => {
-        const addr =
-          m.member_address.slice(0, 6) + "..." + m.member_address.slice(-4);
-        return `${addr}: ${formatMemberAmount(
-          m.member_amount,
-          item.token_address
-        )}`;
-      })
-      .join("\n");
+    const tokenName = getTokenName(item.token_address);
 
     return [
       new Date(item.paid_at).toLocaleString(),
-      getTokenName(item.token_address),
-      formatAmount(item.total_amount_paid, item.token_address),
-      membersDetail,
+      tokenName,
+      formatAmount(item.total_amount_paid, tokenName),
       item.tx_hash,
     ];
   });
@@ -111,15 +95,14 @@ export const drawHistoryTable = (
       fillColor: [245, 245, 245],
     },
     columnStyles: {
-      0: { cellWidth: 35 }, // Date
+      0: { cellWidth: 40 }, // Date
       1: { cellWidth: 20 }, // Token
-      2: { cellWidth: 30 }, // Total Amount
-      3: { cellWidth: "auto" }, // Members Detail
-      4: { cellWidth: 30 }, // TX Hash
+      2: { cellWidth: 40 }, // Total Amount
+      3: { cellWidth: 60 }, // TX Hash
     },
     didDrawCell: (data) => {
       // Handle Link
-      if (data.section === "body" && data.column.index === 4) {
+      if (data.section === "body" && data.column.index === 3) {
         const txHash = data.cell.raw as string;
         doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, {
           url: `https://voyager.online/tx/${txHash}`,
@@ -127,7 +110,7 @@ export const drawHistoryTable = (
       }
     },
     willDrawCell: (data) => {
-      if (data.section === "body" && data.column.index === 4) {
+      if (data.section === "body" && data.column.index === 3) {
         const txHash = data.cell.raw as string;
         if (txHash.length > 10) {
           data.cell.text = [txHash.slice(0, 4) + "..." + txHash.slice(-4)];
