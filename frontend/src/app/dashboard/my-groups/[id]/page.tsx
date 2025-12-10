@@ -12,6 +12,7 @@ import {
   LucideUsers,
   Search,
   ListPlus,
+  FileDown,
 } from "lucide-react";
 import { Sofia_Sans } from "next/font/google";
 import { Group } from "@/types/group";
@@ -46,6 +47,8 @@ import {
 import { cairo, CallData, PaymasterDetails } from "starknet";
 import { useGetBalance } from "@/utils/contract";
 import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+import { generateGroupHistoryPDF } from "@/utils/pdfGenerator";
 
 const GroupDetailsPage = () => {
   const params = useParams();
@@ -58,6 +61,29 @@ const GroupDetailsPage = () => {
   const { address, account } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isTopUp, setIsTopUp] = useState(false);
+
+  // PDF Generation Data Fetching
+  const { data: fetchedGroup, isLoading: isPdfLoading } = useQuery({
+    queryKey: ["groupDetails", params.id],
+    queryFn: () =>
+      GroupService.getGroupDetailsByAddress(currentGroup?.groupAddress || ""),
+    enabled: !!params.id,
+    refetchInterval: 3000,
+  });
+
+  const handleDownloadHistory = async () => {
+    try {
+      if (!fetchedGroup) {
+        toast.error("Group details not loaded for PDF yet.");
+        return;
+      }
+      await generateGroupHistoryPDF(fetchedGroup);
+      toast.success("History downloaded successfully");
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast.error("Failed to generate PDF");
+    }
+  };
 
   const [usage, setUsage] = useState<undefined | string>(undefined);
   const { readData: groupUsage } = useContractFetch(
@@ -258,7 +284,7 @@ const GroupDetailsPage = () => {
         const approveCall = {
           contractAddress: strkTokenAddress,
           entrypoint: "approve",
-          calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK*4)],
+          calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK * 4)],
         };
 
         const multicallData = [approveCall, swiftpayCall];
@@ -375,7 +401,18 @@ const GroupDetailsPage = () => {
           <span className="">Back to Groups</span>
         </button>
 
-        <div className="flex items-center gap-2"></div>
+        <div className="flex gap-3">
+          {fetchedGroup?.history && fetchedGroup.history.length > 0 && (
+            <button
+              onClick={handleDownloadHistory}
+              disabled={isPdfLoading}
+              className="flex items-center gap-2 bg-[#1E2032] hover:bg-[#2A2D45] text-white px-4 py-2 rounded-lg transition-colors border border-[#2A2D45]"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>{isPdfLoading ? "Loading..." : "History"}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Members Table */}

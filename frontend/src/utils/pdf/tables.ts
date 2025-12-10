@@ -1,126 +1,124 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { HistoryItem } from "@/types/groups";
+import { GroupDetails } from "@/types/groups";
+import { MemberStats } from "./aggregators";
 import { COLORS, DISPLAY_TOKENS } from "./config";
-import { getTokenName, formatAmount, formatMemberAmount } from "./formatters";
+import { getTokenName, formatAmount } from "./formatters";
 
 export const drawMembersTable = (
   doc: jsPDF,
-  memberStats: { [addr: string]: { [token: string]: number } },
+  memberStats: MemberStats[],
   startY: number
 ) => {
-  const head = [["Member Address", ...DISPLAY_TOKENS]];
-  const body = Object.entries(memberStats).map(([addr, tokens]) => {
-    const row = [
-      `${addr.substring(0, 6)}...${addr.substring(addr.length - 4)}`,
-    ];
-    DISPLAY_TOKENS.forEach((t) => {
-      const val = tokens[t] || 0;
-      row.push(
-        val > 0 ? val.toFixed(t === "ETH" || t === "WBTC" ? 6 : 2) : "-"
-      );
+  const memberTableColumns = ["Member", "Share %", ...DISPLAY_TOKENS];
+  const memberTableRows = memberStats.map((stats) => {
+    const shortAddr =
+      stats.address.slice(0, 6) + "..." + stats.address.slice(-4);
+    const row = [shortAddr, `${stats.percentage}%`];
+
+    DISPLAY_TOKENS.forEach((token) => {
+      const val = stats.tokens[token] || 0;
+      row.push(val.toFixed(2));
     });
     return row;
   });
 
   autoTable(doc, {
-    startY,
-    head,
-    body,
+    head: [memberTableColumns],
+    body: memberTableRows,
+    startY: startY,
     theme: "striped",
     headStyles: {
-      fillColor: [COLORS.header[0], COLORS.header[1], COLORS.header[2]],
+      fillColor: COLORS.header,
       textColor: [255, 255, 255],
       fontStyle: "bold",
+      fontSize: 8,
     },
     styles: {
-      fontSize: 9,
-      cellPadding: 3,
+      font: "helvetica",
+      fontSize: 8,
+      cellPadding: 2,
+      textColor: COLORS.text,
+      lineWidth: 0,
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245],
     },
     columnStyles: {
-      0: { fontStyle: "bold", cellWidth: 40 },
+      0: { cellWidth: 30 }, // Member
+      1: { cellWidth: 20 }, // Share %
+      // Others auto
     },
   });
 
-  // @ts-expect-error jspdf-autotable adds lastAutoTable
-  return doc.lastAutoTable.finalY;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (doc as any).lastAutoTable.finalY;
 };
 
 export const drawHistoryTable = (
   doc: jsPDF,
-  history: HistoryItem[],
+  history: GroupDetails["history"],
   startY: number
 ) => {
-  const head = [
-    [
-      "Date",
-      "Token",
-      "Total Amount",
-      "Members Detail (Addr: Share% - Amt)",
-      "TX Hash",
-    ],
-  ];
-
-  const body = history.map((item) => {
+  const tableColumn = ["Date", "Token", "Total Amount", "TX Hash"];
+  const tableRows = history.map((item) => {
     const tokenName = getTokenName(item.token_address);
-    const dateStr = new Date(item.paid_at).toLocaleDateString();
-    const amountStr = formatAmount(item.total_amount_paid, tokenName);
 
-    // Format members details into a single cell string
-    // e.g. "0x123...: 50% - 100 USDC\n0x456...: 50% - 100 USDC"
-    const membersDetail = item.members
-      .map((m) => {
-        const addrShort = `${m.member_address.substring(
-          0,
-          4
-        )}...${m.member_address.substring(m.member_address.length - 4)}`;
-        const amt = formatMemberAmount(m.member_amount, tokenName);
-        return `${addrShort}: ${m.member_percentage}% - ${amt}`;
-      })
-      .join("\n");
-
-    const txShort = `${item.tx_hash.substring(0, 6)}...${item.tx_hash.substring(
-      item.tx_hash.length - 4
-    )}`;
-
-    return [dateStr, tokenName, amountStr, membersDetail, txShort];
+    return [
+      new Date(item.paid_at).toLocaleString(),
+      tokenName,
+      formatAmount(item.total_amount_paid, tokenName),
+      item.tx_hash,
+    ];
   });
 
   autoTable(doc, {
-    startY,
-    head,
-    body,
-    theme: "grid",
+    head: [tableColumn],
+    body: tableRows,
+    startY: startY,
+    theme: "striped",
     headStyles: {
-      fillColor: [COLORS.header[0], COLORS.header[1], COLORS.header[2]],
+      fillColor: COLORS.header,
       textColor: [255, 255, 255],
       fontStyle: "bold",
     },
     styles: {
+      font: "helvetica",
       fontSize: 9,
       cellPadding: 2,
+      textColor: COLORS.text,
       overflow: "linebreak",
+      valign: "top",
+      lineWidth: 0,
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245],
     },
     columnStyles: {
-      0: { cellWidth: 25 }, // Date
-      1: { cellWidth: 15 }, // Token
-      2: { cellWidth: 25 }, // Amount
-      3: { cellWidth: 85 }, // Members (Wide)
-      4: { cellWidth: 30 }, // TX Hash
+      0: { cellWidth: 40 }, // Date
+      1: { cellWidth: 20 }, // Token
+      2: { cellWidth: 40 }, // Total Amount
+      3: { cellWidth: 60 }, // TX Hash
     },
     didDrawCell: (data) => {
-      // Add link to TX Hash column (index 4)
-      if (data.section === "body" && data.column.index === 4) {
-        const rowIndex = data.row.index;
-        const txHash = history[rowIndex].tx_hash;
-        const linkUrl = `https://voyager.online/tx/${txHash}`;
+      // Handle Link
+      if (data.section === "body" && data.column.index === 3) {
+        const txHash = data.cell.raw as string;
         doc.link(data.cell.x, data.cell.y, data.cell.width, data.cell.height, {
-          url: linkUrl,
+          url: `https://voyager.online/tx/${txHash}`,
         });
+      }
+    },
+    willDrawCell: (data) => {
+      if (data.section === "body" && data.column.index === 3) {
+        const txHash = data.cell.raw as string;
+        if (txHash.length > 10) {
+          data.cell.text = [txHash.slice(0, 4) + "..." + txHash.slice(-4)];
+        }
       }
     },
   });
 
-  // @ts-expect-error jspdf-autotable adds lastAutoTable
-  return doc.lastAutoTable.finalY + 10;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (doc as any).lastAutoTable.finalY;
 };

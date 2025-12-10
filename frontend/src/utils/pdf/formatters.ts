@@ -1,7 +1,7 @@
 import { TOKEN_MAP } from "./config";
 
 export const getTokenName = (address: string) =>
-  TOKEN_MAP[address] || "Unknown";
+  TOKEN_MAP[address?.toLowerCase()] || "Unknown";
 
 export const getDecimals = (tokenName: string) => {
   if (["USDC", "USDT"].includes(tokenName)) return 6;

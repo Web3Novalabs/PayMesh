@@ -1,33 +1,45 @@
-import { HistoryItem } from "@/types/groups";
+import { GroupDetails } from "@/types/groups";
 import { getTokenName, getDecimals } from "./formatters";
 
-export const calculateGlobalTotals = (history: HistoryItem[]) => {
-  const totals: { [key: string]: number } = {};
-  history.forEach((tx) => {
-    const tokenName = getTokenName(tx.token_address);
+export const calculateGlobalTotals = (history: GroupDetails["history"]) => {
+  const totals: Record<string, number> = {};
+  history.forEach((item) => {
+    const tokenName = getTokenName(item.token_address);
     const decimals = getDecimals(tokenName);
-    const amount = Number(tx.total_amount_paid) / 10 ** decimals;
+    const amount = parseFloat(item.total_amount_paid) / Math.pow(10, decimals);
     totals[tokenName] = (totals[tokenName] || 0) + amount;
   });
   return totals;
 };
 
-// Aggregates total received by each member per token
-export const calculateMemberStats = (history: HistoryItem[]) => {
-  // memberAddress -> { tokenName -> amount }
-  const stats: { [memberAddr: string]: { [token: string]: number } } = {};
+export type MemberStats = {
+  address: string;
+  percentage: string;
+  tokens: Record<string, number>;
+};
 
-  history.forEach((tx) => {
-    const tokenName = getTokenName(tx.token_address);
+export const calculateMemberStats = (history: GroupDetails["history"]) => {
+  const memberMap = new Map<string, MemberStats>();
+
+  history.forEach((item) => {
+    const tokenName = getTokenName(item.token_address);
     const decimals = getDecimals(tokenName);
 
-    tx.members.forEach((m) => {
-      const addr = m.member_address;
-      if (!stats[addr]) stats[addr] = {};
-      const amount = Number(m.member_amount) / 10 ** decimals;
-      stats[addr][tokenName] = (stats[addr][tokenName] || 0) + amount;
+    item.members.forEach((m) => {
+      if (!memberMap.has(m.member_address)) {
+        memberMap.set(m.member_address, {
+          address: m.member_address,
+          percentage: m.member_percentage,
+          tokens: {},
+        });
+      }
+      const stats = memberMap.get(m.member_address)!;
+      stats.percentage = m.member_percentage;
+
+      const amount = parseFloat(m.member_amount) / Math.pow(10, decimals);
+      stats.tokens[tokenName] = (stats.tokens[tokenName] || 0) + amount;
     });
   });
 
-  return stats;
+  return Array.from(memberMap.values());
 };

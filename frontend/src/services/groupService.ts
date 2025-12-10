@@ -6,10 +6,28 @@ import {
   SplitFundsRequest,
 } from "@/types/group";
 
+import { GroupDetails } from "@/types/groups";
+
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
 
 export class GroupService {
+  // Get group details by address
+  static async getGroupDetailsByAddress(
+    address: string
+  ): Promise<GroupDetails> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/groups/${address}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching group details by address:", error);
+      throw error;
+    }
+  }
+
   // Get all groups for a user
   static async getUserGroups(userAddress: string): Promise<GroupSummary[]> {
     try {
