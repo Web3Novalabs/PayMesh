@@ -84,7 +84,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
         // Crowdfunding Events
         if (eventKey === POOL_CREATED_SELECTOR) {
-          logger.info("Pool Created");
           const { args } = decodeEvent({
             strict: true,
             event,
@@ -100,7 +99,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           // create_crowd_funding(pool_address, creator, hexToString(pool_name), target_amount);
           logger.info(`\n💡 Crowdfunding created event ${pool_address}`);
         } else if (eventKey === POOL_PAID_SELECTOR) {
-          logger.info("Pool Paid");
           const { args } = decodeEvent({
             strict: true,
             event,
@@ -149,7 +147,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
             members
           );
         } else if (eventKey === GROUP_PAID_SELECTOR) {
-          logger.info("Group Paid Occurred");
           const { args } = decodeEvent({
             strict: true,
             event,
