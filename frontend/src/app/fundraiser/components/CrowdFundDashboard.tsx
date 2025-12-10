@@ -112,7 +112,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
           </div>
 
           {/* Active Funding Indicator */}
-          <div className="flex w-fit space-x-2.5 items-center p-3 rounded-4xl border border-[#232542]">
+          <div className="flex space-x-2.5 sm:hidden md:flex w-full sm:w-fit items-center p-3 rounded-4xl border border-[#232542]">
             <Image
               src={handshakeIcon}
               alt="handshakeIcon"

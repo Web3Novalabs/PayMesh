@@ -7,7 +7,7 @@ import qrCode from "../../../../public/qr-code.svg";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { FundraiseDetailsProps } from "@/types/usdcDataApi";
+import { FundraiseDetailsProps, USDC_TOKEN_ADDRESS } from "@/types/usdcDataApi";
 import {
   copyToClipboard,
   formatAmountUsdc,
@@ -15,12 +15,20 @@ import {
 } from "@/lib/utils";
 import { useGetPool } from "@/hooks/useContractInteraction";
 import ContributeModal from "./components/ContributeModal";
+import { epocTimeReadable, myProvider } from "@/utils/contract";
+import { toast } from "react-hot-toast";
+import { useAccount } from "@starknet-react/core";
+import { CallData } from "starknet";
+import { CROWDFUNDINGADDRESS } from "@/hooks/blockchainWriteFunction";
+import CampaignCompleted from "./components/CampaignCompleted";
 
 const FundraiseDetails = () => {
   const router = useRouter();
   const params = useParams();
   const fundRaiseAddr = params.id;
+  const { address, account } = useAccount();
   const [copySuccess, setCopySuccess] = useState(false);
+  const [isSbumitting, setIsSubmitting] = useState(false);
   const [fetchFundraiseDetails, setFetchFundraiseDetails] =
     useState<FundraiseDetailsProps | null>(null);
   // const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
@@ -55,12 +63,17 @@ const FundraiseDetails = () => {
     return () => clearInterval(interval);
   }, [fundRaiseAddr, fetchDetails]);
 
+  const usdcTokenBalance = fetchFundraiseDetails?.token_history?.find((token) =>
+    token.token_address
+      ? token.token_address.toLowerCase() === USDC_TOKEN_ADDRESS.toLowerCase()
+      : false
+  );
   const targetAmount = fetchFundraiseDetails?.crowd_funding?.target_amount
     ? formatAmountUsdc(fetchFundraiseDetails.crowd_funding.target_amount)
     : "0.00";
 
-  const amountRaised = fetchFundraiseDetails?.token_history?.[0]?.balance
-    ? formatAmountUsdc(fetchFundraiseDetails.token_history[0].balance)
+  const amountRaised = usdcTokenBalance?.balance
+    ? formatAmountUsdc(usdcTokenBalance.balance)
     : "0.00";
 
   const handleCopyToClipboard = async (text: string) => {
@@ -70,11 +83,78 @@ const FundraiseDetails = () => {
     });
   };
 
-  const isSmallScreen =
-    typeof window !== "undefined" && window.innerWidth < 880;
+  const DATE_CREATED_AT = epocTimeReadable(
+    fetchFundraiseDetails?.crowd_funding?.created_at || "Unknown Date"
+  );
+
+  const handlePayment = async () => {
+    try {
+      setIsSubmitting(true);
+
+      if (account) {
+        const swiftpayCall = {
+          contractAddress: CROWDFUNDINGADDRESS,
+          entrypoint: "paymesh",
+          calldata: CallData.compile({
+            pool_address: fundRaiseAddr || "",
+          }),
+        };
+
+        // const approveCall = {
+        //   contractAddress: USDCTokenAddress,
+        //   entrypoint: "approve",
+        //   calldata: [
+        //     PAYMESH_ADDRESS, // spender
+        //     cairo.uint256(ONE_STK),
+        //   ],
+        // };
+
+        const multicallData = [swiftpayCall];
+        const result = await account.execute(multicallData);
+
+        // const feeDetails: PaymasterDetails = {
+        //   feeMode: {
+        //     mode: "sponsored",
+        //   },
+        // };
+
+        // const feeEstimation = await account?.estimatePaymasterTransactionFee(
+        //   [...multicallData],
+        //   feeDetails
+        // );
+
+        // const result = await account?.executePaymasterTransaction(
+        //   [...multicallData],
+        //   feeDetails,
+        //   feeEstimation?.suggested_max_fee_in_gas_token
+        // );
+
+        const status = await myProvider.waitForTransaction(
+          result?.transaction_hash as string
+        );
+
+        // setResultHash(result.transaction_hash);
+        console.log(status);
+        toast.success("payment succesfull");
+      }
+    } catch {
+      toast.error("Failed to split funds, top up subscription. and try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 my-16">
+      {fetchFundraiseDetails?.crowd_funding?.is_complete && (
+        <CampaignCompleted
+          amountRaised={amountRaised}
+          targetAmount={targetAmount}
+          total_donors={fetchFundraiseDetails?.donation_count?.total_donors}
+          created_at={DATE_CREATED_AT}
+        />
+      )}
+
       <button
         onClick={() => router.push("/fundraiser")}
         className="flex items-center cursor-pointer bg-[#FFFFFF0D] border border-[#FFFFFF1A] gap-2 text-[#DFDADA] hover:text-[#DFDFE0] transition-colors duration-200 py-3 px-4 rounded-4xl hover:bg-[#232542] mb-12"
@@ -183,16 +263,21 @@ const FundraiseDetails = () => {
                   Date Created:
                 </span>
                 <span className="text-[#DFDFE0] font-semibold">
-                  Feb 27th, 2025
+                  {DATE_CREATED_AT}
                 </span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="bg-[#FFFFFF0D] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-not-allowed">
-              Resolve Pool
-            </button>
+            {amountRaised > targetAmount && (
+              <button
+                onClick={() => handlePayment()}
+                className="bg-[#FFFFFF0D] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-not-allowed"
+              >
+                {isSbumitting ? "Resolving....." : "Resolve Pool"}
+              </button>
+            )}
 
             <button
               onClick={() => setIsContributeModalOpen(true)}
@@ -237,6 +322,7 @@ const FundraiseDetails = () => {
         <ContributeModal
           isOpen={isContributeModalOpen}
           onClose={() => setIsContributeModalOpen(false)}
+          pool_address={fundRaiseAddr as string}
         />
       )}
     </div>

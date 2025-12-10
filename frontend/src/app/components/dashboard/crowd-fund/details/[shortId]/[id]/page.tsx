@@ -732,7 +732,7 @@ Every contribution counts — let's build something amazing together! 💫
                   {isSbumitting ? "resolving....." : "resolve pool"}
                 </button>
               )}
-
+              ;
               {!isWalletConnected ? (
                 <div className="bg-[#1F2937] border border-[#F59E0B] rounded-sm p-3 mb-2 text-center">
                   <div className="flex flex-col items-center gap-2">

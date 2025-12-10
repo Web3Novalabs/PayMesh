@@ -10,6 +10,7 @@ import toast from "react-hot-toast";
 const ContributeModal: React.FC<ContributeModalProps> = ({
   isOpen,
   onClose,
+  pool_address,
 }) => {
   const [amount, setAmount] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -17,9 +18,8 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const params = useParams();
   const { id } = params;
-  const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
+  //   const pool = useGetPool(Array.isArray(id) ? id[0] : id ?? "");
   const { account } = useAccount();
-  // console.log(pool);
   // const balance = useGetBalance(account?.address || "0x0");
   // Handle success state close modal and show success toast
   useEffect(() => {
@@ -58,7 +58,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
     }
 
     donate(
-      typeof pool?.pool_address === "string" ? pool.pool_address : "",
+      pool_address,
       numAmount,
       account,
       setIsLoading,

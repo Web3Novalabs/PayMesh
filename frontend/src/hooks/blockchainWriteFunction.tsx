@@ -22,6 +22,7 @@ import { CreateGroupFormData } from "@/types/group";
 const usdc =
   "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 export const CROWDFUNDINGADDRESS =
+  // "0x03e58267891dff9318e6e715336b84b515547173dee464d251d0aae3ed19e22a"; // Testing new
   "0x02c92666029b207dc882c267d7b55c3fe4178e9f550f7188cd49adb85f963623"; // lastest mainnet contract address
 // "0x03e58267891dff9318e6e715336b84b515547173dee464d251d0aae3ed19e22a"; // second CA the last before main, money in it
 // "0x05a37b08ab67fba4de346b7db2c16e68c59c408bb6ce4e7d3deeecc9ec3f2723"; // third mainnet testing contract
@@ -32,7 +33,9 @@ type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
 type SetPoolAddress = (address: string) => void;
 type SetResultHash = (txHash: string) => void;
-export type SetFormData = React.Dispatch<React.SetStateAction<CreateGroupFormData>>;
+export type SetFormData = React.Dispatch<
+  React.SetStateAction<CreateGroupFormData>
+>;
 export let poolAddrQr: string = "";
 function removeNonASCII(text: string) {
   return text.replace(/[^\x00-\x7F]/g, "");
@@ -136,10 +139,7 @@ export const create_pool = async (
       );
       setPoolAddress(address as string);
 
-      //   setIsOpen(true);
-      // console.log("Blockchain function - Setting isSuccess to true");
       setIsSuccess(true);
-      //   onSubmit();
       // console.log(result);
 
       console.log(status);
@@ -165,7 +165,6 @@ export const donate = async (
   setIsLoading: SetIsLoading,
   isAnonymous: boolean,
   setIsSuccess: SetIsSuccess
-  // setIsSuccess: SetIsSuccess,
   // onSuccess: OnSuccess,
   // onError: OnError
 ): Promise<void> => {
@@ -286,7 +285,7 @@ export const createGroup = async (
           addr: member.addr.trim(),
           percentage: cairo.uint256(Number(member.percentage) * 1000),
         }));
-      console.log(formattedMembers, "fmt")
+      console.log(formattedMembers, "fmt");
       // const totalPercentage = formattedMembers.reduce(
       //   (sum, member) => sum + member.percentage,
       //   0
@@ -337,7 +336,7 @@ export const createGroup = async (
         feeDetails,
         feeEstimation?.suggested_max_fee_in_gas_token
       );
-console.log(result)
+      console.log(result);
       await myProvider.waitForTransaction(result?.transaction_hash as string);
       setResultHash(result.transaction_hash);
     }
