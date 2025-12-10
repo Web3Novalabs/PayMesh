@@ -13,10 +13,14 @@ import { Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import GroupCard from "./components/group-card";
 import Link from "next/link";
-import { GroupData, useAddressCreatedGroups, useGroupAddressHasSharesIn } from "@/hooks/useContractInteraction";
+import {
+  GroupData,
+  useAddressCreatedGroups,
+  useGroupAddressHasSharesIn,
+} from "@/hooks/useContractInteraction";
 import { useAccount } from "@starknet-react/core";
 
-import LoadingState from "./components/loading-state";
+import LoadingState from "@/components/Loading-state";
 import EmptyState from "./components/empty-state";
 
 export default function Page() {
@@ -77,7 +81,12 @@ export default function Page() {
   const endIndex = startIndex + itemsPerPage;
 
   if (isLoading) {
-    return <LoadingState />;
+    return (
+      <LoadingState
+        title="Loading Groups"
+        description="Fetching your groups..."
+      />
+    );
   }
 
   return (
@@ -136,7 +145,7 @@ export default function Page() {
           <Plus /> Create new group
         </Link>
       </div>
-      
+
       {!isLoading && filteredGroups.length === 0 ? (
         <EmptyState filter={filter} />
       ) : (

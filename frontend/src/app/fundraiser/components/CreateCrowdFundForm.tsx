@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { useGetBalance } from "@/utils/contract";
 import { FormData } from "@/types/usdcDataApi";
+import LoadingState from "@/components/Loading-state";
 
 interface CreateCrowdFundFormProps {
   onBack: () => void;

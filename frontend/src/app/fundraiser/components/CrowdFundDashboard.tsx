@@ -15,10 +15,11 @@ import plusIcon from "../../../../public/Plus.svg";
 import handshakeIcon from "../../../../public/Handshake.svg";
 import calendarIcon from "../../../../public/CalendarDots.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
-import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
 import { pool } from "@/types/usdcDataApi";
 import { compareAddresses, epocTimeReadable } from "@/utils/contract";
+import LoadingState from "@/components/Loading-state";
+import EmptyState from "./empty-state";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
@@ -35,7 +36,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   const [poolData, setPoolData] = useState<pool[] | null>(null);
   const itemsPerPage = 6;
 
-  const { createdPool: pools } = useGetAllPools();
+  const { createdPool: pools, isLoading: isLoadingPools } = useGetAllPools();
   // console.log(pools);
 
   const filteredFundings = pools?.filter((funding) => {
@@ -79,8 +80,22 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   }, []);
 
   useEffect(() => {
+    if (!pools) return;
     getPoolsData();
   }, [pools, getPoolsData]);
+
+  if (isLoadingPools && !pools) {
+    return (
+      <LoadingState
+        title="Loading Pools"
+        description="Fetching your active fundraisers..."
+      />
+    );
+  }
+
+  if (!isLoadingPools && (paginatedFundings?.length ?? 0) === 0) {
+    return <EmptyState />;
+  }
 
   return (
     <div className="space-y-10 mt-28 mb-16">
