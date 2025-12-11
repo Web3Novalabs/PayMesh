@@ -26,7 +26,7 @@ export default function StatCard({
           </div>
         </div>
         <h3 className="text-sm font-medium text-[#8398AD]">{title}</h3>
-        <p className="mt-2 text-3xl font-bold text-[#DFDFE0]">
+        <p className="mt-2 text-2xl sm:text-3xl font-bold text-[#DFDFE0]">
           {typeof value === "number" ? value.toLocaleString() : value}
         </p>
         {subtitle && <p className="mt-1 text-xs text-[#8398AD]">{subtitle}</p>}

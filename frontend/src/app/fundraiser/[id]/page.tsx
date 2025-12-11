@@ -174,30 +174,32 @@ const FundraiseDetails = () => {
       </button>
 
       <div className="bg-[#FFFFFF05] border border-[#232542] rounded-lg">
-        <div className="flex items-center justify-between flex-col px-6 sm:flex-row gap-4 border-b border-[#232542] py-4">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-[#E2E2E2] font-semibold text-base leading-tight">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-[#232542] py-4 px-6">
+          <div className="flex items-center justify-between w-full md:w-auto gap-4">
+            <h2 className="text-[#E2E2E2] font-semibold text-base leading-tight truncate max-w-[200px] sm:max-w-md">
               {fetchFundraiseDetails?.crowd_funding?.name}
             </h2>
-            <div className="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 cursor-pointer">
+            <button className="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 cursor-pointer hover:bg-gray-100 transition-colors shrink-0">
               <span className="text-[#030407] text-sm">Share</span>
               <Share2 className="w-4 h-4 text-[#030407]" />
-            </div>
+            </button>
           </div>
 
-          <div className="flex items-center space-x-2 bg-[#0C121D] py-2 px-5 rounded-full">
-            <h3 className="text-[#8398AD] text-base border-r border-[#8398AD] pr-2">
-              Funding address
-            </h3>
+          <div className="flex items-center justify-between md:justify-end space-x-2 bg-[#0C121D] py-2 px-5 rounded-full w-full md:w-auto max-w-full">
+            <div className="flex items-center gap-2 overflow-hidden">
+              <h3 className="text-[#8398AD] text-base border-r border-[#8398AD] pr-2 shrink-0">
+                Funding address
+              </h3>
 
-            <span className="text-[#E2E2E2] text-sm">
-              {typeof window !== "undefined" && window.innerWidth < 880
-                ? truncateAddress(
-                    (fundRaiseAddr as string) ??
-                      fetchFundraiseDetails?.crowd_funding?.pool_address
-                  )
-                : fetchFundraiseDetails?.crowd_funding?.pool_address}
-            </span>
+              <span className="text-[#E2E2E2] text-sm truncate">
+                {typeof window !== "undefined" && window.innerWidth < 880
+                  ? truncateAddress(
+                      (fundRaiseAddr as string) ??
+                        fetchFundraiseDetails?.crowd_funding?.pool_address
+                    )
+                  : fetchFundraiseDetails?.crowd_funding?.pool_address}
+              </span>
+            </div>
 
             <button
               onClick={() =>
@@ -205,7 +207,7 @@ const FundraiseDetails = () => {
                   fetchFundraiseDetails?.crowd_funding?.pool_address || ""
                 )
               }
-              className="text-[#8398AD] hover:text-white transition-colors"
+              className="text-[#8398AD] hover:text-white transition-colors shrink-0 pl-2"
             >
               {copySuccess ? (
                 <Check className="w-4 h-4" />
@@ -216,9 +218,9 @@ const FundraiseDetails = () => {
           </div>
         </div>
 
-        <div className="px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-5 sm:space-x-12">
-            <div className="flex items-center space-x-2 border border-[#232542] w-fit rounded-full py-2.5 px-4">
+        <div className="px-6 py-4 flex flex-col xl:flex-row items-center justify-between gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-4 w-full xl:w-auto">
+            <div className="flex items-center justify-between sm:justify-start space-x-2 border border-[#232542] w-full sm:w-fit rounded-full py-2.5 px-4">
               <h3 className="text-[#8398AD] border-r border-[#8398AD] pr-2">
                 Amount Raised
               </h3>
@@ -227,7 +229,7 @@ const FundraiseDetails = () => {
               </span>
             </div>
 
-            <div className="flex items-center space-x-2 border border-[#232542] w-fit rounded-full py-2.5 px-4">
+            <div className="flex items-center justify-between sm:justify-start space-x-2 border border-[#232542] w-full sm:w-fit rounded-full py-2.5 px-4">
               <h3 className="text-[#8398AD] border-r border-[#8398AD] pr-2">
                 Target Amount
               </h3>
@@ -246,7 +248,7 @@ const FundraiseDetails = () => {
                 />
               </span>
 
-              <div className="text-[#8398AD] text-sm flex flex-col items-center justify-center">
+              <div className="text-[#8398AD] text-sm flex flex-col justify-center">
                 <span className="font-semibold">Donors:</span>
                 <span className="text-[#DFDFE0] font-semibold">
                   {fetchFundraiseDetails?.donation_count?.total_donors}
@@ -273,11 +275,11 @@ const FundraiseDetails = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full xl:w-auto">
             {amountRaised > targetAmount && (
               <button
                 onClick={() => handlePayment()}
-                className="bg-[#FFFFFF0D] text-white px-4 py-2.5 border border-[#FFFFFF1A] rounded-full"
+                className="bg-[#FFFFFF0D] text-white px-4 py-2.5 border border-[#FFFFFF1A] rounded-full text-center hover:bg-[#FFFFFF1A] transition-colors"
               >
                 {isSubmitting ? "Resolving..." : "Resolve Pool"}
               </button>
@@ -285,7 +287,7 @@ const FundraiseDetails = () => {
 
             <button
               onClick={() => setIsContributeModalOpen(true)}
-              className="bg-[#4950B1] text-white px-4 py-2.5 border border-[#FFFFFF1A] rounded-full"
+              className="bg-[#4950B1] text-white px-4 py-2.5 border border-[#FFFFFF1A] rounded-full text-center hover:bg-[#3d4295] transition-colors"
             >
               Donate now
             </button>

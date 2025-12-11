@@ -2,7 +2,6 @@
 
 import { Copy, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
 
 interface ReadValueCardProps {
   title: string;
@@ -50,7 +49,7 @@ export default function ReadValueCard({
               />
             )}
 
-            <p className="text-lg font-bold text-[#DFDFE0]">
+            <p className="text-base sm:text-lg font-bold text-[#DFDFE0] break-all">
               {value === null
                 ? "Loading..."
                 : typeof value === "number"

@@ -98,9 +98,9 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   }
 
   return (
-    <div className="space-y-10 mt-28 mb-16">
+    <div className="space-y-8 mb-10">
       {/* Filtering and Search Section */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between ">
+      <div className="flex flex-col lg:flex-row gap-4 items-center justify-between ">
         <div className="flex flex-col sm:flex-row gap-4 w-full">
           <div className="flex justify-between sm:justify-start items-center gap-2 sm:gap-4">
             <Select value={filter} onValueChange={setFilter}>

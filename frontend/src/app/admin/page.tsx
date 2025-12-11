@@ -10,18 +10,23 @@ import {
   useContractTokenBalances,
 } from "@/hooks/useAdminData";
 import {
+  useFundraisingActions,
+  useGroupAdminActions,
+} from "@/hooks/useAdminActions";
+import {
   TrendingUp,
   Users,
   Handshake,
   DollarSign,
   Settings,
-  Eye,
   Zap,
   Shield,
   Coins,
   Wallet,
+  Eye,
 } from "lucide-react";
 import Image from "next/image";
+// Correct path for image imports as per previous file content
 import gearIcon from "../../../public/Gear.svg";
 
 // Components
@@ -30,6 +35,7 @@ import ReadValueCard from "./components/ReadValueCard";
 import ContractInfoCard from "./components/ContractInfoCard";
 import PoolBalanceChecker from "./components/PoolBalanceChecker";
 import AdminActionsSection from "./components/AdminActionsSection";
+import toast from "react-hot-toast";
 
 type ActionConfig = {
   key: string;
@@ -51,6 +57,23 @@ export default function AdminPage() {
   // Fetch token balances for both contracts
   const crowdfundBalances = useContractTokenBalances(CROWDFUNDINGADDRESS);
   const paymeshBalances = useContractTokenBalances(PAYMESH_ADDRESS);
+
+  const {
+    upgrade,
+    setPlatformPercentage,
+    setSupportedToken,
+    upgradeChild,
+    setDonationToken,
+    setPlatformFeeToken,
+  } = useFundraisingActions();
+
+  const {
+    setGroupUsageFee,
+    setGroupUpdateFee,
+    setGroupSupportedToken,
+    groupUpgrade,
+    groupUpgradeChild,
+  } = useGroupAdminActions();
 
   const [actionStatus, setActionStatus] = useState<Record<string, string>>({});
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
@@ -152,20 +175,78 @@ export default function AdminPage() {
     []
   );
 
-  const handleExecute = (actionKey: string, value: string) => {
+  const handleExecute = async (actionKey: string, value: string) => {
     if (!value) {
       setActionStatus((prev) => ({
         ...prev,
         [actionKey]: "Please enter a value",
       }));
+      toast.error("kfd");
       return;
     }
 
-    // TODO: Wire to actual contract calls
-    setActionStatus((prev) => ({
-      ...prev,
-      [actionKey]: `Transaction queued for ${actionKey} with value: ${value}`,
-    }));
+    try {
+      setActionStatus((prev) => ({
+        ...prev,
+        [actionKey]: "Submitting...",
+      }));
+
+      let txHash = "";
+
+      // Manually mapping keys to new functions
+      switch (actionKey) {
+        // Fundraising
+        case "upgrade":
+          txHash = await upgrade(value);
+          break;
+        case "set_platform_percentage":
+          txHash = await setPlatformPercentage(value);
+          break;
+        case "set_supported_token":
+          txHash = await setSupportedToken(value);
+          break;
+        case "upgrade_child":
+          txHash = await upgradeChild(value);
+          break;
+        case "set_donation_token":
+          txHash = await setDonationToken(value);
+          break;
+        case "set_platform_fee_token":
+          txHash = await setPlatformFeeToken(value);
+          break;
+
+        // Groups
+        case "set_group_usage_fee":
+          txHash = await setGroupUsageFee(value);
+          break;
+        case "set_group_update_fee":
+          txHash = await setGroupUpdateFee(value);
+          break;
+        case "set_group_supported_token":
+          txHash = await setGroupSupportedToken(value);
+          break;
+        case "group_upgrade":
+          txHash = await groupUpgrade(value);
+          break;
+        case "group_upgrade_child":
+          txHash = await groupUpgradeChild(value);
+          break;
+
+        default:
+          throw new Error(`Unknown action: ${actionKey}`);
+      }
+
+      setActionStatus((prev) => ({
+        ...prev,
+        [actionKey]: `Submitted: ${txHash}`,
+      }));
+    } catch (error) {
+      setActionStatus((prev) => ({
+        ...prev,
+        [actionKey]:
+          error instanceof Error ? error.message : "Transaction failed",
+      }));
+    }
   };
 
   const copyToClipboard = (text: string, key: string) => {
@@ -180,7 +261,7 @@ export default function AdminPage() {
   const groupActions = actionConfigs.filter((a) => a.section === "group");
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-[#03040769] via-[#0a0e156a] to-[#0304075b] rounded-lg px-4 sm:px-8 md:px-14 lg:px-20 pb-16 pt-28">
+    <main className="min-h-screen bg-gradient-to-b from-[#03040745] via-[#0a0e153e] to-[#03040730] rounded-lg sm:px-8 md:px-14 lg:px-20 sm:pt-10">
       {/* Header */}
       <div className="mb-10">
         <div className="mb-6 flex items-center gap-3">
@@ -224,7 +305,7 @@ export default function AdminPage() {
             value={stats.totalPools}
             icon={<Handshake className="w-6 h-6 text-[#DFDFE0]" />}
             gradient="from-[#9BB4EE]/20 to-[#7a9dee]/10"
-            subtitle={`${stats.activePools} active, ${stats.completedPools} completed`}
+            subtitle={`${stats.activePools} active`}
           />
           <StatCard
             title="Total Groups for groups"

@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, CheckCircle2, Coins } from "lucide-react";
+import { Copy, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 
 interface ContractInfoCardProps {
@@ -47,7 +47,7 @@ export default function ContractInfoCard({
       </div>
 
       <div className="mt-4 space-y-2">
-        <div className="flex items-center justify-between rounded-lg bg-[#0c111c]/50 p-3 border border-[#232542]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg bg-[#0c111c]/50 p-3 border border-[#232542] gap-2 sm:gap-0">
           <div className="flex items-center gap-2">
             <Image
               src={"/usdcImg.png"}
@@ -66,7 +66,7 @@ export default function ContractInfoCard({
               : "Loading..."}
           </span>
         </div>
-        <div className="flex items-center justify-between rounded-lg bg-[#0c111c]/50 p-3 border border-[#232542]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg bg-[#0c111c]/50 p-3 border border-[#232542] gap-2 sm:gap-0">
           <div className="flex items-center gap-2">
             <Image
               src={"/strkImg.png"}

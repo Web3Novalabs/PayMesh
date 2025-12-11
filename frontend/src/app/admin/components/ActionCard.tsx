@@ -67,7 +67,9 @@ export default function ActionCard({
         )}
         <button
           onClick={handleExecute}
-          className="w-full rounded-lg bg-gradient-to-r from-[#4950B1] to-[#5961ce] py-2.5 font-semibold text-[#DFDFE0] transition-all hover:from-[#5961ce] hover:to-[#6b73e0] hover:shadow-lg hover:shadow-[#4950B1]/20 cursor-pointer"
+          className={`w-full rounded-lg bg-gradient-to-r from-[#4950B1] to-[#5961ce] py-2.5 font-semibold text-[#DFDFE0] transition-all hover:from-[#5961ce] hover:to-[#6b73e0] hover:shadow-lg hover:shadow-[#4950B1]/20 ${
+            actionStatus ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+          }`}
         >
           Execute Transaction
         </button>
