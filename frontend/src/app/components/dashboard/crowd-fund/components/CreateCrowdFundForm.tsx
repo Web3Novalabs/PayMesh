@@ -9,15 +9,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ShieldCheck } from "lucide-react";
 import { create_pool } from "@/hooks/blockchainWriteFunction";
-import { useAccount } from "@starknet-react/core";
 import toast from "react-hot-toast";
 import Loading from "../../../Loading";
 import QRcodeCrowdfund from "../../components/QRcodeCrowdfund";
 import { Textarea } from "@/components/ui/textarea";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { useGetBalance } from "@/utils/contract";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAccount } from "@starknet-react/core";
 
 export interface FormData {
   name: string;
@@ -41,6 +42,8 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const [poolAddress, setPoolAddress] = useState("");
   const [poolId, setPoolId] = useState<string>("");
+  const [isTermsAccepted, setIsTermsAccepted] = useState(false);
+  const [isFeeDetailOpen, setIsFeeDetailOpen] = useState(false);
   const { createdPool: allPools, refetchPools } = useGetAllPools();
   const balance = useGetBalance(address || "");
 
@@ -73,6 +76,25 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
     walletAddress: "",
   });
 
+  const feeHighlights = [
+    {
+      label: "Campaign launch",
+      description: "Deploying a new PayMesh crowdfunding pool on Starknet.",
+      amount: "4 STRK",
+    },
+    {
+      label: "Fundraise completion",
+      description: "Operational fee when you release a successful campaign.",
+      amount: "2% of total raised",
+    },
+    {
+      label: "Emergency withdraw",
+      description:
+        "Premature exit before the target is hit comes with added risk mitigation.",
+      amount: "4% recovery fee",
+    },
+  ];
+
   // Copy address to clipboard
   const copyToClipboard = async () => {
     try {
@@ -101,6 +123,11 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
 
     if (balance?.formatted && Number(balance.formatted) < 2) {
       toast.error(`Insufficient balance, Top Up!`);
+      return;
+    }
+
+    if (!isTermsAccepted) {
+      toast.error("Please review and accept the PayMesh fee terms to continue");
       return;
     }
 
@@ -134,6 +161,8 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
     setPoolAddress("");
     onSubmit();
     setCopySuccess(false);
+    setIsTermsAccepted(false);
+    setIsFeeDetailOpen(false);
   };
 
   const closeModal = () => {
@@ -256,12 +285,122 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
           </div>
         </div>
 
+        {/* Fee Terms Section */}
+        <div className="space-y-6 border-t border-[#FFFFFF0D] pt-10">
+          <div className="rounded-sm border border-[#1F2D40] bg-[radial-gradient(circle_at_top,_rgba(23,40,69,0.45),_rgba(8,13,23,0.92))] p-4 sm:p-6 shadow-[0_28px_60px_rgba(8,13,23,0.45)] space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+              <div>
+                <p className="text-[10px] sm:text-xs uppercase tracking-[0.35em] text-[#5C7A9F] font-semibold">
+                  Fee Transparency
+                </p>
+                <h3 className="mt-1 text-lg sm:text-xl text-[#E2E2E2] font-semibold">
+                  Understand the cost of launching your raise
+                </h3>
+                <p className="mt-2 text-xs sm:text-sm text-[#9BB0C6] leading-relaxed">
+                  PayMesh automates custody, payouts, and compliance. These
+                  fixed fees keep your backers protected and your operations
+                  audit-ready.
+                </p>
+              </div>
+              <div className="flex flex-col sm:items-end gap-2">
+                <div className="flex items-center gap-2 rounded-full border border-[#27405C] bg-[#142033] px-4 py-2">
+                  <ShieldCheck className="h-4 w-4 text-[#6EE7B7]" />
+                  <span className="text-xs sm:text-sm text-[#B7C4D4]">
+                    Fixed & auditable
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsFeeDetailOpen((prev) => !prev)}
+                  className="flex items-center gap-2 text-xs sm:text-sm text-[#7EA6D6] transition-colors hover:text-[#E2E2E2]"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  {isFeeDetailOpen ? "Hide fine print" : "Why these fees?"}
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              {feeHighlights.map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-sm border border-[#203049] bg-[#141E2D] p-3 sm:p-4 backdrop-blur-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-[#5C7A9F] font-semibold">
+                        {item.label}
+                      </span>
+                      <p className="mt-2 text-xs sm:text-sm text-[#9BB0C6] leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
+                    <span className="text-sm sm:text-base text-[#E2E2E2] font-semibold whitespace-nowrap">
+                      {item.amount}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {isFeeDetailOpen && (
+              <div className="space-y-3 border-t border-[#1D2B40] pt-4 text-xs sm:text-sm text-[#93ABC7] leading-relaxed">
+                <p>
+                  Launching a campaign spins up a Starknet contract dedicated to
+                  your raise. A flat 4 STRK creation fee covers deployment,
+                  monitoring, and audit-ready reporting.
+                </p>
+                <p>
+                  Each contribution top-up processes via the same
+                  infrastructure, so a 4 STRK service fee applies per
+                  transaction. When you release funds after hitting your target,
+                  PayMesh withholds 2% to maintain infrastructure, risk
+                  oversight, and payout automation.
+                </p>
+                <p>
+                  Emergency withdrawals disrupt liquidity and protection
+                  guarantees. The 6% recovery fee combines the platform&apos;s
+                  standard 4% charge with a 2% volatility buffer.
+                </p>
+              </div>
+            )}
+
+            <p className="text-[11px] sm:text-xs text-[#7489A5]">
+              By proceeding, you authorize PayMesh to apply these fees to this
+              campaign, associated top-ups, and any emergency withdrawals linked
+              to it.
+            </p>
+          </div>
+
+          <div className="bg-[#FFFFFF0D] p-3 sm:p-4 rounded-sm border border-[#FFFFFF0D]">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <span className="w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-[#434672] to-[#755a5a] cursor-pointer rounded-full flex items-center justify-center">
+                <Checkbox
+                  checked={isTermsAccepted}
+                  onCheckedChange={(checked) =>
+                    setIsTermsAccepted(checked as boolean)
+                  }
+                  className="!rounded-full h-4 w-4 sm:h-5 sm:w-5 cursor-pointer"
+                />
+              </span>
+              <span className="text-[#E2E2E2] text-sm sm:text-base">
+                I have reviewed the PayMesh crowdfunding fees above and approve
+                the associated deductions.
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Submit Button */}
         <div className="pt-3 pb-10 md:pb-20">
           <button
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isTermsAccepted}
             type="submit"
-            className="w-full sm:w-auto px-5 py-4 bg-gradient-to-r from-[#434672] to-[#755a5a] text-white font-semibold rounded-sm hover:opacity-90 transition-opacity duration-200 cursor-pointer flex items-center justify-center gap-2"
+            className={`w-full sm:w-auto px-5 py-4 bg-gradient-to-r from-[#434672] to-[#755a5a] text-white font-semibold rounded-sm flex items-center justify-center gap-2 transition-opacity duration-200 ${
+              isSubmitting || !isTermsAccepted
+                ? "opacity-60 cursor-not-allowed"
+                : "hover:opacity-90 cursor-pointer"
+            }`}
           >
             <span className="text-2xl font-bold">+</span>
             {isSubmitting ? "creating pool....." : "Create Crowd Funding"}

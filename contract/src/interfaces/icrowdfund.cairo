@@ -20,6 +20,8 @@ pub trait ICrowdFund<TContractState> {
     fn get_all_pools(self: @TContractState) -> Array<Pool>;
     // get a specific pool by pool id
     fn get_pool(self: @TContractState, pool_id: u256) -> Pool;
+    // get a specific pool by pool address
+    fn get_pool_by_address(self: @TContractState, pool_address: ContractAddress) -> Pool;
     // paymesh to a pool beneficiary and donate to a pool
     fn paymesh_donate(ref self: TContractState, pool_address: ContractAddress, amount: u256);
     //  get a specific crowd funding donation count
@@ -31,6 +33,7 @@ pub trait ICrowdFund<TContractState> {
     fn get_pool_target(self: @TContractState, pool_id: u256) -> u256;
     //get pool creating fee
     fn get_pool_creation_fee(self: @TContractState) -> u256;
+    fn set_pool_creation_fee(ref self: TContractState, fee: u256);
     // check if a pool is completed by pool id
     fn is_pool_completed(self: @TContractState, pool_id: u256) -> bool;
     // set the platform percentage
@@ -46,5 +49,8 @@ pub trait ICrowdFund<TContractState> {
     fn get_donation_token(self: @TContractState) -> ContractAddress;
     fn set_donation_token(ref self: TContractState, new_donation_token: ContractAddress);
     fn set_platform_fee_token(ref self: TContractState, token: ContractAddress);
+    fn get_platform_fee_token(self: @TContractState) -> ContractAddress;
     fn withdraw(ref self: TContractState);
+    fn set_auto_swapping_address(ref self: TContractState, auto_swappr: ContractAddress);
+    fn get_auto_swapping_address(self: @TContractState) -> ContractAddress;
 }

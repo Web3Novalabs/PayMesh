@@ -16,7 +16,7 @@ import group4icon from "../../../../../../public/Handshake.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
-import { pool, UsdcBalanceProps } from "@/types/usdcDataApi";
+import { pool } from "@/types/usdcDataApi";
 import { compareAddresses } from "@/utils/contract";
 
 interface CrowdFundDashboardProps {

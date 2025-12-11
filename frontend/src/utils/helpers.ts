@@ -1,4 +1,4 @@
-import { CreateGroupFormData, GroupMemberShare, Member } from "@/types/group";
+import { CreateGroupFormData, GroupMemberShare } from "@/types/group";
 import { RefObject } from "react";
 import { checkAddressNetwork } from "./contract";
 
