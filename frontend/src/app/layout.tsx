@@ -103,7 +103,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`bg-no-repeat bg-fixed bg h-full bg-cover max-w-sit-screen mx-auto py-7 ${dmSans.variable} ${anton.variable} ${geistSans.variable} ${geistMono.variable} antialiased font-dmsans`}
+        className={`bg-no-repeat bg-fixed bg h-full bg-cover py-7 ${dmSans.variable} ${anton.variable} ${geistSans.variable} ${geistMono.variable} antialiased font-dmsans`}
         suppressHydrationWarning={true}
         style={{
           backgroundImage: `url(${bg.src})`,
@@ -111,7 +111,7 @@ export default function RootLayout({
       >
         <StarknetProvider>
           <Nav />
-          <main className="mt-28 px-5">{children}</main>
+          <main className="mt-28 ">{children}</main>
           <Analytics />
           <Toaster
             position="top-right"

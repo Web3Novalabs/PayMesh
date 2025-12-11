@@ -83,7 +83,7 @@ export default function Page() {
   }
 
   return (
-    <section className="w-full flex flex-col gap-10 min-h-[75vh]">
+    <section className="w-full flex flex-col gap-10 min-h-[75vh] max-w-sit-screen px-5 mx-auto">
       <div className="flex justify-between flex-wrap items-center w-full  gap-4">
         <div className="flex justify-between items-center gap-4 w-full sm:w-fit">
           <div

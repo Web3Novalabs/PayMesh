@@ -225,7 +225,7 @@ export default function Page() {
   }
 
   return (
-    <section className="xl:grid text-text-white md:grid-cols-[1fr_2fr] border border-moon-blue rounded-[8px] bg-card-bg items-start min-h-[750px]">
+    <section className="xl:grid text-text-white md:grid-cols-[1fr_2fr] border border-moon-blue rounded-[8px] bg-card-bg items-start min-h-[750px] max-w-sit-screen px-5 mx-auto">
       <Sidebar />
       <div className="p-5 md:p-10 text-text-white border-t md:border-t-0 md:border-l border-moon-blue text-[18px] grid gap-28 h-full">
         <Content

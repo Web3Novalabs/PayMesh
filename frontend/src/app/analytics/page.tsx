@@ -74,7 +74,7 @@ export default function Page() {
 
   return (
     <WalletGuard>
-      <section className="w-full min-h-screen py-8">
+      <section className="w-full min-h-screen py-8 max-w-sit-screen px-5 mx-auto">
         <div className="container mx-auto px-4">
           <AnalyticsChart data={chartData} />
         </div>

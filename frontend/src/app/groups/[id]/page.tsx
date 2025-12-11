@@ -110,7 +110,7 @@ export default function GroupDetail() {
     );
   }
   return (
-    <div className=" my-16">
+    <div className=" my-16 max-w-sit-screen px-5 mx-auto">
       <button
         onClick={() => {
           router.back();

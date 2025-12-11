@@ -261,7 +261,7 @@ export default function AdminPage() {
   const groupActions = actionConfigs.filter((a) => a.section === "group");
 
   return (
-    <main className="min-h-screen bg-[#13121241] rounded-lg sm:px-8 md:px-14 lg:px-20 pt-10 pb-2 ">
+    <main className="min-h-screen bg-[#13121241] rounded-lg sm:px-8 md:px-14 lg:px-20 pt-10 pb-2 max-w-sit-screen px-5 mx-auto">
       {/* Header */}
       <div className="mb-10">
         <div className="mb-6 flex items-center gap-3">

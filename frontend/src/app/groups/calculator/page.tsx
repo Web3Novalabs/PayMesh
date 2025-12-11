@@ -43,7 +43,7 @@ export default function TokenCalculator() {
     total > 0 ? ((remaining / total) * 100).toFixed(2) : 0;
 
   return (
-    <section className="xl:grid text-text-white md:grid-cols-[1fr_2fr] border border-moon-blue rounded-[8px] bg-card-bg items-start min-h-[750px]">
+    <section className="xl:grid text-text-white md:grid-cols-[1fr_2fr] border border-moon-blue rounded-[8px] bg-card-bg items-start min-h-[750px] max-w-sit-screen px-5 mx-auto">
       <div className="p-5 md:p-10 grid gap-10">
         <button
           onClick={() => {

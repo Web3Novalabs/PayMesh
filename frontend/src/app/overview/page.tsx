@@ -18,7 +18,7 @@ export default function Page() {
   }
 
   return (
-    <section className="w-full flex flex-col gap-10 min-h-[75vh]">
+    <section className="w-full flex flex-col gap-10 min-h-[75vh] max-w-sit-screen px-5 mx-auto">
       <div className="flex items-center justify-center -mt-8 sm:mt-0">
         <Image src={coins} alt="coins" priority />
       </div>

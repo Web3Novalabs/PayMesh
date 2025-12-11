@@ -155,7 +155,7 @@ const FundraiseDetails = () => {
   };
 
   return (
-    <div className="space-y-6 my-16">
+    <div className="space-y-6 my-16 max-w-sit-screen px-5 mx-auto">
       {fetchFundraiseDetails?.crowd_funding?.is_complete && (
         <CampaignCompleted
           amountRaised={amountRaised}

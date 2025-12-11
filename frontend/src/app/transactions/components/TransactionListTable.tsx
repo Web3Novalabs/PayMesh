@@ -40,7 +40,9 @@ const TransactionListTable = ({ transactions }: TransactionListTableProps) => {
         <div className="grid grid-cols-7 gap-4 p-5 font-medium text-[#8398AD]  uppercase tracking-wider border-b border-[#232542] text-sm">
           <div className="col-span-1">Group Name</div>
           <div className="col-span-1">Group Address</div>
-          <div className="col-span-1">Total Amount</div>
+          <div className="col-span-1">
+            Total Amount <br /> <span className="text-[10px] text-center">(usdc + usdt)</span>
+          </div>
           <div className="col-span-1">Amount Breakdown</div>
           <div className="col-span-1 text-center">Members</div>
           <div className="col-span-1 text-right">Time</div>
