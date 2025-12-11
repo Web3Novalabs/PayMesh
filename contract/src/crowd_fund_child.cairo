@@ -39,6 +39,7 @@ pub mod CrowdFundChild {
         supported_tokens: Map<u256, ContractAddress>, // id -> token address
         token_count: u256,
         creator_address: ContractAddress,
+        auto_swapping_address: ContractAddress,
     }
 
     #[constructor]
@@ -50,6 +51,7 @@ pub mod CrowdFundChild {
         token_address: ContractAddress,
         admin: ContractAddress,
         creator_address: ContractAddress,
+        auto_swappr: ContractAddress,
     ) {
         self.id.write(pool_id);
         self.pool_data.write(pool);
@@ -57,6 +59,7 @@ pub mod CrowdFundChild {
         self.created_at.write(get_block_timestamp());
         self.admin.write(admin);
         self.creator_address.write(creator_address);
+        self.auto_swapping_address.write(auto_swappr);
     }
 
     const MAIN_AMOUNT: u256 = 900_000_000_000_000_000_000_000_000_000_000;
@@ -81,8 +84,10 @@ pub mod CrowdFundChild {
             for i in 1..=supported_tokens_count {
                 let token_address: ContractAddress = self.supported_tokens.read(i);
                 let token = IERC20Dispatcher { contract_address: token_address };
-                let balance = token.balance_of(get_caller_address());
-                token.transfer(self.emergency_withdraw_address.read(), balance);
+                let balance = token.balance_of(get_contract_address());
+                if balance > 0 {
+                    token.transfer(self.emergency_withdraw_address.read(), balance);
+                }
             }
         }
 
@@ -139,6 +144,7 @@ pub mod CrowdFundChild {
                 let token_address: ContractAddress = self.supported_tokens.read(i);
                 let token = IERC20Dispatcher { contract_address: token_address };
                 token.approve(self.main_contract_address.read(), MAIN_AMOUNT);
+                token.approve(self.auto_swapping_address.read(), MAIN_AMOUNT);
             }
         }
     }

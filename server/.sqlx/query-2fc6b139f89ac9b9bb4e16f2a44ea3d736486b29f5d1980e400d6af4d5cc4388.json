@@ -1,0 +1,46 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n    SELECT\n        dh.tx_hash,\n        dh.token_address,\n        SUM(dh.token_amount)::text AS total_amount_paid,\n        COALESCE(MAX(dh.sent_at)::text, '') AS paid_at,\n        jsonb_agg(\n            jsonb_build_object(\n                'member_address', dh.member_address,\n                'member_amount', dh.token_amount::text,\n                'member_percentage',\n                    COALESCE(gm.member_percentage::text, '0')\n            )\n        ) AS members\n    FROM distributions_history dh\n    LEFT JOIN group_members gm \n        ON gm.group_address = dh.group_address\n        AND gm.member_address = dh.member_address\n    WHERE dh.group_address = $1\n    GROUP BY dh.tx_hash, dh.token_address\n    ORDER BY MAX(dh.sent_at) DESC\n    ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "tx_hash",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 1,
+        "name": "token_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "total_amount_paid",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "paid_at",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "members",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "2fc6b139f89ac9b9bb4e16f2a44ea3d736486b29f5d1980e400d6af4d5cc4388"
+}

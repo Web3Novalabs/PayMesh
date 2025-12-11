@@ -19,9 +19,12 @@ import { CROWDFUNDINGADDRESS, donate } from "@/hooks/blockchainWriteFunction";
 import { toast } from "react-hot-toast";
 import { getTwitterShareUrl } from "@/utils/shareUtils";
 import QRCode from "react-qr-code";
-import { CallData, PaymasterDetails } from "starknet";
+import { CallData } from "starknet";
 import { myProvider, ONE_STK, normalizeAddress } from "@/utils/contract";
 import { copyToClipboard, truncateAddress } from "@/lib/utils";
+
+const USDC_TOKEN_ADDRESS =
+  "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 
 interface UsdcBalanceProps {
   crowd_funding: {
@@ -204,7 +207,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                 />
                 <span className="text-[#DFDFE0]">Public donation</span>
               </label>
-              {/* <label className="flex items-center space-x-3 cursor-pointer">
+              <label className="flex items-center space-x-3 cursor-pointer">
                 <input
                   type="radio"
                   name="privacy"
@@ -213,7 +216,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                   className="w-4 h-4 text-[#434672] bg-[#FFFFFF0D] border-[#FFFFFF0D] focus:ring-[#434672]"
                 />
                 <span className="text-[#DFDFE0]">Anonymous donation</span>
-              </label> */}
+              </label>
             </div>
 
             {/* Anonymous donation requirement notice */}
@@ -299,7 +302,7 @@ const FundingDetailsPage = () => {
       }
 
       const data = await response.json();
-      // console.log("USDC BALANCE: ", data);
+      console.log("USDC BALANCE: ", data);
       setUsdcBalance(data);
     } catch (error) {
       console.error("Error fetching USDC balance:", error);
@@ -314,8 +317,14 @@ const FundingDetailsPage = () => {
     ? formatAmountUsdc(usdcBalance.crowd_funding.target_amount)
     : "0.00";
 
-  const amountRaised = usdcBalance?.token_history?.[0]?.balance
-    ? formatAmountUsdc(usdcBalance.token_history[0].balance)
+  const usdcTokenBalance = usdcBalance?.token_history?.find((token) =>
+    token.token_address
+      ? token.token_address.toLowerCase() === USDC_TOKEN_ADDRESS.toLowerCase()
+      : false
+  );
+
+  const amountRaised = usdcTokenBalance?.balance
+    ? formatAmountUsdc(usdcTokenBalance.balance)
     : "0.00";
 
   useEffect(() => {
@@ -491,7 +500,10 @@ Every contribution counts — let's build something amazing together! 💫
                   {/* {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
                     2
                   )}{" "} */}
-                  {targetAmount} USDC
+                  {formatAmountUsdc(
+                    usdcBalance?.token_history?.[0]?.balance as string
+                  )}{" "}
+                  USDC
                 </span>
               </div>
               <div className="flex justify-between items-center text-sm mt-2">
@@ -626,6 +638,18 @@ Every contribution counts — let's build something amazing together! 💫
               </div>
 
               <div className="space-y-2">
+                <h2 className="text-white font-extrabold text-xl">
+                  {usdcBalance?.crowd_funding.is_complete
+                    ? 100
+                    : Math.min(
+                        (Number.parseFloat(pool.balance.toString()) /
+                          1e18 /
+                          Number.parseFloat(pool.target.toString())) *
+                          100,
+                        100
+                      ).toFixed(2)}
+                  %
+                </h2>{" "}
                 <div className="w-full bg-[#282e38] rounded-full h-2.5">
                   <div
                     className={`bg-blue-600 h-2.5 rounded-full transition-all duration-300`}

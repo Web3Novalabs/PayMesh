@@ -84,6 +84,7 @@ pub mod CrowdFund {
         platform_percentage: u256,
         pool_balance: Map<ContractAddress, Token>,
         fee_token: ContractAddress,
+        auto_swapping_address: ContractAddress,
     }
 
     #[event]
@@ -186,6 +187,7 @@ pub mod CrowdFund {
                 self.token_address.read(),
                 self.ownable.owner(),
                 get_caller_address(),
+                self.auto_swapping_address.read(),
             )
                 .serialize(ref constructor_calldata);
 
@@ -247,7 +249,21 @@ pub mod CrowdFund {
         fn get_pool_creation_fee(self: @ContractState) -> u256 {
             self.pool_usage_fee.read()
         }
+        fn set_pool_creation_fee(ref self: ContractState, fee: u256) {
+            let caller = get_caller_address();
+            let is_admin = self.accesscontrol.has_role(ADMIN_ROLE, caller);
+            assert(is_admin, 'caller not admin or EMG admin');
+            self.pool_usage_fee.write(fee)
+        }
         fn get_pool(self: @ContractState, pool_id: u256) -> Pool {
+            let mut pool: Pool = self.pools.read(pool_id);
+            let balance = self.get_pool_balance(pool.pool_address);
+            pool.balance = balance;
+            pool
+        }
+
+        fn get_pool_by_address(self: @ContractState, pool_address: ContractAddress) -> Pool {
+            let pool_id: u256 = self.pool_addresses_map.read(pool_address);
             let mut pool: Pool = self.pools.read(pool_id);
             let balance = self.get_pool_balance(pool.pool_address);
             pool.balance = balance;
@@ -314,6 +330,18 @@ pub mod CrowdFund {
 
         fn get_platform_percentage(self: @ContractState) -> u256 {
             self.platform_percentage.read()
+        }
+        fn get_platform_fee_token(self: @ContractState) -> ContractAddress {
+            self.fee_token.read()
+        }
+        fn get_auto_swapping_address(self: @ContractState) -> ContractAddress {
+            self.auto_swapping_address.read()
+        }
+        fn set_auto_swapping_address(ref self: ContractState, auto_swappr: ContractAddress) {
+            let caller = get_caller_address();
+            let caller = self.accesscontrol.has_role(ADMIN_ROLE, caller);
+            assert(caller, 'Unauthorize caller');
+            self.auto_swapping_address.write(auto_swappr);
         }
         fn set_donation_token(ref self: ContractState, new_donation_token: ContractAddress) {
             let caller = get_caller_address();

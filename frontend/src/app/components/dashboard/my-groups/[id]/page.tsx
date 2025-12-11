@@ -12,6 +12,7 @@ import {
   LucideUsers,
   Search,
   ListPlus,
+  FileDown,
 } from "lucide-react";
 import { Sofia_Sans } from "next/font/google";
 import { Group } from "@/types/group";
@@ -39,6 +40,9 @@ import { useGetBalance } from "@/utils/contract";
 import { useGroupActions } from "@/hooks/useGroupActions";
 import { normalizeAddress } from "@/utils/contract";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
+import toast from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
+import { generateGroupHistoryPDF } from "@/utils/pdfGenerator";
 
 const GroupDetailsPage = () => {
   const params = useParams();
@@ -86,6 +90,7 @@ const GroupDetailsPage = () => {
       ? (currentGroup?.groupAddress as `0x${string}`)
       : ("0x0" as `0x${string}`),
   });
+
   const { data: usdtBalance } = useBalance({
     token:
       "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8" as `0x${string}`,
@@ -93,6 +98,7 @@ const GroupDetailsPage = () => {
       ? (currentGroup?.groupAddress as `0x${string}`)
       : ("0x0" as `0x${string}`),
   });
+
   const { data: ethBalance } = useBalance({
     token:
       "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7" as `0x${string}`,
@@ -100,6 +106,11 @@ const GroupDetailsPage = () => {
       ? (currentGroup?.groupAddress as `0x${string}`)
       : ("0x0" as `0x${string}`),
   });
+
+  // console.log("usdcBalance", usdcBalance);
+  // console.log("usdtBalance", usdtBalance);
+  // console.log("ethBalance", ethBalance);
+
   // Force refresh when params.id changes
   useEffect(() => {
     if (params.id && transaction) {
@@ -232,7 +243,18 @@ const GroupDetailsPage = () => {
           <span className="">Back to Groups</span>
         </button>
 
-        <div className="flex items-center gap-2"></div>
+        <div className="flex gap-3">
+          {/* {fetchedGroup?.history && fetchedGroup.history.length > 0 && (
+            <button
+              onClick={handleDownloadHistory}
+              disabled={isPdfLoading}
+              className="flex items-center gap-2 bg-[#1E2032] hover:bg-[#2A2D45] text-white px-4 py-2 rounded-lg transition-colors border border-[#2A2D45]"
+            >
+              <FileDown className="w-4 h-4" />
+              <span>{isPdfLoading ? "Loading..." : "History"}</span>
+            </button>
+          )} */}
+        </div>
       </div>
 
       {/* Members Table */}

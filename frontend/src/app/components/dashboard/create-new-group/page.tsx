@@ -39,7 +39,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import group4icon from "../../../../../public/UsersFour.svg";
 import QRcode from "../../QRcode";
 import Loading from "../../Loading";
-import { Trash2 } from "lucide-react";
+import { Trash2, ShieldCheck, AlertTriangle } from "lucide-react";
 import { useContractFetch } from "@/hooks/useContractInteraction";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
 import WalletConnect from "@/app/components/WalletConnect";
@@ -101,11 +101,25 @@ const CreateNewGroup = () => {
   const [isCheckboxChecked, setIsCheckboxChecked] = useState(false);
   const [creationFee, setCreationFee] = useState<null | number>(null);
   const [isPageLoading, setIsPageLoading] = useState(true);
+  const [isFeeDetailOpen, setIsFeeDetailOpen] = useState(false);
 
   const [resultHash, setResultHash] = useState("");
   const [hasProcessedTransaction, setHasProcessedTransaction] = useState(false);
   const { address } = useAccount();
   const balance = useGetBalance(address || "0x0");
+
+  const feeHighlights = [
+    {
+      label: "Group launch",
+      description: "Creating a new group on Starknet.",
+      amount: "4 STRK",
+    },
+    {
+      label: "Group top-up",
+      description: "Adds 1 usage for each top-up.",
+      amount: "4 STRK / top-up",
+    },
+  ];
 
   // Function to validate a single address
   const validateAddress = async (address: string, index: number) => {
@@ -279,7 +293,13 @@ const CreateNewGroup = () => {
     }
     return false; // No duplicates
   };
-
+  console.log(
+    {
+      b: Number(balance?.formatted),
+      el: (+formData.usage * (ONE_STK * 4)) / 10 ** 18,
+    },
+    Number(balance?.formatted) < (+formData.usage * (ONE_STK * 4)) / 10 ** 18
+  );
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -308,7 +328,7 @@ const CreateNewGroup = () => {
     }
 
     if (!isCheckboxChecked) {
-      toast.error("Please accept the terms by checking the checkbox");
+      toast.error("Please review and accept the PayMesh fee terms to continue");
       return;
     }
 
@@ -317,7 +337,10 @@ const CreateNewGroup = () => {
       return;
     }
 
-    if (balance?.formatted && Number(balance.formatted) < +formData.usage) {
+    if (
+      balance?.formatted &&
+      Number(balance.formatted) < (+formData.usage * (ONE_STK * 4)) / 10 ** 18
+    ) {
       toast.error(`Insufficient balance, Top Up!`);
       return;
     }
@@ -357,7 +380,7 @@ const CreateNewGroup = () => {
           entrypoint: "approve",
           calldata: [
             PAYMESH_ADDRESS, // spender
-            cairo.uint256(+formData?.usage * ONE_STK),
+            cairo.uint256(+formData?.usage * (ONE_STK * 4)),
             // "1000000000000000000",
             // "0"
           ],
@@ -854,7 +877,7 @@ const CreateNewGroup = () => {
                 Cost per use:
               </h3>
               <p className="text-[#E2E2E2] text-base sm:text-base font-bold">
-                {creationFee ? creationFee.toFixed(2) : "1"} STRK
+                {creationFee ? creationFee.toFixed(2) : "4"} STRK
               </p>
             </div>
 
@@ -872,8 +895,7 @@ const CreateNewGroup = () => {
                 Total cost:
               </h3>
               <p className="text-[#E2E2E2] text-base sm:text-lg font-bold">
-                STRK
-                {Number(Number(formData.usage)).toFixed(2)}
+                {Number(Number(formData.usage) * 4).toFixed(2)} STRK
               </p>
             </div>
           </div>
@@ -941,6 +963,90 @@ const CreateNewGroup = () => {
           Confirmation
         </h2>
 
+        {/* Fee Terms */}
+        <div className="rounded-sm border border-[#1F2D40] bg-[radial-gradient(circle_at_top,_rgba(23,40,69,0.45),_rgba(8,13,23,0.92))] p-4 sm:p-6 shadow-[0_28px_60px_rgba(8,13,23,0.45)]">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div>
+              <p className="text-[10px] sm:text-xs uppercase tracking-[0.35em] text-[#5C7A9F] font-semibold">
+                Fee Transparency
+              </p>
+              <h3 className="mt-1 text-lg sm:text-xl text-[#E2E2E2] font-semibold">
+                Review PayMesh charges before you launch
+              </h3>
+              <p className="mt-2 text-xs sm:text-sm text-[#9BB0C6] leading-relaxed">
+                Every major treasury action triggers a predictable fee so we can
+                keep your pooled assets compliant, audited, and instantly
+                available.
+              </p>
+            </div>
+            <div className="flex flex-col sm:items-end gap-2">
+              <div className="flex items-center gap-2 rounded-full border border-[#27405C] bg-[#142033] px-4 py-2">
+                <ShieldCheck className="h-4 w-4 text-[#6EE7B7]" />
+                <span className="text-xs sm:text-sm text-[#B7C4D4]">
+                  Fixed & auditable
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFeeDetailOpen((prev) => !prev)}
+                className="flex items-center gap-2 text-xs sm:text-sm text-[#7EA6D6] transition-colors hover:text-[#E2E2E2]"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                {isFeeDetailOpen ? "Hide fine print" : "Why these fees?"}
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            {feeHighlights.map((item) => (
+              <div
+                key={item.label}
+                className="rounded-sm border border-[#203049] bg-[#141E2D] p-3 sm:p-4 backdrop-blur-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="text-[10px] sm:text-xs uppercase tracking-[0.2em] text-[#5C7A9F] font-semibold">
+                      {item.label}
+                    </span>
+                    <p className="mt-2 text-xs sm:text-sm text-[#9BB0C6] leading-relaxed">
+                      {item.description}
+                    </p>
+                  </div>
+                  <span className="text-sm sm:text-base text-[#E2E2E2] font-semibold whitespace-nowrap">
+                    {item.amount}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {isFeeDetailOpen && (
+            <div className="mt-6 space-y-3 border-t border-[#1D2B40] pt-4 text-xs sm:text-sm text-[#93ABC7] leading-relaxed">
+              <p>
+                PayMesh settles smart-contract operations instantly and deducts
+                the STRK fees at source. Fundraisers that close successfully
+                route 98% of collected funds to your vault, while 2% fuels
+                platform governance, audits, and automated reporting.
+              </p>
+              <p>
+                Emergency withdrawals are a break-glass option. Leaving a
+                campaign early fractures pooled liquidity, so a 6% recovery fee
+                applies—the standard 4% service charge plus an added 2%
+                volatility buffer.
+              </p>
+              <p>
+                STRK fees are debited automatically from your connected wallet
+                the moment each action is confirmed on Starknet.
+              </p>
+            </div>
+          )}
+
+          <p className="mt-4 text-[11px] sm:text-xs text-[#7489A5]">
+            By continuing, you authorize PayMesh to apply the above schedule to
+            this group and any fundraising campaigns you initiate.
+          </p>
+        </div>
+
         {/* Checkbox */}
         <div className="bg-[#FFFFFF0D] p-3 sm:p-4 rounded-sm border border-[#FFFFFF0D] mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -954,8 +1060,8 @@ const CreateNewGroup = () => {
               />
             </span>
             <span className="text-[#E2E2E2] text-sm sm:text-base">
-              By checking I accept the creation fee and confirm members and
-              percentages are correct.
+              I have reviewed the PayMesh fee terms above and authorize the
+              associated deductions for this group.
             </span>
           </div>
         </div>
