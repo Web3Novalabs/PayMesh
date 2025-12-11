@@ -19,4 +19,8 @@ export const route = [
     label: "Profile Analytics",
     url: "/analytics",
   },
+  {
+    label: "Admin",
+    url: "/admin",
+  },
 ];
