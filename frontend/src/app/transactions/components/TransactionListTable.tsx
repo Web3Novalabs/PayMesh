@@ -1,11 +1,13 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 interface TransactionBreakdown {
   token: string;
   amount: string;
   iconColor: string;
+  icon: string;
 }
 
 interface TransactionItem {
@@ -62,23 +64,28 @@ const TransactionListTable = ({ transactions }: TransactionListTableProps) => {
               </div>
 
               {/* Breakdown with Tooltip */}
-              <div className="col-span-1 relative group">
-                <div className="flex items-center -space-x-1.5 cursor-pointer">
-                  {tx.breakdown.slice(0, 4).map((item, i) => (
-                    <div
-                      key={i}
-                      className="w-6 h-6 rounded-full border-2 border-[#13141C] flex items-center justify-center text-[8px] font-bold text-white shadow-sm"
-                      style={{ backgroundColor: item.iconColor }}
-                    >
-                      {item.token[0]}
-                    </div>
-                  ))}
-                  {tx.breakdown.length > 4 && (
-                    <div className="w-6 h-6 rounded-full border-2 border-[#13141C] bg-[#2A2D3D] flex items-center justify-center text-[9px] text-gray-300 font-medium">
-                      +{tx.breakdown.length - 4}
-                    </div>
-                  )}
-                </div>
+              <div className="col-span-1 relative group flex">
+                {tx.breakdown.slice(0, 4).map((item, i) => (
+                  <div
+                    key={i}
+                    className="relative w-7 h-7 rounded-full border-2 border-[#13141C] overflow-hidden shadow-sm -ml-1 first:ml-0 ring-2 ring-[#0F111A] flex"
+                    title={item.token}
+                  >
+                    <Image
+                      src={item.icon}
+                      alt={item.token}
+                      width={28}
+                      height={28}
+                      className="w-full h-full object-cover rounded-full"
+                      unoptimized
+                    />
+                  </div>
+                ))}
+                {tx.breakdown.length > 4 && (
+                  <div className="w-7 h-7 rounded-full border-2 border-[#13141C] bg-[#2A2D3D] flex items-center justify-center text-[9px] text-gray-300 font-medium shadow-sm -ml-1 ring-2 ring-[#0F111A]">
+                    +{tx.breakdown.length - 4}
+                  </div>
+                )}
 
                 {/* Tooltip Content */}
                 <div className="absolute left-0 bottom-full mb-2 w-48 rounded-lg bg-[#1F2133]/80 backdrop-blur-[590px] p-3 shadow-xl border border-[#232542] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 transform translate-y-1 group-hover:translate-y-0">
@@ -92,10 +99,18 @@ const TransactionListTable = ({ transactions }: TransactionListTableProps) => {
                         className="flex items-center justify-between text-xs"
                       >
                         <div className="flex items-center gap-1.5">
-                          <div
+                          {/* <div
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: item.iconColor }}
+                          /> */}
+                          <Image
+                            src={item.icon}
+                            alt={item.token}
+                            width={16}
+                            height={16}
+                            className="rounded-full"
                           />
+
                           <span className="text-gray-300">{item.token}</span>
                         </div>
                         <span className="text-white font-mono">
