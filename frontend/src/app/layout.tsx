@@ -111,7 +111,7 @@ export default function RootLayout({
       >
         <StarknetProvider>
           <Nav />
-          <main className="mt-32 px-5">{children}</main>
+          <main className="mt-28 px-5">{children}</main>
           <Analytics />
           <Toaster
             position="top-right"

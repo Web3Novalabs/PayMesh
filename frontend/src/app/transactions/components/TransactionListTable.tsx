@@ -37,7 +37,7 @@ const TransactionListTable = ({ transactions }: TransactionListTableProps) => {
   return (
     <div className="w-full overflow-x-auto rounded-[8px] border font-dmsans border-[#232542]">
       <div className="min-w-[900px]">
-        <div className="grid grid-cols-7 gap-4 p-5 font-medium text-[#8398AD]  uppercase tracking-wider border-b border-[#232542] text-base">
+        <div className="grid grid-cols-7 gap-4 p-5 font-medium text-[#8398AD]  uppercase tracking-wider border-b border-[#232542] text-sm">
           <div className="col-span-1">Group Name</div>
           <div className="col-span-1">Group Address</div>
           <div className="col-span-1">Total Amount</div>

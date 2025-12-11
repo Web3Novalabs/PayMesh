@@ -292,7 +292,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 
       {/* Pagination */}
       {reversedFundings && reversedFundings.length > 0 && (
-        <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-16">
+        <div className="mt-10 mx-auto items-center flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
           <div className="text-sm text-[#E2E2E2]">
             Showing {startIndex + 1} to{" "}
             {Math.min(endIndex, reversedFundings?.length || 0)} of{" "}
