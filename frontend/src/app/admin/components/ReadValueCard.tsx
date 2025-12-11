@@ -1,6 +1,7 @@
 "use client";
 
 import { Copy, CheckCircle2 } from "lucide-react";
+import Image from "next/image";
 import { useState } from "react";
 
 interface ReadValueCardProps {
@@ -10,6 +11,7 @@ interface ReadValueCardProps {
   icon: React.ReactNode;
   onCopy?: (value: string, title: string) => void;
   copiedAddress?: string | null;
+  usdcIcon?: string | null;
 }
 
 export default function ReadValueCard({
@@ -19,6 +21,7 @@ export default function ReadValueCard({
   icon,
   onCopy,
   copiedAddress,
+  usdcIcon,
 }: ReadValueCardProps) {
   const formatAddress = (addr: string) => {
     if (!addr) return "Loading...";
@@ -37,6 +40,16 @@ export default function ReadValueCard({
           </div>
           <p className="mb-3 text-xs text-[#8398AD]">{description}</p>
           <div className="flex items-center gap-2">
+            {usdcIcon == "/usdcImg.png" && (
+              <Image
+                src={usdcIcon}
+                alt="icon"
+                width={24}
+                height={24}
+                className="rounded-full"
+              />
+            )}
+
             <p className="text-lg font-bold text-[#DFDFE0]">
               {value === null
                 ? "Loading..."

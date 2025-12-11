@@ -295,6 +295,7 @@ export default function AdminPage() {
             icon={<Wallet className="w-4 h-4" />}
             onCopy={copyToClipboard}
             copiedAddress={copiedAddress}
+            usdcIcon={"/usdcImg.png"}
           />
           <ReadValueCard
             title="Pool Creation Fee"

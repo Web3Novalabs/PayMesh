@@ -29,7 +29,7 @@ export default function ContractInfoCard({
 
   return (
     <div className="rounded-xl border border-[#232542] bg-[#FFFFFF05] p-5">
-      <h3 className="mb-3 text-sm font-medium text-[#9BB4EE]">{title}</h3>
+      <h3 className="mb-3 text-md font-medium text-[#9BB4EE]">{title}</h3>
       <div className="flex items-center space-x-5">
         <p className="font-mono text-sm text-[#DFDFE0]">
           {formatAddress(address)}

@@ -18,6 +18,40 @@ import { useGetAllGroups } from "./useContractInteraction";
 const USDC_TOKEN_ADDRESS =
   "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 
+export function useContractTokenBalances(contractAddress: string) {
+  const isValidAddress =
+    contractAddress &&
+    contractAddress.startsWith("0x") &&
+    contractAddress.length > 10;
+
+  // Fetch USDC balance - using STRK_ABI since both are ERC20 tokens with same interface
+  const { readData: usdcBalance } = useContractFetch(
+    STRK_ABI,
+    "balance_of",
+    isValidAddress ? [contractAddress] : [],
+    USDC_TOKEN_ADDRESS
+  );
+
+  // Fetch STRK balance
+  const { readData: strkBalance } = useContractFetch(
+    STRK_ABI,
+    "balance_of",
+    isValidAddress ? [contractAddress] : [],
+    strkTokenAddress
+  );
+
+  return {
+    usdcBalance:
+      usdcBalance && isValidAddress
+        ? Number(usdcBalance.toString()) / ONE_USDC
+        : null,
+    strkBalance:
+      strkBalance && isValidAddress
+        ? Number(strkBalance.toString()) / ONE_STK
+        : null,
+  };
+}
+
 export function useAdminStats() {
   const { createdPool: pools } = useGetAllPools();
   const groups = useGetAllGroups();
@@ -164,39 +198,5 @@ export function useGroupReadValues() {
       : null,
     supportedTokens: supportedTokens as string[] | null,
     owner: owner ? "0x" + normalizeAddress(owner.toString(16)) : null,
-  };
-}
-
-export function useContractTokenBalances(contractAddress: string) {
-  const isValidAddress =
-    contractAddress &&
-    contractAddress.startsWith("0x") &&
-    contractAddress.length > 10;
-
-  // Fetch USDC balance - using STRK_ABI since both are ERC20 tokens with same interface
-  const { readData: usdcBalance } = useContractFetch(
-    STRK_ABI,
-    "balance_of",
-    isValidAddress ? [contractAddress] : [],
-    USDC_TOKEN_ADDRESS
-  );
-
-  // Fetch STRK balance
-  const { readData: strkBalance } = useContractFetch(
-    STRK_ABI,
-    "balance_of",
-    isValidAddress ? [contractAddress] : [],
-    strkTokenAddress
-  );
-
-  return {
-    usdcBalance:
-      usdcBalance && isValidAddress
-        ? Number(usdcBalance.toString()) / ONE_USDC
-        : null,
-    strkBalance:
-      strkBalance && isValidAddress
-        ? Number(strkBalance.toString()) / ONE_STK
-        : null,
   };
 }
