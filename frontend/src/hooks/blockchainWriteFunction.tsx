@@ -1,4 +1,3 @@
-import { FormData } from "@/app/components/dashboard/crowd-fund/components/CreateCrowdFundForm";
 import {
   myProvider,
   normalizeAddress,
@@ -33,6 +32,16 @@ type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
 type SetPoolAddress = (address: string) => void;
 type SetResultHash = (txHash: string) => void;
+
+export interface FormData {
+  name: string;
+  description: string;
+  tokenType: string;
+  targetAmount: string;
+  walletAddress: string;
+}
+ 
+
 export type SetFormData = React.Dispatch<
   React.SetStateAction<CreateGroupFormData>
 >;
