@@ -36,7 +36,8 @@ export default function Nav() {
         scrolled ? "bg-[#0F111A] shadow-md py-2" : "bg-transparent py-4"
       }`}
     >
-      <nav className="flex justify-between w-full max-w-7xl items-center uppercase font-anton text-xl mx-auto relative flex-nowrap">
+    {pathname !== "/" && (
+        <nav className="flex justify-between w-full max-w-7xl items-center uppercase font-anton text-xl mx-auto relative flex-nowrap">
         <Link
           href="/"
           className="flex items-center gap-3 border border-[#232542] rounded-full py-1 px-3 cursor-pointer z-50 relative"
@@ -101,6 +102,26 @@ export default function Nav() {
           </div>
         </div>
       </nav>
+      )}
+      {pathname === "/" && (
+        <nav className="flex justify-center max-w-sit-screen items-stretch uppercase font-anton text-xl py-4 mx-auto gap-4">
+          <Link
+            href="/"
+            className="flex items-center gap-3 border border-[#232542] rounded-full py-1 px-3 cursor-pointer"
+          >
+            <Image className="" src={logo} alt="paymesh logo" />
+            <h1 className="text-base md:text-[28px] font-normal">Paymesh</h1>
+          </Link>
+          <Link
+            href="/overview"
+            className={`
+              bg-purple-bg
+            cursor-pointer  font-extrabold text-sm font-dmsans px-6 py-2 grid place-content-center rounded-full`}
+          >
+            LAUNCH APP
+          </Link>
+        </nav>
+      )}
     </section>
   );
 }
