@@ -12,6 +12,7 @@ import GroupHeader from "./components/GroupHeader";
 import GroupStats from "./components/GroupStats";
 import GroupActions from "./components/GroupActions";
 import MembersTable from "./components/MembersTable";
+import GroupMonthlyFlowChart from "./components/GroupMonthlyFlowChart";
 import { copyToClipboard } from "@/lib/utils";
 import LoadingState from "@/components/ui/LoadingState";
 import { generateGroupHistoryPDF } from "@/utils/pdfGenerator";
@@ -109,7 +110,7 @@ export default function GroupDetail() {
     );
   }
   return (
-    <div className="space-y-6 my-16">
+    <div className=" my-16">
       <button
         onClick={() => {
           router.back();
@@ -163,7 +164,10 @@ export default function GroupDetail() {
         </div>
       </div>
 
-      <MembersTable members={members} />
+      <div className="grid gap-4">
+        <MembersTable members={members} />
+        <GroupMonthlyFlowChart history={groupDetails?.history || []} />
+      </div>
     </div>
   );
 }

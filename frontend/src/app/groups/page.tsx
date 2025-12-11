@@ -13,14 +13,18 @@ import { Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import GroupCard from "./components/group-card";
 import Link from "next/link";
-import { GroupData, useAddressCreatedGroups, useGroupAddressHasSharesIn } from "@/hooks/useContractInteraction";
+import {
+  GroupData,
+  useAddressCreatedGroups,
+  useGroupAddressHasSharesIn,
+} from "@/hooks/useContractInteraction";
 import { useAccount } from "@starknet-react/core";
 
 import LoadingState from "./components/loading-state";
 import EmptyState from "./components/empty-state";
+import PaginationControls from "@/components/ui/PaginationControls";
 
 export default function Page() {
-  const [selectedValue, setSelectedValue] = useState("ALL");
   const [isLoading, setIsLoading] = useState(false);
   const { address } = useAccount();
   const { transaction } = useGroupAddressHasSharesIn(address || "");
@@ -28,10 +32,9 @@ export default function Page() {
   const { transaction: createdGroup } = useAddressCreatedGroups();
   const [filter, setFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const itemsPerPage = 12;
+  const itemsPerPage = 9;
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
-    // Show loading while data is being fetched
     if (!transaction && !createdGroup) {
       setIsLoading(true);
       return;
@@ -39,8 +42,6 @@ export default function Page() {
 
     const combinedData = [...(transaction || []), ...(createdGroup || [])];
 
-    // Remove duplicates based on id, keeping the first occurrence
-    // console.log("man-",combinedData)
     const uniqueData = combinedData.filter(
       (item, index, array) =>
         array.findIndex((obj) => obj.id === item.id) === index
@@ -49,9 +50,6 @@ export default function Page() {
     setMyGroup(uniqueData);
     setIsLoading(false);
   }, [transaction, createdGroup]);
-  const handleSelectChange = (value: string) => {
-    setSelectedValue(value);
-  };
 
   let filteredGroups = myGroup?.filter((group) => {
     if (filter === "all") return true;
@@ -68,10 +66,9 @@ export default function Page() {
 
   const handleSearch = (value: string) => {
     setSearchQuery(value);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   };
 
-  // Calculate pagination
   const totalPages = Math.ceil((filteredGroups?.length || 0) / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -81,7 +78,7 @@ export default function Page() {
   }
 
   return (
-    <section className="w-full grid gap-10">
+    <section className="w-full flex flex-col gap-10 min-h-[75vh]">
       <div className="flex justify-between flex-wrap items-center w-full  gap-4">
         <div className="flex justify-between items-center gap-4 w-full sm:w-fit">
           <div
@@ -136,21 +133,35 @@ export default function Page() {
           <Plus /> Create new group
         </Link>
       </div>
-      
+
       {!isLoading && filteredGroups.length === 0 ? (
         <EmptyState filter={filter} />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {[...(filteredGroups || [])]
-            // .reverse()
-            .sort((a, b) => {
-              return Number.parseInt(b.id) - Number.parseInt(a.id);
-            })
-            .slice(startIndex, endIndex)
-            ?.map((group) => (
-              <GroupCard key={group.id} group={group} address={address || ""} />
-            ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[...(filteredGroups || [])]
+              .sort((a, b) => {
+                return Number.parseInt(b.id) - Number.parseInt(a.id);
+              })
+              .slice(startIndex, endIndex)
+              ?.map((group) => (
+                <GroupCard
+                  key={group.id}
+                  group={group}
+                  address={address || ""}
+                />
+              ))}
+          </div>
+
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            startIndex={startIndex}
+            endIndex={endIndex}
+            totalItems={filteredGroups.length}
+            onPageChange={setCurrentPage}
+          />
+        </>
       )}
     </section>
   );

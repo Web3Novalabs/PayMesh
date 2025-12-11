@@ -5,7 +5,7 @@ import {
   InjectedConnector,
   paymasterRpcProvider,
 } from "@starknet-react/core";
-import { mainnet, sepolia } from "@starknet-react/chains";
+import { mainnet } from "@starknet-react/chains";
 import { jsonRpcProvider } from "@starknet-react/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 

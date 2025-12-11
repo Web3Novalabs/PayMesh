@@ -11,7 +11,7 @@ const MembersTable = ({ members }: MembersTableProps) => {
       <div className="bg-[#232542] rounded-tl-[7px] rounded-tr-[7px] p-5">
         <h1 className="text-base font-medium">Members ({members.length})</h1>
       </div>
-      <div className="overflow-scroll h-[500px]  w-full scrollbar-hide flex flex-col gap-2">
+      <div className="overflow-scroll max-h-[500px]  w-full scrollbar-hide flex flex-col gap-2">
         <table
           className="w-full text-base bg-card-bg"
           role="table"

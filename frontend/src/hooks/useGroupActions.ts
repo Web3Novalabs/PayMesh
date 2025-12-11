@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAccount } from "@starknet-react/core";
-import { CallData, cairo, PaymasterDetails } from "starknet";
+import { CallData, cairo } from "starknet";
 import {
   PAYMESH_ADDRESS,
   strkTokenAddress,
@@ -61,7 +61,7 @@ export const useGroupActions = () => {
         //   feeDetails,
         //   feeEstimation?.suggested_max_fee_in_gas_token
         // );
-        
+
         const result = await account.execute(multicallData);
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string

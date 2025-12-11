@@ -1,31 +1,19 @@
 "use client";
 import { useEffect, useState } from "react";
-import PoolDescription from "./component/poolDetail";
-import { MembersConfiguration } from "./component/poolMembers";
-import UsageCount from "./component/usageCount";
-import Review from "./component/review";
 // @ts-expect-error not ts compatible
 import { initialize } from "@paunovic/random-words";
 import { CreateGroupFormData } from "@/types/group";
 import toast from "react-hot-toast";
-import {
-  myProvider,
-  strkTokenAddress,
-  useGetBalance,
-} from "@/utils/contract";
-import { useRouter } from "next/navigation";
+import { myProvider, strkTokenAddress, useGetBalance } from "@/utils/contract";
 import { useAccount, useTransactionReceipt } from "@starknet-react/core";
 import { createGroup } from "@/hooks/blockchainWriteFunction";
-import Link from "next/link";
-import QRcode from "@/app/components/QRcode";
-import Loading from "@/app/components/Loading";
 import { Contract } from "starknet";
 import Sidebar from "./component/sidebar";
 import Content from "./component/content";
 import NavigationButtons from "./component/sectionNav";
 
 export default function Page() {
-  const router = useRouter();
+  //  // const router = useRouter();
   const [section, setSection] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [resultHash, setResultHash] = useState("");

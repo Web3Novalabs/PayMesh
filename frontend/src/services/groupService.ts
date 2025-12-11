@@ -217,4 +217,18 @@ export class GroupService {
       throw error;
     }
   }
+  // Get all groups
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static async getAllGroups(): Promise<any[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/groups`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching all groups:", error);
+      throw error;
+    }
+  }
 }

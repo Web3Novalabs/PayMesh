@@ -32,11 +32,11 @@ type SetIsSubmitting = (isSubmitting: boolean) => void;
 type SetIsSuccess = (isSuccess: boolean) => void;
 type SetPoolAddress = (address: string) => void;
 type SetResultHash = (txHash: string) => void;
-export type SetFormData = React.Dispatch<React.SetStateAction<CreateGroupFormData>>;
+export type SetFormData = React.Dispatch<
+  React.SetStateAction<CreateGroupFormData>
+>;
 export let poolAddrQr: string = "";
-function removeNonASCII(text: string) {
-  return text.replace(/[^\x00-\x7F]/g, "");
-}
+
 export const create_pool = async (
   formData: FormData,
   account: AccountInterface,
@@ -286,7 +286,7 @@ export const createGroup = async (
           addr: member.addr.trim(),
           percentage: cairo.uint256(Number(member.percentage) * 1000),
         }));
-      console.log(formattedMembers, "fmt")
+      console.log(formattedMembers, "fmt");
       // const totalPercentage = formattedMembers.reduce(
       //   (sum, member) => sum + member.percentage,
       //   0
@@ -337,7 +337,7 @@ export const createGroup = async (
         feeDetails,
         feeEstimation?.suggested_max_fee_in_gas_token
       );
-console.log(result)
+      console.log(result);
       await myProvider.waitForTransaction(result?.transaction_hash as string);
       setResultHash(result.transaction_hash);
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Select,
   SelectContent,
@@ -8,36 +8,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { useGetAllGroups } from "@/hooks/useContractInteraction";
-// import { useAccount } from "@starknet-react/core";
-// import { getTimeFromEpoch } from "@/utils/contract";
-// import { truncateAddress } from "@/lib/utils";
+import PaginationControls from "@/components/ui/PaginationControls";
 import { GroupTransactionData } from "@/types/group";
 import { truncateAddress } from "@/lib/utils";
 import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { GroupService } from "@/services/groupService";
 
 const TransactionsPage = () => {
-  const [filter, setFilter] = useState("usdc");
+  const [filter, setFilter] = useState("strk");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  const [transaction, setTransaction] = useState<GroupTransactionData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  async function getTransaction() {
-    try {
-      setIsLoading(true);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/groups`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch transaction");
-      }
-      const data = await response.json();
-      setTransaction(data);
-    } catch (error) {
-      console.error("Error fetching transactions:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
+  const { data: transaction = [], isLoading } = useQuery({
+    queryKey: ["allGroups"],
+    queryFn: async () => {
+      const groups = await GroupService.getAllGroups();
+      return groups;
+    },
+  });
 
   // Helper function to format token amounts
   const formatTokenAmount = (amount: string, decimals: number = 18): string => {
@@ -53,38 +42,36 @@ const TransactionsPage = () => {
   // Helper function to get token amount based on filter
   const getTokenAmount = (transaction: GroupTransactionData): string => {
     // Map filter to token address
-    const tokenMap: Record<string, string> = {
-      strk: "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d", // Mainnet/Sepolia STRK
-      usdc: "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8",
-      usdt: "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8",
-      eth: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-    };
+    // Basic mapping for display logic - in a real app this might be more dynamic
+    // using share_usdc, share_usdt, share_strk etc directly from GroupTransactionData
 
-    const targetTokenAddress = tokenMap[filter];
-    if (!targetTokenAddress) return "0.00";
+    // Based on the data structure GroupService.getAllGroups returns:
+    // it has share_usdc, share_usdt, share_strk, share_eth
 
-    // Sum up amount for the selected token from history
-    const totalAmount = transaction.history.reduce((sum, item) => {
-      if (item.token_address === targetTokenAddress) {
-        return sum + parseFloat(item.total_amount_paid);
-      }
-      return sum;
-    }, 0);
+    let totalAmount = "0";
+    let decimals = 18;
 
-    // Decimals mapping
-    const decimalsMap: Record<string, number> = {
-      strk: 18,
-      usdc: 6,
-      usdt: 6,
-      eth: 18,
-    };
+    if (filter === "usdc") {
+      totalAmount = transaction.share_usdc || "0";
+      decimals = 6;
+    } else if (filter === "usdt") {
+      totalAmount = transaction.share_usdt || "0";
+      decimals = 6;
+    } else if (filter === "strk") {
+      totalAmount = transaction.share_strk || "0";
+      decimals = 18;
+    } else if (filter === "eth") {
+      totalAmount = transaction.share_eth || "0";
+      decimals = 18;
+    }
 
-    return formatTokenAmount(totalAmount.toString(), decimalsMap[filter]);
+    return formatTokenAmount(totalAmount, decimals);
   };
 
   // Helper function to decode group name from hex
   const decodeGroupName = (hexName: string): string => {
     try {
+      if (!hexName.startsWith("0x")) return hexName;
       // Remove 0x prefix and convert hex to string
       const cleanHex = hexName.replace("0x", "");
       let result = "";
@@ -96,7 +83,7 @@ const TransactionsPage = () => {
         }
       }
       return result || "Unnamed Group";
-    } catch (error) {
+    } catch {
       return "Unnamed Group";
     }
   };
@@ -108,14 +95,10 @@ const TransactionsPage = () => {
       const dateStr = date.toLocaleDateString();
       const timeStr = date.toLocaleTimeString();
       return { date: dateStr, time: timeStr };
-    } catch (error) {
+    } catch {
       return { date: "Invalid Date", time: "" };
     }
   };
-
-  useEffect(() => {
-    getTransaction();
-  }, []);
 
   // Calculate pagination
   const totalPages = Math.ceil((transaction?.length || 0) / itemsPerPage);
@@ -137,7 +120,7 @@ const TransactionsPage = () => {
     );
   }
 
-  if (transaction.length === 0) {
+  if (!transaction || transaction.length === 0) {
     return (
       <div className="min-h-[50vh] flex flex-col items-center justify-center">
         <div className="w-16 h-16 bg-[#2A2D35] rounded-full flex items-center justify-center mx-auto mb-4">
@@ -211,11 +194,9 @@ const TransactionsPage = () => {
                     .slice(startIndex, endIndex)
                     .map((transactionItem, index) => {
                       const tokenAmount = getTokenAmount(transactionItem);
-                      const groupName = transactionItem.group_name.startsWith(
-                        "0x"
-                      )
-                        ? decodeGroupName(transactionItem.group_name)
-                        : transactionItem.group_name;
+                      const groupName = decodeGroupName(
+                        transactionItem.group_name
+                      );
                       const { date, time } = formatDate(
                         transactionItem.created_at
                       );
@@ -273,52 +254,14 @@ const TransactionsPage = () => {
         </div>
 
         {/* Pagination */}
-        <div className="mt-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-16">
-          <div className="text-sm text-[#E2E2E2]">
-            Showing {startIndex + 1} to{" "}
-            {Math.min(endIndex, transaction?.length || 0)} of{" "}
-            {transaction?.length || 0} results
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            >
-              ← Previous
-            </button>
-
-            {/* Page Numbers */}
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-md ${
-                      currentPage === page
-                        ? "bg-gradient-to-r from-[#434672] to-[#755a5a] text-white"
-                        : "text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] hover:bg-[#282e38]"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
-            </div>
-
-            <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
-              disabled={currentPage === totalPages}
-              className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            >
-              Next →
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={transaction?.length || 0}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

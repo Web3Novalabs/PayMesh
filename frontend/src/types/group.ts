@@ -67,6 +67,10 @@ export interface GroupTransactionData {
   usage_remaining: string;
   created_at: string;
   updated_at: string;
+  share_usdc?: string;
+  share_usdt?: string;
+  share_strk?: string;
+  share_eth?: string;
   members: Array<{
     member_address: string;
     member_percentage: string;
