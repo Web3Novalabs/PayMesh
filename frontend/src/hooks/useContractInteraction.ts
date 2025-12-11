@@ -225,12 +225,11 @@ export function useGroupMember(id: string) {
 
 export function useGetAllPools() {
   const [createdPool, setCreatedPool] = useState<Pool[]>();
-  const { readData: pools, dataRefetch } = useContractFetch(
-    POOL_ABI,
-    "get_all_pools",
-    [],
-    CROWDFUNDINGADDRESS
-  );
+  const {
+    readData: pools,
+    dataRefetch,
+    readIsLoading,
+  } = useContractFetch(POOL_ABI, "get_all_pools", [], CROWDFUNDINGADDRESS);
   // console.log("pools---- ", pools);
   useEffect(() => {
     if (!pools) return; //
@@ -253,7 +252,7 @@ export function useGetAllPools() {
     setCreatedPool(poolData);
   }, [pools]);
 
-  return { createdPool, refetchPools: dataRefetch };
+  return { createdPool, refetchPools: dataRefetch, isLoading: readIsLoading };
 }
 
 export function useGetPool(id: string) {

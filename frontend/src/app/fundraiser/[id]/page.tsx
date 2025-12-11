@@ -1,32 +1,185 @@
 "use client";
 
-import { ArrowLeft, Copy, Share2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, Share2 } from "lucide-react";
 import handshakeIcon from "../../../../public/Handshake.svg";
 import calendarIcon from "../../../../public/CalendarDots.svg";
 import qrCode from "../../../../public/qr-code.svg";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { FundraiseDetailsProps, USDC_TOKEN_ADDRESS } from "@/types/usdcDataApi";
+import {
+  copyToClipboard,
+  formatAmountUsdc,
+  truncateAddress,
+} from "@/lib/utils";
+import { epocTimeReadable, myProvider } from "@/utils/contract";
+import { toast } from "react-hot-toast";
+import { useAccount } from "@starknet-react/core";
+import { CallData } from "starknet";
+import { CROWDFUNDINGADDRESS } from "@/hooks/blockchainWriteFunction";
+import CampaignCompleted from "./components/CampaignCompleted";
+import LoadingState from "@/components/Loading-state";
+import ContributeModal from "./components/ContributeModal";
+import { MyCleanQrCode } from "@/components/qr-code";
 
-const Details = () => {
+const FundraiseDetails = () => {
   const router = useRouter();
+  const params = useParams();
+  const fundRaiseAddr = params.id;
+  const { address, account } = useAccount();
+
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fetchFundraiseDetails, setFetchFundraiseDetails] =
+    useState<FundraiseDetailsProps | null>(null);
+
+  const [isContributeModalOpen, setIsContributeModalOpen] = useState(false);
+
+  // NEW STATES FOR CLEAN LOADING
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
+
+  const fetchDetails = useCallback(async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/crowdfunding/${fundRaiseAddr}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch fundraise details");
+      }
+
+      const data = await response.json();
+      setFetchFundraiseDetails(data);
+    } catch (error) {
+      console.error("Error fetching fundraise details:", error);
+    } finally {
+      // Mark initial load complete only ONCE
+      if (!hasFetchedOnce) {
+        setIsInitialLoading(false);
+        setHasFetchedOnce(true);
+      }
+    }
+  }, [fundRaiseAddr, hasFetchedOnce]);
+
+  useEffect(() => {
+    fetchDetails();
+
+    // Poll every 5 seconds WITHOUT showing loading again
+    const interval = setInterval(() => {
+      fetchDetails();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fundRaiseAddr, fetchDetails]);
+
+  // HANDLE INITIAL LOADING ONCE ONLY
+  if (isInitialLoading) {
+    return (
+      <LoadingState
+        title="Loading fundraise details"
+        description="Please wait while we fetch the fundraise details"
+      />
+    );
+  }
+
+  // HANDLE NOT FOUND (no data after first fetch)
+  if (hasFetchedOnce && !fetchFundraiseDetails) {
+    return (
+      <div className="text-center text-white my-20">
+        <p className="text-lg font-semibold">Fundraise not found</p>
+        <button
+          onClick={() => router.push("/fundraiser")}
+          className="mt-4 px-4 py-2 bg-[#4950B1] rounded-full text-white"
+        >
+          Go back
+        </button>
+      </div>
+    );
+  }
+
+  const usdcTokenBalance = fetchFundraiseDetails?.token_history?.find((token) =>
+    token.token_address
+      ? token.token_address.toLowerCase() === USDC_TOKEN_ADDRESS.toLowerCase()
+      : false
+  );
+
+  const targetAmount = fetchFundraiseDetails?.crowd_funding?.target_amount
+    ? formatAmountUsdc(fetchFundraiseDetails.crowd_funding.target_amount)
+    : "0.00";
+
+  const amountRaised = usdcTokenBalance?.balance
+    ? formatAmountUsdc(usdcTokenBalance.balance)
+    : "0.00";
+
+  const handleCopyToClipboard = async (text: string) => {
+    await copyToClipboard(text, () => {
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    });
+  };
+
+  const DATE_CREATED_AT = epocTimeReadable(
+    fetchFundraiseDetails?.crowd_funding?.created_at || "Unknown Date"
+  );
+
+  const handlePayment = async () => {
+    try {
+      setIsSubmitting(true);
+
+      if (account) {
+        const swiftpayCall = {
+          contractAddress: CROWDFUNDINGADDRESS,
+          entrypoint: "paymesh",
+          calldata: CallData.compile({
+            pool_address: fundRaiseAddr || "",
+          }),
+        };
+
+        const multicallData = [swiftpayCall];
+        const result = await account.execute(multicallData);
+
+        const status = await myProvider.waitForTransaction(
+          result?.transaction_hash as string
+        );
+
+        console.log(status);
+        toast.success("Payment successful");
+      }
+    } catch {
+      toast.error("Failed to process payment. Try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6 my-16">
+      {fetchFundraiseDetails?.crowd_funding?.is_complete && (
+        <CampaignCompleted
+          amountRaised={amountRaised}
+          targetAmount={targetAmount}
+          total_donors={fetchFundraiseDetails?.donation_count?.total_donors}
+          created_at={DATE_CREATED_AT}
+        />
+      )}
+
       <button
         onClick={() => router.push("/fundraiser")}
-        className="flex items-center cursor-pointer bg-[#FFFFFF0D] border border-[#FFFFFF1A] gap-2 text-[#DFDADA] hover:text-[#DFDFE0] transition-colors duration-200 py-3 px-4 rounded-4xl hover:bg-[#232542] mb-12"
+        className="flex items-center cursor-pointer bg-[#FFFFFF0D] border border-[#FFFFFF1A] gap-2 text-[#DFDADA] hover:text-[#DFDFE0] py-3 px-4 rounded-4xl hover:bg-[#232542] mb-12"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Fundraisers
       </button>
 
       <div className="bg-[#FFFFFF05] border border-[#232542] rounded-lg">
-        <div className=" flex items-center justify-between flex-col px-6 sm:flex-row gap-4 border-b border-[#232542] py-4">
+        <div className="flex items-center justify-between flex-col px-6 sm:flex-row gap-4 border-b border-[#232542] py-4">
           <div className="flex items-center space-x-4">
             <h2 className="text-[#E2E2E2] font-semibold text-base leading-tight">
-              Fundraiser Name
+              {fetchFundraiseDetails?.crowd_funding?.name}
             </h2>
-            <div className="flex items-center gap-2 bg-[#FFFFFF] rounded-full px-3 py-1.5 cursor-pointer">
+            <div className="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 cursor-pointer">
               <span className="text-[#030407] text-sm">Share</span>
               <Share2 className="w-4 h-4 text-[#030407]" />
             </div>
@@ -34,38 +187,57 @@ const Details = () => {
 
           <div className="flex items-center space-x-2 bg-[#0C121D] py-2 px-5 rounded-full">
             <h3 className="text-[#8398AD] text-base border-r border-[#8398AD] pr-2">
-              Funding address{" "}
+              Funding address
             </h3>
 
             <span className="text-[#E2E2E2] text-sm">
-              0x062dcfb96e87e035135d13bf6c420c2f514c005a679b75cee45eed8d4e395aa4
+              {typeof window !== "undefined" && window.innerWidth < 880
+                ? truncateAddress(
+                    (fundRaiseAddr as string) ??
+                      fetchFundraiseDetails?.crowd_funding?.pool_address
+                  )
+                : fetchFundraiseDetails?.crowd_funding?.pool_address}
             </span>
 
-            <Copy className="w-4 h-4 text-[#8398AD] cursor-pointer" />
+            <button
+              onClick={() =>
+                handleCopyToClipboard(
+                  fetchFundraiseDetails?.crowd_funding?.pool_address || ""
+                )
+              }
+              className="text-[#8398AD] hover:text-white transition-colors"
+            >
+              {copySuccess ? (
+                <Check className="w-4 h-4" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </button>
           </div>
         </div>
 
         <div className="px-6 py-4 flex items-center justify-between">
-          {/* Amount Raised */}
           <div className="flex items-center space-x-5 sm:space-x-12">
-            <div className="flex items-center space-x-2 border-gradient-modal border border-[#232542] w-fit rounded-full py-2.5 px-4">
+            <div className="flex items-center space-x-2 border border-[#232542] w-fit rounded-full py-2.5 px-4">
               <h3 className="text-[#8398AD] border-r border-[#8398AD] pr-2">
                 Amount Raised
               </h3>
-              <span className="text-[#E2E2E2] text-sm">20.00 USDC</span>
+              <span className="text-[#E2E2E2] text-sm">
+                {amountRaised} USDC
+              </span>
             </div>
 
-            {/* Target Amount */}
-            <div className="flex items-center space-x-2 border-gradient-modal border border-[#232542] w-fit rounded-full py-2.5 px-4">
+            <div className="flex items-center space-x-2 border border-[#232542] w-fit rounded-full py-2.5 px-4">
               <h3 className="text-[#8398AD] border-r border-[#8398AD] pr-2">
                 Target Amount
               </h3>
-              <span className="text-[#E2E2E2] text-sm">570.00 USDC</span>
+              <span className="text-[#E2E2E2] text-sm">
+                {targetAmount} USDC
+              </span>
             </div>
 
-            {/* Donors */}
             <div className="flex items-center space-x-1 gap-2 w-full sm:w-auto">
-              <span className="flex items-center gap-2 p-3 rounded-full bg-[#FFFFFF05] border border-[#FFFFFF0D] flex-shrink-0">
+              <span className="flex items-center gap-2 p-3 rounded-full bg-[#FFFFFF05] border border-[#FFFFFF0D]">
                 <Image
                   src={handshakeIcon}
                   alt="usersIcon"
@@ -75,14 +247,15 @@ const Details = () => {
               </span>
 
               <div className="text-[#8398AD] text-sm flex flex-col items-center justify-center">
-                <span className="text-[#8398AD] font-semibold">Donors:</span>
-                <span className="text-[#DFDFE0] font-semibold">7</span>
+                <span className="font-semibold">Donors:</span>
+                <span className="text-[#DFDFE0] font-semibold">
+                  {fetchFundraiseDetails?.donation_count?.total_donors}
+                </span>
               </div>
             </div>
 
-            {/* Date Created */}
             <div className="flex items-center space-x-1 gap-2 w-full sm:w-auto">
-              <span className="flex items-center gap-2 p-3 rounded-full bg-[#FFFFFF05] border border-[#FFFFFF0D] flex-shrink-0">
+              <span className="flex items-center gap-2 p-3 rounded-full bg-[#FFFFFF05] border border-[#FFFFFF0D]">
                 <Image
                   src={calendarIcon}
                   alt="calendarIcon"
@@ -92,22 +265,28 @@ const Details = () => {
               </span>
 
               <div className="text-[#8398AD] text-sm flex flex-col justify-center">
-                <span className="text-[#8398AD] font-semibold">
-                  Date Created:
-                </span>
+                <span className="font-semibold">Date Created:</span>
                 <span className="text-[#DFDFE0] font-semibold">
-                  Feb 27th, 2025
+                  {DATE_CREATED_AT}
                 </span>
               </div>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <button className="bg-[#FFFFFF0D] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-pointer">
-              Resolve Pool
-            </button>
+            {amountRaised > targetAmount && (
+              <button
+                onClick={() => handlePayment()}
+                className="bg-[#FFFFFF0D] text-white px-4 py-2.5 border border-[#FFFFFF1A] rounded-full"
+              >
+                {isSubmitting ? "Resolving..." : "Resolve Pool"}
+              </button>
+            )}
 
-            <button className="bg-[#4950B1] text-[#FFFFFF] px-4 py-2.5 border border-[#FFFFFF1A] rounded-full cursor-pointer">
+            <button
+              onClick={() => setIsContributeModalOpen(true)}
+              className="bg-[#4950B1] text-white px-4 py-2.5 border border-[#FFFFFF1A] rounded-full"
+            >
               Donate now
             </button>
           </div>
@@ -115,51 +294,36 @@ const Details = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-24 gap-4">
-        {/* Description Panel */}
         <div className="lg:col-span-19 py-6 bg-[#FFFFFF05] border border-[#232542] rounded-lg flex flex-col h-full">
-          <h2 className="text-[#E2E2E2] font-semibold border-b px-6 border-[#232542] pb-4 text-base leading-tight mb-4">
+          <h2 className="text-[#E2E2E2] font-semibold border-b px-6 border-[#232542] pb-4 text-base">
             Description
           </h2>
 
           <div className="text-[#8398AD] text-sm leading-relaxed px-6 space-y-4 flex-1">
-            <p>
-              I am currently applying for a visa that will allow me to pursue
-              higher education. While this opportunity is life-changing, the
-              visa application process comes with significant costs, including
-              application fees, travel to the embassy, documentation, medical
-              checks, and other related expenses.
-            </p>
-            <p>
-              I am reaching out for support to cover these costs and ensure I
-              don&apos;t miss this chance. Every contribution, no matter the
-              size, brings me one step closer to achieving this goal. Your
-              support is not just financial—it&apos;s an investment in my
-              future, my dreams, and the opportunities that lie ahead.
-            </p>
-            <p>
-              Together, we can make this possible. Thank you for believing in me
-              and for being part of this journey.
-            </p>
+            {fetchFundraiseDetails?.crowd_funding?.description}
           </div>
         </div>
 
-        {/* QR Code Panel */}
         <div className="lg:col-span-5 py-6 bg-[#FFFFFF05] border border-[#232542] rounded-lg flex flex-col h-full">
-          <h2 className="text-[#E2E2E2] px-6 pb-4 border-b border-[#232542] text-center font-semibold text-base leading-tight mb-4">
+          <h2 className="text-[#E2E2E2] px-6 pb-4 border-b border-[#232542] text-center font-semibold text-base">
             Scan to fund address
           </h2>
 
-          <div className="flex items-center justify-center flex-1">
-            <Image
-              src={qrCode}
-              alt="qrCode"
-              className="w-full max-w-[200px] h-auto"
-            />
+          <div className="flex items-center justify-center flex-1 w-full ">
+            <MyCleanQrCode value={fundRaiseAddr as string} />
           </div>
         </div>
       </div>
+
+      {isContributeModalOpen && (
+        <ContributeModal
+          isOpen={isContributeModalOpen}
+          onClose={() => setIsContributeModalOpen(false)}
+          pool_address={fundRaiseAddr as string}
+        />
+      )}
     </div>
   );
 };
 
-export default Details;
+export default FundraiseDetails;

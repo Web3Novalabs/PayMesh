@@ -15,10 +15,11 @@ import plusIcon from "../../../../public/Plus.svg";
 import handshakeIcon from "../../../../public/Handshake.svg";
 import calendarIcon from "../../../../public/CalendarDots.svg";
 import { useGetAllPools } from "@/hooks/useContractInteraction";
-import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
 import { pool } from "@/types/usdcDataApi";
 import { compareAddresses, epocTimeReadable } from "@/utils/contract";
+import LoadingState from "@/components/Loading-state";
+import EmptyState from "./empty-state";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
@@ -35,7 +36,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   const [poolData, setPoolData] = useState<pool[] | null>(null);
   const itemsPerPage = 6;
 
-  const { createdPool: pools } = useGetAllPools();
+  const { createdPool: pools, isLoading: isLoadingPools } = useGetAllPools();
   // console.log(pools);
 
   const filteredFundings = pools?.filter((funding) => {
@@ -79,8 +80,22 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   }, []);
 
   useEffect(() => {
+    if (!pools) return;
     getPoolsData();
   }, [pools, getPoolsData]);
+
+  if (isLoadingPools && !pools) {
+    return (
+      <LoadingState
+        title="Loading Pools"
+        description="Fetching your active fundraisers..."
+      />
+    );
+  }
+
+  if (!isLoadingPools && (paginatedFundings?.length ?? 0) === 0) {
+    return <EmptyState />;
+  }
 
   return (
     <div className="space-y-10 mt-28 mb-16">
@@ -112,7 +127,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
           </div>
 
           {/* Active Funding Indicator */}
-          <div className="flex w-fit space-x-2.5 items-center p-3 rounded-4xl border border-[#232542]">
+          <div className="flex space-x-2.5 sm:hidden md:flex w-full sm:w-fit items-center p-3 rounded-4xl border border-[#232542]">
             <Image
               src={handshakeIcon}
               alt="handshakeIcon"
@@ -262,7 +277,8 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                 <Link
                   href={`/fundraiser/${
                     funding.pool_address ||
-                    findPool?.crowd_funding?.pool_address
+                    findPool?.crowd_funding?.pool_address ||
+                    funding.id
                   }`}
                   className="w-full sm:w-fit bg-[#FFFFFF0D] cursor-pointer border border-[#FFFFFF0D] text-[#FFFFFF] py-2 px-5 rounded-4xl hover:bg-[#282e38] transition-colors duration-200 text-sm inline-block text-center"
                 >

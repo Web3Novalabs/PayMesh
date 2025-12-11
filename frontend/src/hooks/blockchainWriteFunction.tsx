@@ -22,6 +22,7 @@ import { CreateGroupFormData } from "@/types/group";
 const usdc =
   "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 export const CROWDFUNDINGADDRESS =
+  // "0x03e58267891dff9318e6e715336b8ß4b515547173dee464d251d0aae3ed19e22a"; // Testing new
   "0x02c92666029b207dc882c267d7b55c3fe4178e9f550f7188cd49adb85f963623"; // lastest mainnet contract address
 // "0x03e58267891dff9318e6e715336b84b515547173dee464d251d0aae3ed19e22a"; // second CA the last before main, money in it
 // "0x05a37b08ab67fba4de346b7db2c16e68c59c408bb6ce4e7d3deeecc9ec3f2723"; // third mainnet testing contract
@@ -92,7 +93,7 @@ export const create_pool = async (
         calldata: [
           CROWDFUNDINGADDRESS, // spender
           // cairo.uint256(ONE_STK),
-          "1000000000000000000",
+          "4000000000000000000",
           "0",
         ],
       };
@@ -136,10 +137,7 @@ export const create_pool = async (
       );
       setPoolAddress(address as string);
 
-      //   setIsOpen(true);
-      // console.log("Blockchain function - Setting isSuccess to true");
       setIsSuccess(true);
-      //   onSubmit();
       // console.log(result);
 
       console.log(status);
@@ -165,7 +163,6 @@ export const donate = async (
   setIsLoading: SetIsLoading,
   isAnonymous: boolean,
   setIsSuccess: SetIsSuccess
-  // setIsSuccess: SetIsSuccess,
   // onSuccess: OnSuccess,
   // onError: OnError
 ): Promise<void> => {

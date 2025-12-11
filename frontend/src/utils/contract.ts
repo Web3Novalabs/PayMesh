@@ -3,7 +3,7 @@ import { uint256, RpcProvider } from "starknet";
 
 export const PAYMESH_ADDRESS =
   "0x01710ab6e17d6809cd9d5e9b22e6bb1d1d09ca40f50449ea7ac81d67bef80f31";
-  // "0x01be0fc9d374adc3b63dc87032d5828ed0a73ac0b773d5d611287739e0259d00" // testing on mainnet
+// "0x01be0fc9d374adc3b63dc87032d5828ed0a73ac0b773d5d611287739e0259d00" // testing on mainnet
 // "0x03eb5cc3d473d59331c48096cafa360d52b49fcd6a08b14a6811223c773a2d73";
 // // export const CONTRACT_ADDRESS =
 // //   "0x0319c0feb56d2352681e58efc8aefa12efe0389b020efdcf7b822971a999f8c2";
@@ -79,15 +79,25 @@ export function epocTime(time: string) {
 export function epocTimeReadable(dateString: string) {
   if (!dateString) return "Unknown Date";
 
-  // Your format is day/month/year → split and rearrange
-  const [day, month, year] = dateString.split("/").map(Number);
+  let date: Date;
 
-  if (!day || !month || !year) return "Invalid date";
+  // If the date contains "-", it's the ISO format from your API
+  if (dateString.includes("-")) {
+    date = new Date(dateString);
+  } else {
+    // Fallback: handle dd/mm/yyyy format
+    const parts = dateString.split("/");
+    if (parts.length !== 3) return "Invalid date";
+    const [day, month, year] = parts.map(Number);
+    date = new Date(year, month - 1, day);
+  }
 
-  // Create a valid JS Date object
-  const date = new Date(year, month - 1, day);
+  if (isNaN(date.getTime())) return "Invalid date";
 
-  const monthName = date.toLocaleString("default", { month: "short" }); // e.g. "Nov"
+  const day = date.getDate();
+  const monthName = date.toLocaleString("default", { month: "short" });
+  const year = date.getFullYear();
+
   const suffix =
     day % 10 === 1 && day !== 11
       ? "st"
