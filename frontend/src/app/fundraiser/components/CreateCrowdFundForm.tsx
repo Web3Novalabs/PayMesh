@@ -134,9 +134,9 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
   };
 
   return (
-    <div className="space-y-6 mt-16">
-      <div className="grid grid-cols-1 sm:grid-cols-24 justify-between bg-[#FFFFFF05] rounded-lg border border-[#232542]">
-        <div className=" col-span-10 border-r border-[#232542] p-10">
+    <div className="space-y-6">
+      <div className="flex flex-col lg:grid lg:grid-cols-24 justify-between bg-[#FFFFFF05] rounded-lg border border-[#232542]">
+        <div className="col-span-1 lg:col-span-10 border-b lg:border-b-0 lg:border-r border-[#232542] p-6 lg:p-10">
           <button
             onClick={onBack}
             className="flex items-center cursor-pointer bg-[#FFFFFF0D] border border-[#FFFFFF1A] rounded-full py-2 px-4 gap-2 text-[#8398AD] hover:text-[#DFDFE0] transition-colors duration-200"
@@ -157,7 +157,10 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-8 p-10 col-span-14">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-8 p-6 lg:p-10 col-span-1 lg:col-span-14"
+        >
           {/* Crowd Funding Details Section */}
           <div className="space-y-4">
             <div className="space-y-2">

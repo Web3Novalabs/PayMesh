@@ -23,10 +23,10 @@ export default function Page() {
     const group = item.group_data || {};
 
     const tokenMap = {
-      usdc: { symbol: "USDC", decimals: 6, color: "#2775CA" },
-      usdt: { symbol: "USDT", decimals: 6, color: "#26A17B" },
-      strk: { symbol: "STRK", decimals: 18, color: "#EC796B" },
-      eth: { symbol: "ETH", decimals: 18, color: "#627EEA" },
+      usdc: { symbol: "USDC", decimals: 6, icon: "/usdcImg.png" },
+      usdt: { symbol: "USDT", decimals: 6, icon: "/usdtImg.png" },
+      strk: { symbol: "STRK", decimals: 18, icon: "/strkImg.png" },
+      eth: { symbol: "ETH", decimals: 18, icon: "/ethImg.png" },
       // wBTC not explicitly in the log example but handling just in case if needed
     };
 
@@ -45,22 +45,26 @@ export default function Page() {
       {
         token: "USDC",
         amount: usdcAmount.toFixed(2),
-        iconColor: tokenMap.usdc.color,
+        icon: tokenMap.usdc.icon,
+        iconColor: "#2775CA", // USDC blue
       },
       {
         token: "USDT",
         amount: usdtAmount.toFixed(2),
-        iconColor: tokenMap.usdt.color,
+        icon: tokenMap.usdt.icon,
+        iconColor: "#26A17B", // USDT green
       },
       {
         token: "STRK",
         amount: strkAmount.toFixed(5),
-        iconColor: tokenMap.strk.color,
+        icon: tokenMap.strk.icon,
+        iconColor: "#FF6B00", // Starknet orange
       },
       {
         token: "ETH",
         amount: ethAmount.toFixed(5),
-        iconColor: tokenMap.eth.color,
+        icon: tokenMap.eth.icon,
+        iconColor: "#627EEA", // Ethereum purple
       },
     ].filter((b) => parseFloat(b.amount) > 0);
 
@@ -108,7 +112,7 @@ export default function Page() {
       </div>
 
       {isLoading ? (
-       <LoadingState/>
+        <LoadingState />
       ) : (
         <>
           <TransactionListTable transactions={currentData} />
