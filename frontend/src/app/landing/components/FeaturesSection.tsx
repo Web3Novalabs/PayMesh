@@ -1,15 +1,42 @@
-import usdt from "../../../../public/coin/Image.png"
+"use client";
+
+import usdt from "../../../../public/coin/Image.png";
 import usdc from "../../../../public/coin/Image (1).png";
 import wbtc from "../../../../public/coin/Image (3).png";
 import strk from "../../../../public/coin/Image (2).png";
 import eth from "../../../../public/coin/Image (4).png";
 import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function FeaturesSection() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 30 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+  };
+
   return (
-    <section className="w-full py-12 px-4 md:px-12 max-w-sit-screen mx-auto">
+    <motion.section
+      className="w-full py-12 px-4 md:px-12 max-w-sit-screen mx-auto"
+      variants={containerVariants}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: "-100px" }}
+    >
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-[#0E0F19] border border-[#232542] rounded-[8px] p-8 flex flex-col h-full hover:border-[#5B63D6] transition-colors group">
+        <motion.div
+          className="bg-[#0E0F19] border border-[#232542] rounded-[8px] p-8 flex flex-col h-full hover:border-[#5B63D6] transition-colors group"
+          variants={itemVariants}
+        >
           <div className="mb-6">
             <h3 className="text-[28px] font-anton font-bold text-[#DFDFE0] uppercase mb-2">
               GROUPS SPLIT
@@ -69,9 +96,12 @@ export default function FeaturesSection() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="bg-[#0E0F19] border border-[#232542] rounded-[8px] p-8 flex flex-col h-full hover:border-[#5B63D6] transition-colors group">
+        <motion.div
+          className="bg-[#0E0F19] border border-[#232542] rounded-[8px] p-8 flex flex-col h-full hover:border-[#5B63D6] transition-colors group"
+          variants={itemVariants}
+        >
           <div className="mb-6">
             <h3 className="text-[28px] font-anton font-bold text-[#DFDFE0] uppercase mb-2">
               FUNDRAISING
@@ -131,8 +161,8 @@ export default function FeaturesSection() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 }

@@ -3,24 +3,48 @@
 import React from "react";
 import Link from "next/link";
 import MovieIcon from "@/components/icons/movie";
+import { motion } from "framer-motion";
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full flex flex-col items-center justify-center text-center my-20">
+    <motion.section
+      className="relative w-full flex flex-col items-center justify-center text-center my-20"
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.8 }}
+    >
       <div className="max-w-3xl mx-auto space-y-1">
-        <h1 className="text-3xl sm:text-4xl font-anton lg:text-[90px] font-black text-white tracking-tight uppercase">
+        <motion.h1
+          className="text-3xl sm:text-4xl font-anton lg:text-[90px] font-black text-white tracking-tight uppercase"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.8 }}
+        >
           REVOLUTIONIZING HOW <br />
           <span className="text-white">MONEY IS SHARED</span>
-        </h1>
-
-        <p className="text-[#9EB3C9] text-sm md:text-base font-extrabold tracking-wide uppercase">
+        </motion.h1>
+        <motion.p
+          className="text-[#9EB3C9] text-sm md:text-base font-extrabold tracking-wide uppercase"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4, duration: 0.8 }}
+        >
           GET PAID AND WATCH THE MAGIC OF PAYMESH
-        </p>
+        </motion.p>
 
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-8">
+        <motion.div
+          className="flex flex-wrap items-center justify-center gap-4 pt-4"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.6, duration: 0.8 }}
+        >
           <Link
             href="/overview"
-            className="bg-[#5B63D6] hover:bg-[#4a51b3] text-white px-8 py-3 rounded-full text-sm font-bold transition-transform hover:scale-105"
+            className="bg-[#5B63D6] hover:bg-[#4B53C6] text-white px-8 py-3 rounded-full text-sm font-bold transition-all shadow-[0_0_20px_rgba(91,99,214,0.3)] hover:shadow-[0_0_40px_rgba(91,99,214,0.5)]"
           >
             LAUNCH APP
           </Link>
@@ -29,8 +53,8 @@ export default function HeroSection() {
             <span>DEMO</span>
             <MovieIcon />
           </button>
-        </div>
+        </motion.div>
       </div>
-    </section>
+    </motion.section>
   );
 }
