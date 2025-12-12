@@ -33,7 +33,7 @@ export default function Nav() {
   return (
     <section
       className={`w-full fixed top-0 left-0 right-0 z-50 h-fit text-text-white px-5 transition-all duration-300 ${
-        scrolled ? "bg-[#0F111A] shadow-md py-2" : "bg-transparent py-4"
+        scrolled ? "bg-[#0f111aea] shadow-md py-4" : "bg-transparent py-4"
       }`}
     >
       {pathname !== "/" && (
@@ -105,19 +105,23 @@ export default function Nav() {
           </div>
         </nav>
       )}
+
       {pathname === "/" && (
-        <nav className="flex justify-center max-w-sit-screen items-stretch uppercase font-anton text-xl py-4 mx-auto gap-4">
-          <div
-            className="flex items-center gap-3 border border-[#232542] rounded-full py-1 px-3 cursor-pointer"
-          >
-            <Image className="" src={logo} alt="paymesh logo" />
-            <h1 className="text-base md:text-[28px] font-normal">Paymesh</h1>
+        <nav className="flex sm:justify-between justify-center max-w-sit-screen items-stretch uppercase font-anton text-xl mx-auto gap-4 w-full">
+          <div className="flex justify-between items-center gap-6 border border-[#232542] rounded-full py-1 px-3 cursor-pointer w-full">
+            <Link
+              href="/"
+              className="flex items-center gap-3 cursor-pointer z-50 relative"
+            >
+              <Image className="" src={logo} alt="paymesh logo" />
+              <h1 className="text-base md:text-[28px] font-normal">Paymesh</h1>
+            </Link>
 
             <Link
               href="/overview"
               className={`
               bg-purple-bg
-            cursor-pointer  font-extrabold text-sm font-dmsans px-6 py-2 grid place-content-center rounded-full`}
+            cursor-pointer  font-extrabold text-xs sm:text-sm font-dmsans px-3 sm:px-6 py-2 grid place-content-center rounded-full`}
             >
               LAUNCH APP
             </Link>

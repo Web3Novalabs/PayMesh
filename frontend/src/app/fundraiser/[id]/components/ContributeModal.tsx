@@ -41,7 +41,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
     const numAmount = parseFloat(amount);
 
     // Validation: If anonymous is selected, amount must be more than 10
-    if (isAnonymous && numAmount <= 10) {
+    if (isAnonymous && numAmount < 10) {
       toast.error("Anonymous donations must be more than 10 STRK or 2 USDC");
       return;
     }
@@ -163,15 +163,15 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                 <span className="text-[#DFDFE0]">Public donation</span>
               </label>
               <label className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="privacy"
-                    checked={isAnonymous}
-                    onChange={() => setIsAnonymous(true)}
-                    className="w-4 h-4 text-[#434672] bg-[#FFFFFF0D] border-[#FFFFFF0D] focus:ring-[#434672]"
-                  />
-                  <span className="text-[#DFDFE0]">Anonymous donation</span>
-                </label>
+                <input
+                  type="radio"
+                  name="privacy"
+                  checked={isAnonymous}
+                  onChange={() => setIsAnonymous(true)}
+                  className="w-4 h-4 text-[#434672] bg-[#FFFFFF0D] border-[#FFFFFF0D] focus:ring-[#434672]"
+                />
+                <span className="text-[#DFDFE0]">Anonymous donation</span>
+              </label>
             </div>
 
             {/* Anonymous donation requirement notice */}
@@ -192,13 +192,13 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
               disabled={
                 isLoading ||
                 isSuccess ||
-                (isAnonymous && parseFloat(amount) <= 10) ||
+                (isAnonymous && parseFloat(amount) < 10) ||
                 parseFloat(amount) <= 0
               }
               className={`flex-1 bg-gradient-to-r from-[#434672] to-[#755a5a] text-white py-3 px-4 rounded-sm transition-opacity duration-200 font-medium ${
                 isLoading ||
                 isSuccess ||
-                (isAnonymous && parseFloat(amount) <= 10) ||
+                (isAnonymous && parseFloat(amount) < 10) ||
                 parseFloat(amount) <= 0
                   ? "cursor-not-allowed opacity-50"
                   : "cursor-pointer hover:opacity-90"

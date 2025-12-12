@@ -148,6 +148,7 @@ export const donate = async (
     setIsLoading(true);
     if (account != undefined) {
       if (isAnonymous) {
+        console.log("Anonymous donation", amount);
         const calls = await sdk.generate_approve_and_deposit_calls(
           BigInt(+amount * ONE_USDC),
           usdc
