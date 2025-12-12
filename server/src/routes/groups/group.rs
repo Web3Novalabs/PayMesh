@@ -72,7 +72,7 @@ pub async fn create_group(
     }
 
     for group_member in payload.members {
-        let member_percentage: BigDecimal = group_member.percentage.into();
+        let member_percentage = group_member.percentage;
         sqlx::query!(
             r#"INSERT INTO group_members (group_address, member_address, member_percentage) VALUES ($1, $2, $3)"#,
             group_address,
@@ -147,7 +147,7 @@ pub async fn get_group(
         tracing::error!("Database error fetching group members: {}", e);
         ApiError::Internal("Database Error Occurred")
     })?;
-    let history = sqlx::query!(
+    let history: Vec<GroupPaymentHistoryResponse> = sqlx::query!(
         r#"
     SELECT
         dh.tx_hash,
