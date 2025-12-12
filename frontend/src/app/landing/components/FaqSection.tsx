@@ -1,8 +1,8 @@
-"use client";
 
 import React, { useState } from "react";
-import { ArrowRight } from "lucide-react";
-
+import { Plus } from "lucide-react";
+import typhoon from "../components/../../../../public/coin/Image (5).png"
+import Image from "next/image";
 const faqData = [
   {
     question: "What is Paymesh?",
@@ -34,19 +34,17 @@ export default function FaqSection() {
   };
 
   return (
-    <section className="w-full py-20 px-4 md:px-12 max-w-5xl mx-auto">
-      <div className="bg-[#2C2D4B] rounded-3xl p-8 md:p-12 flex flex-col lg:flex-row gap-12">
-        {/* Title Area */}
+    <section className="w-full py-20 px-4 md:px-12 max-w-sit-screen mx-auto">
+      <div className="bg-[#24225A] rounded-t-[8px] p-8 md:p-12 flex flex-col lg:flex-row gap-12 items-center">
         <div className="lg:w-1/3">
-          <h2 className="text-3xl md:text-4xl font-black text-white uppercase leading-tight mb-4">
+          <h2 className="text-3xl font-anton md:text-[36px] font-black text-white uppercase mb-4">
             FEQUENTLY ASKED QUESTIONS
           </h2>
-          <p className="text-[#8398AD] text-xs uppercase tracking-wider">
+          <p className="text-[#9EB3C9] text-sm uppercase font-extrabold">
             GET THE BASIC ANSWERS TO YOUR QUESTIONS HERE
           </p>
         </div>
 
-        {/* Accordion Area */}
         <div className="lg:w-2/3 space-y-4">
           {faqData.map((item, index) => (
             <div
@@ -55,12 +53,12 @@ export default function FaqSection() {
               onClick={() => toggle(index)}
             >
               <div className="flex items-center justify-between py-2">
-                <h3 className="text-white font-medium text-sm md:text-base">
+                <h3 className="text-[#FFFFFF] font-semibold text-base md:text-base">
                   {item.question}
                 </h3>
-                <ArrowRight
+                <Plus
                   size={16}
-                  className={`text-white transition-transform ${
+                  className={`text-[#FFFFFF] transition-transform ${
                     openIndex === index ? "rotate-90" : ""
                   }`}
                 />
@@ -78,6 +76,23 @@ export default function FaqSection() {
               </div>
             </div>
           ))}
+        </div>
+      </div>
+      <div className="bg-[#0E0F19] rounded-b-[8px] p-[60px] mx-auto mb-16 flex flex-wrap items-center justify-center md:justify-between gap-8">
+        <div className="flex items-center gap-8 grayscale hover:grayscale-0 transition-all">
+          <span className="text-white font-bold text-lg flex items-center gap-2">
+            <Image width={40} height={40} src={typhoon} alt="typhoon" />
+            STARKNET
+          </span>
+          <span className="text-white font-bold text-lg flex items-center gap-2">
+            <Image width={40} height={40} src={typhoon} alt="typhoon" /> TYPHOON
+          </span>
+        </div>
+
+        <div className="text-right">
+          <span className="text-[#DFDFE0] text-[44px] uppercase tracking-wider block font-anton">
+            BUILT WITH THE BEST SUPPORT
+          </span>
         </div>
       </div>
     </section>

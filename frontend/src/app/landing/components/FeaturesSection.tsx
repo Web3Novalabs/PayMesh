@@ -1,18 +1,20 @@
-"use client";
-
-import React from "react";
-import { Users, Coins, Wallet, ArrowRight, CheckCircle2 } from "lucide-react";
+import usdt from "../../../../public/coin/Image.png"
+import usdc from "../../../../public/coin/Image (1).png";
+import wbtc from "../../../../public/coin/Image (3).png";
+import strk from "../../../../public/coin/Image (2).png";
+import eth from "../../../../public/coin/Image (4).png";
+import Image from "next/image";
 
 export default function FeaturesSection() {
   return (
-    <section className="w-full py-12 px-4 md:px-12 max-w-7xl mx-auto">
+    <section className="w-full py-12 px-4 md:px-12 max-w-sit-screen mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-[#0E0F19] border border-[#232542] rounded-2xl p-8 flex flex-col h-full hover:border-[#5B63D6] transition-colors group">
+        <div className="bg-[#0E0F19] border border-[#232542] rounded-[8px] p-8 flex flex-col h-full hover:border-[#5B63D6] transition-colors group">
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-white uppercase mb-2">
+            <h3 className="text-[28px] font-anton font-bold text-[#DFDFE0] uppercase mb-2">
               GROUPS SPLIT
             </h3>
-            <p className="text-[#8398AD] text-sm leading-relaxed">
+            <p className="text-[#FFFFFF] text-base font-dmsans">
               Create a group, add member wallet addresses, and let Paymesh do
               the rest. Every group gets a unique wallet address where funds can
               be sent and automatically distributed according to pre-set
@@ -21,49 +23,60 @@ export default function FeaturesSection() {
             </p>
           </div>
 
-          <div className="mt-auto space-y-4">
-            {/* Step 1 */}
-            <div className="bg-[#0FC468] rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
-              <span className="text-white font-bold text-sm uppercase relative z-10">
-                CREATE OR JOIN A GROUP
-              </span>
-              <Users className="text-white/20 w-12 h-12 absolute -right-2 -bottom-2 z-0" />
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center relative z-10">
-                <Users size={16} className="text-white" />
+          <div className="mt-auto space-y-4 font-anton text-base">
+            <div className="p-[1px] bg-gradient-to-r to-[#00875A] from-[#005136] rounded-[8px]">
+              <div className="rounded-[8px]  from-[#00B177] to-[#004B32] bg-gradient-to-r p-6 flex items-center justify-between relative overflow-hidden">
+                <span className="text-white text-sm uppercase relative z-10">
+                  CREATE OR JOIN A GROUP
+                </span>
+                <Image
+                  width={100}
+                  className="absolute right-10 -bottom-0 z-0"
+                  height={100}
+                  src={usdt}
+                  alt=""
+                />
               </div>
             </div>
 
-            {/* Step 2 */}
-            <div className="bg-[#0073E6] rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
-              <span className="text-white font-bold text-sm uppercase relative z-10">
-                GET PAID THROUGH PAYMESH ASSIGNED GROUP ADDRESS
-              </span>
-              <Coins className="text-white/20 w-12 h-12 absolute -right-2 -bottom-2 z-0" />
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center relative z-10">
-                <span className="text-white font-bold">$</span>
+            <div className="p-[1px] bg-gradient-to-r to-[#09479E] from-[#04224C] rounded-[8px] ">
+              <div className="rounded-[8px]  from-[#0B4FB0] to-[#05214A] bg-gradient-to-r p-6 flex items-center justify-end relative overflow-hidden">
+                <span className="text-white text-sm uppercase relative z-10">
+                  Get paid through Paymesh assigned group address
+                </span>
+                <Image
+                  width={100}
+                  className="absolute left-1 -bottom-0 z-0"
+                  height={100}
+                  src={usdc}
+                  alt=""
+                />
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="bg-[#482D88] rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
-              <span className="text-white font-bold text-sm uppercase relative z-10">
-                TOKEN GETS SPLIT BY SET PERCENTAGE ON PAYMESH
-              </span>
-              <CheckCircle2 className="text-white/20 w-12 h-12 absolute -right-2 -bottom-2 z-0" />
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center relative z-10">
-                <CheckCircle2 size={16} className="text-white" />
+            <div className="p-[1px] bg-gradient-to-r to-[#2E476C] from-[#5073B9] rounded-[8px]">
+              <div className="rounded-[8px]  from-[#282664] to-[#282664] bg-gradient-to-r p-6 flex items-center justify-between relative overflow-hidden">
+                <span className="text-white text-sm uppercase relative z-10">
+                  Token auto split by set percentage on payment
+                </span>
+                <Image
+                  width={100}
+                  className="absolute right-10 -bottom-0 z-0"
+                  height={100}
+                  src={strk}
+                  alt=""
+                />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Fundraising Card */}
-        <div className="bg-[#0E0F19] border border-[#232542] rounded-2xl p-8 flex flex-col h-full hover:border-[#5B63D6] transition-colors group">
+        <div className="bg-[#0E0F19] border border-[#232542] rounded-[8px] p-8 flex flex-col h-full hover:border-[#5B63D6] transition-colors group">
           <div className="mb-6">
-            <h3 className="text-xl font-bold text-white uppercase mb-2">
+            <h3 className="text-[28px] font-anton font-bold text-[#DFDFE0] uppercase mb-2">
               FUNDRAISING
             </h3>
-            <p className="text-[#8398AD] text-sm leading-relaxed">
+            <p className="text-[#FFFFFF] text-base font-dmsans">
               Start a fundraiser, set your target, and let Paymesh handle the
               flow. Each campaign gets a unique wallet address to receive
               contributions on-chain. Once your goal is reached, funds are
@@ -72,36 +85,49 @@ export default function FeaturesSection() {
             </p>
           </div>
 
-          <div className="mt-auto space-y-4">
-            {/* Step 1 */}
-            <div className="bg-[#FFFFFF] rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
-              <span className="text-[#0E0F19] font-bold text-sm uppercase relative z-10">
-                START A FUNDRAISER, SET YOUR TARGET
-              </span>
-              <div className="w-8 h-8 bg-[#0073E6] rounded-full flex items-center justify-center relative z-10">
-                <span className="text-white font-bold">$</span>
+          <div className="mt-auto space-y-4 font-anton text-base">
+            <div className="p-[1px] bg-gradient-to-r to-[#09479E] from-[#04224C] rounded-[8px]">
+              <div className="rounded-[8px]  from-[#FFFFFF] to-[#FFFFFF] bg-gradient-to-r p-6 flex items-center justify-between relative overflow-hidden">
+                <span className="text-[#111827] text-sm uppercase relative z-10">
+                  start a fundraiser, set your target
+                </span>
+                <Image
+                  width={100}
+                  className="absolute right-10 -bottom-0 z-0"
+                  height={100}
+                  src={usdc}
+                  alt=""
+                />
               </div>
             </div>
 
-            {/* Step 2 */}
-            <div className="bg-[#782AEB] rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
-              <span className="text-white font-bold text-sm uppercase relative z-10">
-                GET A UNIQUE WALLET ADDRESS TO RECEIVE CONTRIBUTIONS
-              </span>
-              <Wallet className="text-white/20 w-12 h-12 absolute -right-2 -bottom-2 z-0" />
-              <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center relative z-10">
-                <Wallet size={16} className="text-white" />
+            <div className="p-[1px] bg-gradient-to-r to-[#838383] from-[#838383] rounded-[8px]">
+              <div className="rounded-[8px]  from-[#660BB0] to-[#2B054A] bg-gradient-to-r p-6 flex items-center justify-end relative overflow-hidden">
+                <span className="text-white text-sm uppercase relative z-10">
+                  get a unique wallet address to receive contributions
+                </span>
+                <Image
+                  width={100}
+                  className="absolute left-1 -bottom-0 z-0"
+                  height={100}
+                  src={wbtc}
+                  alt=""
+                />
               </div>
             </div>
 
-            {/* Step 3 */}
-            <div className="bg-[#E4C8B8] rounded-xl p-4 flex items-center justify-between relative overflow-hidden">
-              <span className="text-[#4D3B31] font-bold text-sm uppercase relative z-10">
-                REACH GOAL - RECEIVE FUNDS TO BENEFICIARY WALLETS
-              </span>
-              <ArrowRight className="text-[#4D3B31]/20 w-12 h-12 absolute -right-2 -bottom-2 z-0" />
-              <div className="w-8 h-8 bg-[#4D3B31]/20 rounded-full flex items-center justify-center relative z-10">
-                <ArrowRight size={16} className="text-[#4D3B31]" />
+            <div className="p-[1px] bg-gradient-to-r to-[#09479E] from-[#04224C] rounded-[8px]">
+              <div className="rounded-[8px]  from-[#E4C7B4] to-[#E4C7B4] bg-gradient-to-r p-6 flex items-center justify-between relative overflow-hidden">
+                <span className="text-[#161D63] text-sm uppercase relative z-10">
+                  reach goal - receive funds to beneficiary wallets
+                </span>
+                <Image
+                  width={100}
+                  className="absolute right-10 -bottom-0 z-0"
+                  height={100}
+                  src={eth}
+                  alt=""
+                />
               </div>
             </div>
           </div>

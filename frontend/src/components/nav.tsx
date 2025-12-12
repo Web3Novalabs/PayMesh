@@ -36,90 +36,92 @@ export default function Nav() {
         scrolled ? "bg-[#0F111A] shadow-md py-2" : "bg-transparent py-4"
       }`}
     >
-    {pathname !== "/" && (
-        <nav className="flex justify-between w-full max-w-7xl items-center uppercase font-anton text-xl mx-auto relative flex-nowrap">
-        <Link
-          href="/"
-          className="flex items-center gap-3 border border-[#232542] rounded-full py-1 px-3 cursor-pointer z-50 relative"
-          onClick={() => setIsOpen(false)}
-        >
-          <Image className="" src={logo} alt="paymesh logo" />
-          <h1 className="text-base md:text-[28px] font-normal">Paymesh</h1>
-        </Link>
-
-        {/* Desktop Menu */}
-        <ul className="hidden xl:flex justify-between items-center gap-1 border border-moon-blue p-1 rounded-full text-xl">
-          {route.map((links, key) => (
-            <Link
-              key={key}
-              className={`${
-                pathname.includes(links.url) ? "bg-purple-bg" : ""
-              } cursor-pointer font-extrabold text-sm font-dmsans px-6 py-2 rounded-full`}
-              href={links.url}
-            >
-              {links.label}
-            </Link>
-          ))}
-        </ul>
-
-        <div className="flex items-center gap-4 z-50 relative">
-          <div className="hidden sm:block">
-            <WalletConnect />
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            className="xl:hidden p-2 text-white"
-            onClick={() => setIsOpen(!isOpen)}
+      {pathname !== "/" && (
+        <nav className="flex justify-between w-full max-w-sit-screen items-stretch uppercase font-anton text-xl mx-auto relative flex-nowrap">
+          <Link
+            href="/"
+            className="flex items-center gap-3 border border-[#232542] rounded-full py-1 px-3 cursor-pointer z-50 relative"
+            onClick={() => setIsOpen(false)}
           >
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
+            <Image className="" src={logo} alt="paymesh logo" />
+            <h1 className="text-base md:text-[28px] font-normal">Paymesh</h1>
+          </Link>
 
-        {/* Mobile Menu Overlay */}
-        <div
-          className={`fixed inset-0 bg-[#0F111A] z-40 transition-transform duration-300 ease-in-out xl:hidden flex flex-col items-center justify-center gap-8 ${
-            isOpen ? "translate-y-0" : "-translate-y-full"
-          }`}
-        >
-          <ul className="flex flex-col items-center gap-6">
+          {/* Desktop Menu */}
+          <ul className="hidden xl:flex justify-between items-center gap-1 border border-moon-blue p-1 rounded-full text-xl">
             {route.map((links, key) => (
               <Link
                 key={key}
                 className={`${
-                  pathname.includes(links.url) ? "text-[#4950B1]" : "text-white"
-                } cursor-pointer font-extrabold text-2xl font-dmsans hover:text-[#4950B1] transition-colors`}
+                  pathname.includes(links.url) ? "bg-purple-bg" : ""
+                } cursor-pointer font-extrabold text-sm font-dmsans px-6 py-2 rounded-full`}
                 href={links.url}
-                onClick={() => setIsOpen(false)}
               >
                 {links.label}
               </Link>
             ))}
           </ul>
 
-          <div className="sm:hidden">
-            <WalletConnect />
+          <div className="flex items-center gap-4 z-50 relative">
+            <div className="hidden sm:block">
+              <WalletConnect />
+            </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="xl:hidden p-2 text-white"
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
           </div>
-        </div>
-      </nav>
+
+          {/* Mobile Menu Overlay */}
+          <div
+            className={`fixed inset-0 bg-[#0F111A] z-40 transition-transform duration-300 ease-in-out xl:hidden flex flex-col items-center justify-center gap-8 ${
+              isOpen ? "translate-y-0" : "-translate-y-full"
+            }`}
+          >
+            <ul className="flex flex-col items-center gap-6">
+              {route.map((links, key) => (
+                <Link
+                  key={key}
+                  className={`${
+                    pathname.includes(links.url)
+                      ? "text-[#4950B1]"
+                      : "text-white"
+                  } cursor-pointer font-extrabold text-2xl font-dmsans hover:text-[#4950B1] transition-colors`}
+                  href={links.url}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {links.label}
+                </Link>
+              ))}
+            </ul>
+
+            <div className="sm:hidden">
+              <WalletConnect />
+            </div>
+          </div>
+        </nav>
       )}
       {pathname === "/" && (
         <nav className="flex justify-center max-w-sit-screen items-stretch uppercase font-anton text-xl py-4 mx-auto gap-4">
-          <Link
-            href="/"
+          <div
             className="flex items-center gap-3 border border-[#232542] rounded-full py-1 px-3 cursor-pointer"
           >
             <Image className="" src={logo} alt="paymesh logo" />
             <h1 className="text-base md:text-[28px] font-normal">Paymesh</h1>
-          </Link>
-          <Link
-            href="/overview"
-            className={`
+
+            <Link
+              href="/overview"
+              className={`
               bg-purple-bg
             cursor-pointer  font-extrabold text-sm font-dmsans px-6 py-2 grid place-content-center rounded-full`}
-          >
-            LAUNCH APP
-          </Link>
+            >
+              LAUNCH APP
+            </Link>
+          </div>
         </nav>
       )}
     </section>
