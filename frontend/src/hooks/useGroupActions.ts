@@ -45,23 +45,6 @@ export const useGroupActions = () => {
 
         const multicallData = [approveCall, swiftpayCall];
 
-        // const feeDetails: PaymasterDetails = {
-        //   feeMode: {
-        //     mode: "sponsored",
-        //   },
-        // };
-
-        // const feeEstimation = await account.estimatePaymasterTransactionFee(
-        //   [...multicallData],
-        //   feeDetails
-        // );
-
-        // const result = await account.executePaymasterTransaction(
-        //   [...multicallData],
-        //   feeDetails,
-        //   feeEstimation?.suggested_max_fee_in_gas_token
-        // );
-
         const result = await account.execute(multicallData);
         const status = await myProvider.waitForTransaction(
           result?.transaction_hash as string
@@ -113,23 +96,6 @@ export const useGroupActions = () => {
         };
 
         const multicallData = [approveCall, swiftpayCall];
-
-        // const feeDetails: PaymasterDetails = {
-        //   feeMode: {
-        //     mode: "sponsored",
-        //   },
-        // };
-
-        // const feeEstimation = await account.estimatePaymasterTransactionFee(
-        //   [...multicallData],
-        //   feeDetails
-        // );
-
-        // await account.executePaymasterTransaction(
-        //   [...multicallData],
-        //   feeDetails,
-        //   feeEstimation?.suggested_max_fee_in_gas_token
-        // );
         await account.execute(multicallData);
         toast.success("Top Up Successful!");
       }

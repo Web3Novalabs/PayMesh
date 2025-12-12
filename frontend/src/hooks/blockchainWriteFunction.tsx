@@ -9,13 +9,7 @@ import {
 // @ts-expect-error typhoon-sdk has incorrect type declarations
 import { TyphoonSDK } from "typhoon-sdk";
 import toast from "react-hot-toast";
-import {
-  AccountInterface,
-  byteArray,
-  cairo,
-  CallData,
-  PaymasterDetails,
-} from "starknet";
+import { AccountInterface, byteArray, cairo, CallData } from "starknet";
 import { CreateGroupFormData } from "@/types/group";
 
 const usdc =
@@ -40,7 +34,6 @@ export interface FormData {
   targetAmount: string;
   walletAddress: string;
 }
- 
 
 export type SetFormData = React.Dispatch<
   React.SetStateAction<CreateGroupFormData>
@@ -73,14 +66,7 @@ export const create_pool = async (
     toast.error("input a valid contract address");
     return;
   }
-  // const formated_description = removeNonASCII(description);
-
-  // handler();
   try {
-    // console.log(
-    //   "Blockchain function - Starting create_pool"
-    //   // formated_description
-    // );
     setIsSubmitting(true);
 
     if (account != undefined) {
@@ -107,24 +93,6 @@ export const create_pool = async (
         ],
       };
       const multicallData = [approveCall, Call];
-      // console.log(multicallData);
-      // const feeDetails: PaymasterDetails = {
-      //   feeMode: {
-      //     mode: "sponsored",
-      //   },
-      // };
-
-      // const feeEstimation = await account?.estimatePaymasterTransactionFee(
-      //   [...multicallData],
-      //   feeDetails
-      // );
-
-      // const result = await account?.executePaymasterTransaction(
-      //   [...multicallData],
-      //   feeDetails,
-      //   feeEstimation?.suggested_max_fee_in_gas_token
-      // );
-
       const result = await account.execute(multicallData);
 
       const status = await myProvider.waitForTransaction(
@@ -136,7 +104,6 @@ export const create_pool = async (
       poolAddrQr = poolAddress as string;
 
       const address = `0x${normalizeAddress(poolAddress)}`;
-      // console.log(address, "addr");
       await create_crowd_funding(
         address,
         account.address,
@@ -178,9 +145,7 @@ export const donate = async (
   const sdk = new TyphoonSDK();
 
   try {
-    console.log("Blockchain function - Starting donation");
     setIsLoading(true);
-    console.log("hey");
     if (account != undefined) {
       if (isAnonymous) {
         const calls = await sdk.generate_approve_and_deposit_calls(
@@ -199,10 +164,6 @@ export const donate = async (
         const withdraw = await sdk.withdraw(multicall.transaction_hash, [
           pool_address,
         ]);
-        console.log("widthdraw", withdraw);
-
-        // Set success state for anonymous donations
-        console.log("Anonymous donation isSuccess true");
         setIsSuccess(true);
       } else {
         const Call = {
@@ -269,25 +230,12 @@ export const createGroup = async (
 
   try {
     if (account != undefined && formData.usage) {
-      // console.log("formData.members", formData.members);
-
       const formattedMembers = formData.members
         .filter((member) => member.addr.trim() !== "")
         .map((member) => ({
           addr: member.addr.trim(),
           percentage: cairo.uint256(Number(member.percentage) * 1000),
         }));
-      console.log(formattedMembers, "fmt");
-      // const totalPercentage = formattedMembers.reduce(
-      //   (sum, member) => sum + member.percentage,
-      //   0
-      // );
-      // console.log("Total percentage:", totalPercentage);
-      // console.log("form dataDDDDDDDDDDD xxxxxxxxxx:", {
-      //   name: formData.name,
-      //   usage: formData.usage,
-      //   formattedMembers,
-      // });
 
       const call = {
         contractAddress: PAYMESH_ADDRESS,
@@ -301,34 +249,14 @@ export const createGroup = async (
       const approveCall = {
         contractAddress: strkTokenAddress,
         entrypoint: "approve",
-        calldata: [
-          PAYMESH_ADDRESS, // spender
-          cairo.uint256(+formData?.usage * ONE_STK),
-          // "1000000000000000000",
-          // "0"
-        ],
+        calldata: CallData.compile({
+          spender: PAYMESH_ADDRESS,
+          amount: cairo.uint256(+formData?.usage * ONE_STK),
+        }),
       };
 
       const multicallData = [approveCall, call];
-      // const result = await account.execute(multicallData);
-
-      const feeDetails: PaymasterDetails = {
-        feeMode: {
-          mode: "sponsored",
-        },
-      };
-
-      const feeEstimation = await account?.estimatePaymasterTransactionFee(
-        [...multicallData],
-        feeDetails
-      );
-
-      const result = await account?.executePaymasterTransaction(
-        [...multicallData],
-        feeDetails,
-        feeEstimation?.suggested_max_fee_in_gas_token
-      );
-      console.log(result);
+      const result = await account.execute(multicallData);
       await myProvider.waitForTransaction(result?.transaction_hash as string);
       setResultHash(result.transaction_hash);
     }
@@ -351,44 +279,6 @@ export const createGroup = async (
   }
 };
 
-// const updatePool = async (
-//   pool_address: string,
-//   creator_address: string,
-//   name: string,
-//   description: string
-// ) => {
-//   console.log("Crowd updated ", pool_address);
-
-//   try {
-//     const response = await fetch(
-//       `${process.env.NEXT_PUBLIC_API_URL}/crowdfunding/${pool_address}`,
-//       {
-//         method: "PUT",
-//         headers: {
-//           "Content-Type": "application/json",
-//         },
-//         body: JSON.stringify({
-//           creator_address: creator_address,
-//           description: description,
-//           name: name,
-//         }),
-//       }
-//     );
-
-//     if (!response.ok) {
-//       const errorText = await response.text(); // Capture response body
-//       throw new Error(
-//         `HTTP error! Status: ${response.status}, Body: ${errorText}`
-//       );
-//     }
-
-//     const data = await response.json();
-//     console.log("Response:", data);
-//     return data;
-//   } catch (error) {
-//     console.log("Error updating pool:", error);
-//   }
-// };
 const create_crowd_funding = async (
   pool_address: string,
   creator_address: string,
@@ -428,18 +318,4 @@ const create_crowd_funding = async (
   } catch (error) {
     console.log("Error updating pool:", error);
   }
-  console.log("Crowd funding created: ", pool_address);
 };
-
-// [
-//   {
-//     amountIn: 500,
-//     splitTime: "date",
-//     ts_hash:[""]
-//     mebersShars: [
-//       address: "",
-//       amountReceived: 0,
-//       Userpercentage: 0,
-//     ]
-//   }
-// ]
