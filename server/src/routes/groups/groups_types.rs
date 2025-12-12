@@ -19,8 +19,8 @@ pub struct GroupRequest {
 pub struct GroupMembersRequest {
     #[validate(custom(function = "validate_address"))]
     pub addr: String,
-    #[validate(range(min = 1, max = 100))]
-    pub percentage: u8,
+    #[validate(range(min = 1.0, max = 100.0))]
+    pub percentage: f64,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
