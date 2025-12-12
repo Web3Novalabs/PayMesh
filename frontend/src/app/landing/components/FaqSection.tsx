@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import typhoon from "../components/../../../../public/coin/Image (5).png";
+import strk from "../components/../../../../public/coin/Group 3.svg";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -102,9 +103,9 @@ export default function FaqSection() {
         viewport={{ once: true }}
         transition={{ delay: 0.3, duration: 0.8 }}
       >
-        <div className="flex items-center gap-8 grayscale hover:grayscale-0 transition-all">
+        <div className="flex items-center gap-8  transition-all">
           <span className="text-white font-bold text-lg flex items-center gap-2">
-            <Image width={40} height={40} src={typhoon} alt="typhoon" />
+            <Image width={40} height={40} src={strk} alt="typhoon" />
             STARKNET
           </span>
           <span className="text-white font-bold text-lg flex items-center gap-2">
