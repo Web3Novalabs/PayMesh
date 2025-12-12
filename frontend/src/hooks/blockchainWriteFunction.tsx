@@ -40,7 +40,6 @@ export interface FormData {
   targetAmount: string;
   walletAddress: string;
 }
- 
 
 export type SetFormData = React.Dispatch<
   React.SetStateAction<CreateGroupFormData>
@@ -183,6 +182,7 @@ export const donate = async (
     console.log("hey");
     if (account != undefined) {
       if (isAnonymous) {
+        console.log("Anonymous donation", amount);
         const calls = await sdk.generate_approve_and_deposit_calls(
           BigInt(+amount * ONE_USDC),
           usdc
