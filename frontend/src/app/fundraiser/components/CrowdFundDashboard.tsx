@@ -20,6 +20,7 @@ import { pool } from "@/types/usdcDataApi";
 import { compareAddresses, epocTimeReadable } from "@/utils/contract";
 import LoadingState from "@/components/Loading-state";
 import EmptyState from "./empty-state";
+import PaginationControls from "@/components/ui/PaginationControls";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
@@ -292,52 +293,14 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 
       {/* Pagination */}
       {reversedFundings && reversedFundings.length > 0 && (
-        <div className="mt-10 mx-auto items-center flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
-          <div className="text-sm text-[#E2E2E2]">
-            Showing {startIndex + 1} to{" "}
-            {Math.min(endIndex, reversedFundings?.length || 0)} of{" "}
-            {reversedFundings?.length || 0} results
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            >
-              ← Previous
-            </button>
-
-            {/* Page Numbers */}
-            <div className="flex items-center gap-1">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (page) => (
-                  <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
-                    className={`px-3 py-2 text-sm font-medium rounded-md ${
-                      currentPage === page
-                        ? "bg-gradient-to-r from-[#434672] to-[#755a5a] text-white"
-                        : "text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] hover:bg-[#282e38]"
-                    }`}
-                  >
-                    {page}
-                  </button>
-                )
-              )}
-            </div>
-
-            <button
-              onClick={() =>
-                setCurrentPage(Math.min(totalPages, currentPage + 1))
-              }
-              disabled={currentPage === totalPages}
-              className="px-3 py-2 text-sm font-medium text-[#E2E2E2] bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-md hover:bg-[#282e38] disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-            >
-              Next →
-            </button>
-          </div>
-        </div>
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={reversedFundings.length}
+          onPageChange={setCurrentPage}
+        />
       )}
     </div>
   );

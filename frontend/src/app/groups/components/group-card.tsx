@@ -1,6 +1,6 @@
 import Groups from "@/components/icons/group";
 import { useGroupMember } from "@/hooks/useContractInteraction";
-import { compareAddresses } from "@/utils/contract";
+import { compareAddresses, normalizeAddress } from "@/utils/contract";
 import { CalendarDays } from "lucide-react";
 import Link from "next/link";
 
@@ -47,7 +47,7 @@ export default function GroupCard({
         </div>
       </div>
       <div className="px-4">
-        <Link href={`/groups/${group?.groupAddress}`}  className="rounded-full border-dim-white-border py-2 px-4 border">
+        <Link href={`/groups/0x${normalizeAddress(group?.groupAddress)}`}  className="rounded-full border-dim-white-border py-2 px-4 border">
           View Group
         </Link>
       </div>
