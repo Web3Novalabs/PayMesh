@@ -1,17 +1,23 @@
 export const startingBlock = await fetch(
-  "https://starknet-mainnet.public.blastapi.io",
+  "https://starknet-mainnet.g.alchemy.com/v2/2kcD_qHq9FJV5ZI-BHY0q",
   {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       jsonrpc: "2.0",
-      id: 0,
+      id: 1,
       method: "starknet_blockNumber",
     }),
   }
 )
   .then((response) => response.json())
   .then((data: any) => data.result);
+
+  // curl https://starknet-mainnet.g.alchemy.com/v2/2kcD_qHq9FJV5ZI-BHY0q \
+  //    --request POST \
+  //    --header 'accept: application/json' \
+  //    --header 'content-type: application/json' \
+  //    --data '{"id":1,"jsonrpc":"2.0","method":"starknet_blockNumber"}'
 
 export function hexToString(hex: string): string {
   if (!hex || !hex.match(/^0x[0-9a-fA-F]*$/)) {

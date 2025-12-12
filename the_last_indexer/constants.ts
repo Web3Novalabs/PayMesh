@@ -7,3 +7,13 @@ export const USDC_TOKEN_ADDRESS = "0x053c91253bc9682c04929ca02ed00b3e423f6710d2e
 export const WBTC_TOKEN_ADDRESS = "0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac";
 
 export const TRANSFER_SELECTOR = getSelector("Transfer");
+
+export const GROUP_ADDRESS = "0x01710ab6e17d6809cd9d5e9b22e6bb1d1d09ca40f50449ea7ac81d67bef80f31";
+export const CROWDFUNDING_ADDRESS = "0x02c92666029b207dc882c267d7b55c3fe4178e9f550f7188cd49adb85f963623";
+
+// SELECTORS
+export  const POOL_CREATED_SELECTOR = getSelector("PoolCreated");
+export  const POOL_PAID_SELECTOR = getSelector("PoolPaid");
+export  const GROUP_CREATED_SELECTOR = getSelector("GroupCreated");
+export  const SUBSCRIPTION_TOPPED_SELECTOR = getSelector("SubscriptionTopped");
+export  const GROUP_PAID_SELECTOR = getSelector("GroupPaid");
