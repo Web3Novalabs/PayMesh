@@ -284,7 +284,10 @@ const GroupDetailsPage = () => {
         const approveCall = {
           contractAddress: strkTokenAddress,
           entrypoint: "approve",
-          calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK * 4)],
+          calldata: CallData.compile({
+            spender: PAYMESH_ADDRESS,
+            amount: cairo.uint256(ONE_STK * 4),
+          }),
         };
 
         const multicallData = [approveCall, swiftpayCall];
