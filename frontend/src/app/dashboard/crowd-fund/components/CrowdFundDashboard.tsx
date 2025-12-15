@@ -156,47 +156,81 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
           // Special Pool Logic
           const SPECIAL_POOL_ADDRESS =
             "0x0491e7064752699c7b15fe2476319b3d04bec0404f98f3d57c2e1cff2239fc1f";
+          const USDC_TOKEN_ADDRESS =
+            "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 
           let normalizedPoolAddr = "";
           try {
             if (funding.pool_address) {
-              // Ensure converting to string safely regardless of type (BigInt, etc)
-              const addrStr = String(funding.pool_address);
-              normalizedPoolAddr = "0x" + normalizeAddress(addrStr);
+              // Convert to hex string
+              normalizedPoolAddr =
+                "0x" + normalizeAddress(funding.pool_address.toString(16));
             }
           } catch (e) {
             console.error("Error normalizing address", e);
           }
 
+          const findPool = poolData?.find((data) => {
+            return compareAddresses(
+              data.crowd_funding.pool_address,
+              normalizedPoolAddr
+            );
+          });
+
           const isSpecialPool =
             normalizedPoolAddr.toLowerCase() ===
             SPECIAL_POOL_ADDRESS.toLowerCase();
 
-          // const isSpecialPool =
-          //   typeof funding.pool_address === "string" &&
-          //   funding.pool_address.toLowerCase() ===
-          //     SPECIAL_POOL_ADDRESS.toLowerCase();
-          const findPool = poolData?.find((data) => {
-            return compareAddresses(
-              data.crowd_funding.pool_address,
-              //@ts-expect-error parmas can be undefined
-              funding.pool_address
+          // Calculate Balances and Targets
+          let currentBalance = 0;
+          let targetValue = 0;
+
+          if (findPool) {
+            // Use API Data
+            const usdcToken = findPool.token_history.find((token) =>
+              compareAddresses(token.token_address, USDC_TOKEN_ADDRESS)
             );
-          });
 
-          const currentBalance = isSpecialPool
-            ? Number.parseFloat(funding.balance.toString()) / 1e6
-            : Number.parseFloat(funding.balance.toString()) / 1e18;
+            // Determine decimals based on token. Default 1e18 (Starknet), 1e6 for USDC
+            // We can infer from token address or just use raw ratio
+            const isUsdc = !!usdcToken;
+            const decimals = isUsdc ? 1e6 : 1e18;
 
-          // Use 300 as target for special pool
-          const targetValue = isSpecialPool
-            ? 300
-            : Number.parseFloat(funding.target.toString());
+            const rawBalance = usdcToken
+              ? Number(usdcToken.balance)
+              : Number(findPool.token_history[0]?.balance || 0);
 
-          // Override completion for special pool based on 300 target
+            // Check if rawBalance is actually huge or small. API usually returns raw integer.
+
+            const rawTarget = Number(findPool.crowd_funding.target_amount);
+
+            currentBalance = rawBalance / decimals;
+            targetValue = rawTarget / decimals;
+          } else {
+            // Fallback to Contract Data
+            // funding.balance is from contract. implementation in hook seemed to not divide it.
+            // funding.target is from contract. implementation in hook divided it by 1e18.
+            // This mismatch causes issues if we just mix them.
+
+            // However, based on previous code:
+            // currentBalance = balance / 1e18 (or 1e6 special)
+            // targetValue = target (already divided by 1e18 in hook) OR 300 special.
+
+            currentBalance = isSpecialPool
+              ? Number.parseFloat(funding.balance.toString()) / 1e6
+              : Number.parseFloat(funding.balance.toString()) / 1e18;
+            targetValue = isSpecialPool
+              ? 300
+              : Number.parseFloat(funding.target.toString());
+          }
+
+          if (isSpecialPool) {
+            targetValue = 300;
+          }
+
           const isCompleted = isSpecialPool
             ? currentBalance >= 300
-            : findPool?.crowd_funding.is_complete;
+            : findPool?.crowd_funding.is_complete || funding.is_completed; // Use API or Contract completion status
 
           return (
             <div
