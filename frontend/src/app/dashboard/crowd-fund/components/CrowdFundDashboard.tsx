@@ -17,7 +17,7 @@ import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
 import { pool, UsdcBalanceProps } from "@/types/usdcDataApi";
-import { compareAddresses } from "@/utils/contract";
+import { compareAddresses, normalizeAddress } from "@/utils/contract";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
@@ -153,6 +153,29 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 
         {/* Existing Funding Cards */}
         {paginatedFundings?.map((funding) => {
+          // Special Pool Logic
+          const SPECIAL_POOL_ADDRESS =
+            "0x0491e7064752699c7b15fe2476319b3d04bec0404f98f3d57c2e1cff2239fc1f";
+
+          let normalizedPoolAddr = "";
+          try {
+            if (funding.pool_address) {
+              // Ensure converting to string safely regardless of type (BigInt, etc)
+              const addrStr = String(funding.pool_address);
+              normalizedPoolAddr = "0x" + normalizeAddress(addrStr);
+            }
+          } catch (e) {
+            console.error("Error normalizing address", e);
+          }
+
+          const isSpecialPool =
+            normalizedPoolAddr.toLowerCase() ===
+            SPECIAL_POOL_ADDRESS.toLowerCase();
+
+          // const isSpecialPool =
+          //   typeof funding.pool_address === "string" &&
+          //   funding.pool_address.toLowerCase() ===
+          //     SPECIAL_POOL_ADDRESS.toLowerCase();
           const findPool = poolData?.find((data) => {
             return compareAddresses(
               data.crowd_funding.pool_address,
@@ -160,6 +183,21 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               funding.pool_address
             );
           });
+
+          const currentBalance = isSpecialPool
+            ? Number.parseFloat(funding.balance.toString()) / 1e6
+            : Number.parseFloat(funding.balance.toString()) / 1e18;
+
+          // Use 300 as target for special pool
+          const targetValue = isSpecialPool
+            ? 300
+            : Number.parseFloat(funding.target.toString());
+
+          // Override completion for special pool based on 300 target
+          const isCompleted = isSpecialPool
+            ? currentBalance >= 300
+            : findPool?.crowd_funding.is_complete;
+
           return (
             <div
               key={funding.id}
@@ -195,7 +233,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               {/* Progress Bar */}
               <div className="mb-4 grid gap-2">
                 <h2 className="text-white font-extrabold text-xl">
-                  {findPool?.crowd_funding.is_complete
+                  {/* {findPool?.crowd_funding.is_complete
                     ? 100
                     : Math.min(
                         (Number.parseFloat(funding.balance.toString()) /
@@ -203,11 +241,17 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                           Number.parseFloat(funding.target.toString())) *
                           100,
                         100
+                      ).toFixed(2)} % */}
+                  {isCompleted
+                    ? 100
+                    : Math.min(
+                        (currentBalance / targetValue) * 100,
+                        100
                       ).toFixed(2)}
                   %
                 </h2>
                 <div className="w-full bg-[#282e38] rounded-full h-2">
-                  <div
+                  {/* <div
                     className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${
@@ -220,6 +264,16 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                                 100,
                               100
                             )
+                      }% `,
+                    }}
+                  ></div> */}
+                  <div
+                    className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${
+                        isCompleted
+                          ? 100
+                          : Math.min((currentBalance / targetValue) * 100, 100)
                       }% `,
                     }}
                   ></div>
