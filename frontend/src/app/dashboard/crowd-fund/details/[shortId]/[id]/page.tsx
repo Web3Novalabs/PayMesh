@@ -327,6 +327,19 @@ const FundingDetailsPage = () => {
     ? formatAmountUsdc(usdcTokenBalance.balance)
     : "0.00";
 
+  // REMOVE ALL THIS ONES LATER
+  const SPECIAL_POOL_ADDRESS =
+    "0x0491e7064752699c7b15fe2476319b3d04bec0404f98f3d57c2e1cff2239fc1f";
+  const isSpecialPool =
+    crowdFundingAddr &&
+    crowdFundingAddr.toLowerCase() === SPECIAL_POOL_ADDRESS.toLowerCase();
+
+  const finalTargetAmount = isSpecialPool ? "300.00" : targetAmount;
+
+  const isFinalCompleted = isSpecialPool
+    ? Number(amountRaised) >= 300
+    : pool?.is_completed || usdcBalance?.crowd_funding?.is_complete;
+
   useEffect(() => {
     getUsdcBalance();
 
@@ -480,7 +493,7 @@ Every contribution counts — let's build something amazing together! 💫
   return (
     <div className="min-h-screen mb-10 relative">
       {/* Pool Completed Overlay */}
-      {pool?.is_completed && (
+      {/* {pool?.is_completed && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000036] bg-opacity-50 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-[#1F2937] border border-[#10B981] rounded-lg p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-300">
             <div className="w-16 h-16 bg-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -497,9 +510,6 @@ Every contribution counts — let's build something amazing together! 💫
               <div className="flex justify-between items-center text-sm">
                 <span className="text-[#6EE7B7]">Final Amount Raised:</span>
                 <span className="text-[#10B981] font-bold">
-                  {/* {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
-                    2
-                  )}{" "} */}
                   {formatAmountUsdc(
                     usdcBalance?.token_history?.[0]?.balance as string
                   )}{" "}
@@ -531,14 +541,73 @@ Every contribution counts — let's build something amazing together! 💫
             </button>
           </div>
         </div>
+      )} */}
+
+      {isFinalCompleted && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#00000036] bg-opacity-50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-[#1F2937] border border-[#10B981] rounded-lg p-8 max-w-md mx-4 text-center shadow-2xl animate-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 bg-[#10B981] rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+              <Check className="w-8 h-8 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-[#10B981] mb-2">
+              Campaign Completed! 🎉
+            </h2>
+            <p className="text-[#DFDFE0] mb-4">
+              This funding campaign has reached its target goal and is now
+              closed.
+            </p>
+            <div className="bg-[#064E3B] border border-[#10B981] rounded-sm p-4 mb-6">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-[#6EE7B7]">Final Amount Raised:</span>
+                <span className="text-[#10B981] font-bold">
+                  {/* {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
+                    2
+                  )}{" "} */}
+                  {formatAmountUsdc(
+                    usdcBalance?.token_history?.[0]?.balance as string
+                  )}{" "}
+                  USDC
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-[#6EE7B7]">Target Goal:</span>
+                <span className="text-[#DFDFE0]">{finalTargetAmount} USDC</span>
+                {/* <span className="text-[#DFDFE0]">{targetAmount} USDC</span> */}
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-[#51be58]">Donors:</span>
+                <span className="text-[#DFDFE0]">
+                  {usdcBalance?.donation_count?.total_donors || 0}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-sm mt-2">
+                <span className="text-[#6EE7B7] font-medium">
+                  Date Created:
+                </span>
+                <span className="text-[#DFDFE0]">{pool.create_at}</span>
+              </div>
+            </div>
+            <button
+              onClick={() => router.push("/dashboard/crowd-fund")}
+              className="w-full bg-gradient-to-r from-[#10B981] to-[#059669] text-white py-3 px-4 rounded-sm hover:opacity-90 transition-opacity duration-200 font-medium cursor-pointer"
+            >
+              Back to All Campaigns
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Header */}
-      <div
+      {/* <div
         className={`mb-8 border-b border-[#FFFFFF0D] pb-8 ${
           usdcBalance?.crowd_funding?.is_complete
             ? "blur-sm pointer-events-none"
             : ""
+        }`}
+      > */}
+      <div
+        className={`mb-8 border-b border-[#FFFFFF0D] pb-8 ${
+          isFinalCompleted ? "blur-sm pointer-events-none" : ""
         }`}
       >
         <button
@@ -557,7 +626,8 @@ Every contribution counts — let's build something amazing together! 💫
       {/* Share Section - Compact */}
       <div
         className={`mb-6 ${
-          pool.is_completed ? "blur-sm pointer-events-none" : ""
+          isFinalCompleted ? "blur-sm pointer-events-none" : ""
+          //  pool.is_completed ? "blur-sm pointer-events-none" : ""
         }`}
       >
         <div className="flex items-center flex-wrap gap-2 sm:gap-4">
@@ -593,7 +663,8 @@ Every contribution counts — let's build something amazing together! 💫
 
       <div
         className={`flex items-center gap-2 mb-5 ${
-          pool.is_completed ? "blur-sm pointer-events-none" : ""
+          isFinalCompleted ? "blur-sm pointer-events-none" : ""
+          // pool.is_completed ? "blur-sm pointer-events-none" : ""
         }`}
       >
         <span className="text-[#434672] font-semibold">
@@ -618,9 +689,10 @@ Every contribution counts — let's build something amazing together! 💫
 
       <div
         className={`grid grid-cols-1 lg:grid-cols-3 gap-8 ${
-          usdcBalance?.crowd_funding?.is_complete
-            ? "blur-sm pointer-events-none"
-            : ""
+          isFinalCompleted ? "blur-sm pointer-events-none" : ""
+          // usdcBalance?.crowd_funding?.is_complete
+          //   ? "blur-sm pointer-events-none"
+          //   : ""
         }`}
       >
         {/* Main Content */}
@@ -638,7 +710,7 @@ Every contribution counts — let's build something amazing together! 💫
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-white font-extrabold text-xl">
+                {/* <h2 className="text-white font-extrabold text-xl">
                   {usdcBalance?.crowd_funding.is_complete
                     ? 100
                     : Math.min(
@@ -673,6 +745,39 @@ Every contribution counts — let's build something amazing together! 💫
                 <div className="flex justify-between text-sm text-[#8398AD]">
                   <span>Raised: {amountRaised} USDC</span>
                   <span>Target: {targetAmount} USDC</span>
+                </div> */}
+                <h2 className="text-white font-extrabold text-xl">
+                  {isFinalCompleted
+                    ? 100
+                    : Math.min(
+                        (Number(amountRaised) / Number(finalTargetAmount)) *
+                          100,
+                        100
+                      ).toFixed(2)}
+                  %
+                </h2>{" "}
+                <div className="w-full bg-[#282e38] rounded-full h-2.5">
+                  <div
+                    className={`bg-blue-600 h-2.5 rounded-full transition-all duration-300`}
+                    style={{
+                      width: `${
+                        !isFinalCompleted
+                          ? Math.min(
+                              (Number(amountRaised) /
+                                Number(finalTargetAmount)) *
+                                100,
+                              100
+                            )
+                          : 100
+                      }%`,
+                    }}
+                  >
+                    {" "}
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm text-[#8398AD]">
+                  <span>Raised: {amountRaised} USDC</span>
+                  <span>Target: {finalTargetAmount} USDC</span>
                 </div>
               </div>
             </div>
@@ -731,7 +836,8 @@ Every contribution counts — let's build something amazing together! 💫
                 <Target className="w-5 h-5 text-[#8398AD]" />
                 <div>
                   <p className="text-[#DFDFE0] font-medium">
-                    {targetAmount} USDC
+                    {finalTargetAmount} USDC
+                    {/* {targetAmount} USDC */}
                   </p>
                   <p className="text-[#8398AD] text-sm">Target Amount</p>
                 </div>
@@ -740,7 +846,8 @@ Every contribution counts — let's build something amazing together! 💫
           </div>
 
           {/* Contribute Button */}
-          {!pool.is_completed && (
+          {/* {!pool.is_completed && ( */}
+          {!isFinalCompleted && (
             <div className="bg-[#FFFFFF0D] border border-[#FFFFFF0D] rounded-sm p-6">
               <h3 className="text-[#DFDFE0] font-medium text-lg mb-4">
                 Support This Campaign
