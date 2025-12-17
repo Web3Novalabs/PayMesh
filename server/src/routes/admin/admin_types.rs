@@ -43,14 +43,14 @@ pub struct PaymentsTotalsResponse {
     pub total_crowdfunding_pools: i64,
     pub total_crowdfunding_withdrawals: i64,
 
-    // Per-token breakdowns - Groups
+    // Per token breakdowns - Groups
     pub total_usdc_paid: String,
     pub total_usdt_paid: String,
     pub total_eth_paid: String,
     pub total_strk_paid: String,
     pub total_wbtc_paid: String,
 
-    // Per-token breakdowns - Crowdfunding pools
+    // Per token breakdowns - Crowdfunding pools
     pub total_usdc_pooled: String,
     pub total_usdt_pooled: String,
     pub total_eth_pooled: String,
@@ -74,7 +74,7 @@ pub struct PayoutTimelineResponse {
 #[derive(Debug, Serialize, ToSchema)]
 pub struct PayoutRecord {
     pub payout_at: String,
-    pub source: String, // "group" | "crowdfunding"
+    pub source: String, // group | crowdfunding
     pub token_address: String,
     pub amount: String,
 }
