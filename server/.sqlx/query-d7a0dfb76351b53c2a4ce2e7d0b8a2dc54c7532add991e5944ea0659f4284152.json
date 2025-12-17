@@ -1,0 +1,56 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            w.created_at::text as \"payout_at!\",\n            w.withdrawn_by as \"recipient!\",\n            w.token_address,\n            w.amount::text as \"amount!\",\n            w.transaction_hash,\n            cf.pool_address,\n            cf.name as \"pool_name!\"\n        FROM withdrawals w\n        JOIN crowd_funding cf ON w.crowd_funding_id = cf.id\n        ORDER BY w.created_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "payout_at!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "recipient!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "token_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "amount!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "transaction_hash",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "pool_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 6,
+        "name": "pool_name!",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      false,
+      false,
+      null,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "d7a0dfb76351b53c2a4ce2e7d0b8a2dc54c7532add991e5944ea0659f4284152"
+}
