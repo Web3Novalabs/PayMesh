@@ -6,9 +6,10 @@ import Link from "next/link";
 import logo from "../../public/navLogo.svg";
 import { usePathname } from "next/navigation";
 import WalletConnect from "@/app/components/WalletConnect";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Menu, X } from "lucide-react";
 import { useAccount } from "@starknet-react/core";
+import { isAdmin } from "@/utils/admin";
 
 export default function Nav() {
   const pathname = usePathname();
@@ -24,6 +25,17 @@ export default function Nav() {
   }, []);
 
   const [isOpen, setIsOpen] = useState(false);
+
+  // Filter routes based on admin status
+  const visibleRoutes = useMemo(() => {
+    return route.filter((link) => {
+      // If route is admin-only, only show to admin
+      if (link.adminOnly) {
+        return isAdmin(address);
+      }
+      return true;
+    });
+  }, [address]);
 
   // Close menu when wallet connects/disconnects or changes account
   useEffect(() => {
@@ -49,7 +61,7 @@ export default function Nav() {
 
           {/* Desktop Menu */}
           <ul className="hidden xl:flex justify-between items-center gap-1 border border-moon-blue p-1 rounded-full text-xl">
-            {route.map((links, key) => (
+            {visibleRoutes.map((links, key) => (
               <Link
                 key={key}
                 className={`${
@@ -83,7 +95,7 @@ export default function Nav() {
             }`}
           >
             <ul className="flex flex-col items-center gap-6">
-              {route.map((links, key) => (
+              {visibleRoutes.map((links, key) => (
                 <Link
                   key={key}
                   className={`${

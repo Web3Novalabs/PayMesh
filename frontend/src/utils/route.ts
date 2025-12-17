@@ -22,5 +22,6 @@ export const route = [
   {
     label: "Admin",
     url: "/admin",
+    adminOnly: true, // Only show to admin
   },
 ];
