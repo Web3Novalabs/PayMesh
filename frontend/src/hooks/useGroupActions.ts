@@ -34,16 +34,7 @@ export const useGroupActions = () => {
           }),
         };
 
-        const approveCall = {
-          contractAddress: strkTokenAddress,
-          entrypoint: "approve",
-          calldata: [
-            PAYMESH_ADDRESS, // spender
-            cairo.uint256(ONE_STK),
-          ],
-        };
-
-        const multicallData = [approveCall, swiftpayCall];
+        const multicallData = [swiftpayCall];
 
         const result = await account.execute(multicallData);
         const status = await myProvider.waitForTransaction(
@@ -92,7 +83,11 @@ export const useGroupActions = () => {
         const approveCall = {
           contractAddress: strkTokenAddress,
           entrypoint: "approve",
-          calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK)],
+          calldata: CallData.compile({
+            spender: PAYMESH_ADDRESS,
+            amount: cairo.uint256(ONE_STK),
+          }),
+          // calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK)],
         };
 
         const multicallData = [approveCall, swiftpayCall];

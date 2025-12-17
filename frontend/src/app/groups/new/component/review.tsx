@@ -53,7 +53,7 @@ export default function Review({
                     role="gridcell"
                     aria-label=""
                   >
-                    1
+                    {key + 1}
                   </td>
                   <td
                     className="z-10 px-4 py-5 font-medium text-center"
