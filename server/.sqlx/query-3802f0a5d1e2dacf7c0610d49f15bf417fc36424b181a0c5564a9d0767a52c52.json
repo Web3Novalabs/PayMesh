@@ -1,0 +1,38 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            paid_at::text as \"payout_at!\",\n            'group' as \"source!\",\n            token_address,\n            amount::text as \"amount!\"\n        FROM payments\n        \n        UNION ALL\n        \n        SELECT \n            created_at::text as \"payout_at!\",\n            'crowdfunding' as \"source!\",\n            token_address,\n            amount::text as \"amount!\"\n        FROM withdrawals\n        \n        ORDER BY 1 DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "payout_at!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "source!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "token_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "amount!",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "3802f0a5d1e2dacf7c0610d49f15bf417fc36424b181a0c5564a9d0767a52c52"
+}
