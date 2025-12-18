@@ -146,11 +146,6 @@ jobs:
             tail -n +6 | \
             xargs -r docker rmi || true
           
-          docker images "paymesh/the-last-indexer" --format "{{.Repository}}:{{.Tag}}" | \
-            grep -v latest | \
-            sort -r | \
-            tail -n +6 | \
-            xargs -r docker rmi || true
           
           # Remove dangling images
           docker image prune -f
