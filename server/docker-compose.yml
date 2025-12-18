@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   api:
-    image: akshola00/server:v2
+    image: paymesh/server:latest
     platform: linux/amd64
     restart: always
     environment:
