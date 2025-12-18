@@ -62,76 +62,76 @@ jobs:
         push: true
         tags: paymesh/the-last-indexer:latest
         
-  # deploy:
-  #   needs: build
-  #   runs-on: ubuntu-latest
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v2
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-  #   - name: Log in to Docker Hub
-  #     uses: docker/login-action@v1
-  #     with:
-  #       username: ${{ secrets.DOCKER_USERNAME }}
-  #       password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-  #   - name: Install sshpass
-  #     run: sudo apt-get install sshpass
+    - name: Install sshpass
+      run: sudo apt-get install sshpass
 
-  #   - name: Copy docker-compose.yml to droplet
-  #     run: sshpass -v -p ${{ secrets.DROPLET_PASSWORD }} scp -o StrictHostKeyChecking=no server/docker-compose.yml root@${{ vars.DROPLET_IP }}:~
+    - name: Copy docker-compose.yml to droplet
+      run: sshpass -v -p ${{ secrets.DROPLET_PASSWORD }} scp -o StrictHostKeyChecking=no server/docker-compose.yml root@${{ vars.DROPLET_IP }}:~
       
-  #   - name: Deploy with environment variables
-  #     uses: appleboy/ssh-action@master
-  #     with:
-  #       host: ${{ vars.DROPLET_IP }}
-  #       username: root
-  #       password: ${{ secrets.DROPLET_PASSWORD }}
-  #       script: |
-  #         cd ~
-  #         cat > .env <<EOL
-  #         RPC_URL=${{ secrets.RPC_URL }}
-  #         PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
-  #         PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
-  #         CONTRACT_ADDRESS=${{ secrets.CONTRACT_ADDRESS }}
-  #         DATABASE_URL=${{ secrets.DATABASE_URL }}
-  #         DATABASE_URL_USER=${{ secrets.DATABASE_URL_USER }}
-  #         DATABASE_URL_PASSWORD=${{ secrets.DATABASE_URL_PASSWORD }}
-  #         DATABASE_URL_DB=${{ secrets.DATABASE_URL_DB }}
-  #         DNA_TOKEN=${{ secrets.DNA_TOKEN }}
-  #         API_URL=${{ secrets.API_URL }}
-  #         CROWD_FUNDING_CONTRACT_ADDRESS=${{ secrets.CROWD_FUNDING_CONTRACT_ADDRESS }}
-  #         GENESIS_ADMIN_EMAIL=${{ secrets.GENESIS_ADMIN_EMAIL }}
-  #         GENESIS_ADMIN_PASSWORD=${{ secrets.GENESIS_ADMIN_PASSWORD }}
-  #         JWT_SECRET=${{ secrets.JWT_SECRET }}
-  #         JWT_EXPIRED_IN=${{ secrets.JWT_EXPIRED_IN }}
-  #         JWT_MAXAGE=${{ secrets.JWT_MAXAGE }}
-  #         PAYMESH_API_KEY=${{ secrets.PAYMESH_API_KEY }}
-  #         EOL
+    - name: Deploy with environment variables
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ vars.DROPLET_IP }}
+        username: root
+        password: ${{ secrets.DROPLET_PASSWORD }}
+        script: |
+          cd ~
+          cat > .env <<EOL
+          RPC_URL=${{ secrets.RPC_URL }}
+          PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
+          PUBLIC_KEY=${{ secrets.PUBLIC_KEY }}
+          CONTRACT_ADDRESS=${{ secrets.CONTRACT_ADDRESS }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DATABASE_URL_USER=${{ secrets.DATABASE_URL_USER }}
+          DATABASE_URL_PASSWORD=${{ secrets.DATABASE_URL_PASSWORD }}
+          DATABASE_URL_DB=${{ secrets.DATABASE_URL_DB }}
+          DNA_TOKEN=${{ secrets.DNA_TOKEN }}
+          API_URL=${{ secrets.API_URL }}
+          CROWD_FUNDING_CONTRACT_ADDRESS=${{ secrets.CROWD_FUNDING_CONTRACT_ADDRESS }}
+          GENESIS_ADMIN_EMAIL=${{ secrets.GENESIS_ADMIN_EMAIL }}
+          GENESIS_ADMIN_PASSWORD=${{ secrets.GENESIS_ADMIN_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRED_IN=${{ secrets.JWT_EXPIRED_IN }}
+          JWT_MAXAGE=${{ secrets.JWT_MAXAGE }}
+          PAYMESH_API_KEY=${{ secrets.PAYMESH_API_KEY }}
+          EOL
           
-  #         docker compose --env-file .env stop
-  #         docker compose --env-file .env pull
-  #         docker compose --env-file .env up -d
+          docker compose --env-file .env stop
+          docker compose --env-file .env pull
+          docker compose --env-file .env up -d
 
-  #   # - name: Copy docker-compose.yml to paymesh indexer droplet
-  #   #   run: sshpass -v -p ${{ secrets.PAYMESH_DROPLET_PASSWORD }} scp -o StrictHostKeyChecking=no the_last_indexer/docker-compose.yml root@${{ vars.PAYMESH_DROPLET_IP }}:~
+    # - name: Copy docker-compose.yml to paymesh indexer droplet
+    #   run: sshpass -v -p ${{ secrets.PAYMESH_DROPLET_PASSWORD }} scp -o StrictHostKeyChecking=no the_last_indexer/docker-compose.yml root@${{ vars.PAYMESH_DROPLET_IP }}:~
       
-  #   # - name: Deploy with environment variables
-  #   #   uses: appleboy/ssh-action@master
-  #   #   with:
-  #   #     host: ${{ vars.PAYMESH_DROPLET_IP }}
-  #   #     username: root
-  #   #     password: ${{ secrets.PAYMESH_DROPLET_PASSWORD }}
-  #   #     script: |
-  #   #       cd ~
-  #   #       cat > .env <<EOL
-  #   #       DNA_TOKEN=${{ secrets.DNA_TOKEN }}
-  #   #       API_URL=${{ secrets.API_URL }}
-  #   #       PAYMESH_API_KEY=${{ secrets.PAYMESH_API_KEY }}
+    # - name: Deploy with environment variables
+    #   uses: appleboy/ssh-action@master
+    #   with:
+    #     host: ${{ vars.PAYMESH_DROPLET_IP }}
+    #     username: root
+    #     password: ${{ secrets.PAYMESH_DROPLET_PASSWORD }}
+    #     script: |
+    #       cd ~
+    #       cat > .env <<EOL
+    #       DNA_TOKEN=${{ secrets.DNA_TOKEN }}
+    #       API_URL=${{ secrets.API_URL }}
+    #       PAYMESH_API_KEY=${{ secrets.PAYMESH_API_KEY }}
           
-  #   #       EOL
+    #       EOL
           
-  #   #       docker compose --env-file .env stop
-  #   #       docker compose --env-file .env pull
-  #   #       docker compose --env-file .env up -d
+    #       docker compose --env-file .env stop
+    #       docker compose --env-file .env pull
+    #       docker compose --env-file .env up -d
