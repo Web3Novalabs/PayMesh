@@ -67,7 +67,6 @@ jobs:
         set: |
           *.cache-from=type=gha
           *.cache-to=type=gha,mode=max
-          *.tags=paymesh/server:${{ steps.tag.outputs.tag }},paymesh/server:latest
 
     - name: Build and push indexer with unique tag
       uses: docker/build-push-action@v4
