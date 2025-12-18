@@ -17,7 +17,7 @@ impl Db {
             .acquire_timeout(Duration::from_secs(3))
             .connect(&db_connection_str)
             .await
-            .expect("can't connect to database");
+            .expect("can't connect to database from provided DATABASE_URL");
 
         Ok(Self { pool })
     }
