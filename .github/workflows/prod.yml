@@ -164,7 +164,7 @@ jobs:
         sshpass -v -p ${{ secrets.INDEXER_DROPLET_PASSWORD }} \
         scp -o StrictHostKeyChecking=no \
         the_last_indexer/docker-compose.yml \
-        root@${{ vars.INDEXER_DROPLET_IP }}:~ 
+        root@${{ vars.INDEXER_DROPLET_IP }}:~
 
     - name: Deploy indexer with environment variables
       uses: appleboy/ssh-action@master
