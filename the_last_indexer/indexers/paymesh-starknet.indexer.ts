@@ -35,7 +35,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   let crowd_funding_cache = [...crowdFundingContractAddresses];
   let group_cache = [...group_address_cache];
 
-  console.log("Crowd Funding Cache: ", crowd_funding_cache);
+  console.log("Tracking with paymesh \n Crowd Funding Cache: ", crowd_funding_cache);
   console.log("Group Cache: ", group_cache);
   console.log("starting block ", startingBlock)
 
