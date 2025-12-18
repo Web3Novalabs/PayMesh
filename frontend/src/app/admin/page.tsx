@@ -298,10 +298,19 @@ export default function AdminPage() {
 
       {/* Statistics Cards */}
       <section className="mb-12">
-        <h2 className="mb-6 text-xl font-semibold text-[#DFDFE0] flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-[#4950B1]" />
-          Platform Statistics
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold text-[#DFDFE0] flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-[#4950B1]" />
+            Platform Statistics
+          </h2>
+          <a
+            href="/admin/analytics"
+            className="px-4 py-2 bg-gradient-to-r from-[#4950B1] to-[#5961ce] text-white rounded-lg hover:opacity-90 transition-opacity flex items-center gap-2"
+          >
+            <TrendingUp className="w-4 h-4" />
+            View Analytics Charts
+          </a>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Total Earnings"
