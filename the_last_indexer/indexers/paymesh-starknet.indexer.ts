@@ -13,6 +13,7 @@ import {
   STRK_TOKEN_ADDRESS,
   TRANSFER_SELECTOR,
   USDC_TOKEN_ADDRESS,
+  USDC_TOKEN_ADDRESS_2,
   USDT_TOKEN_ADDRESS,
   WBTC_TOKEN_ADDRESS,
 } from "../constants";
@@ -70,6 +71,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         },
         {
           address: WBTC_TOKEN_ADDRESS,
+          keys: [TRANSFER_SELECTOR],
+        },
+        {
+          address: USDC_TOKEN_ADDRESS_2,
           keys: [TRANSFER_SELECTOR],
         },
       ],
@@ -204,13 +209,23 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           // Check if transfer is to crowdfunding pool
           if (crowd_funding_cache.includes(args.to)) {
             const { from, to, value } = JSON.parse(safeArgs);
-            donate_to_crowd_funding(
-              to,
-              value,
-              from,
-              event.address,
-              event.transactionHash
-            );
+            if (event.address === USDC_TOKEN_ADDRESS_2) {
+              donate_to_crowd_funding(
+                to,
+                value,
+                from,
+                USDC_TOKEN_ADDRESS,
+                event.transactionHash
+              );
+            } else {
+              donate_to_crowd_funding(
+                to,
+                value,
+                from,
+                event.address,
+                event.transactionHash
+              );
+            }
             logger.info(`\n💡 Transfer event to crowdfunding ${to}`);
           }
           // Check if transfer is to group
