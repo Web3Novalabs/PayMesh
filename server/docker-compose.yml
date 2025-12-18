@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   api:
-    image: paymesh/server:latest
+    image: paymesh/server:${IMAGE_TAG:-latest}
     platform: linux/amd64
     restart: always
     environment:
@@ -32,7 +32,7 @@ services:
       - pgdata:/var/lib/postgresql/data
 
   # indexer:
-  #   image: paymesh/the-last-indexer:latest
+  #   image: paymesh/the-last-indexer:${IMAGE_TAG:-latest}
   #   restart: always
   #   environment:
   #     DNA_TOKEN: "${DNA_TOKEN}"
