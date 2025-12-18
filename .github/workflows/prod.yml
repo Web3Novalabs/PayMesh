@@ -57,17 +57,16 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push server with unique tag
-      uses: docker/build-push-action@v4
+    - name: Build and push Docker images with unique tag
+      uses: docker/bake-action@v2.3.0
+      env:
+        IMAGE_TAG: ${{ steps.tag.outputs.tag }}
       with:
-        context: ./server
+        files: ./server/docker-bake.hcl
         push: true
-        tags: |
-          paymesh/server:${{ steps.tag.outputs.tag }}
-          paymesh/server:latest
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-        platforms: linux/amd64
+        set: |
+          *.cache-from=type=gha
+          *.cache-to=type=gha,mode=max
 
     - name: Build and push indexer with unique tag
       uses: docker/build-push-action@v4
@@ -153,17 +152,21 @@ jobs:
             tail -n +6 | \
             xargs -r docker rmi || true
           
-          # Remove dangling images 
+          # Remove dangling images
           docker image prune -f
           
           echo "Deployment complete!"
           echo "Running containers:"
           docker ps
 
-    - name: Copy docker-compose.yml to indexer droplet
-      run: sshpass -v -p ${{ secrets.INDEXER_DROPLET_PASSWORD }} scp -o StrictHostKeyChecking=no server/docker-compose.yml root@${{ vars.INDEXER_DROPLET_IP }}:~
-      
-    - name: Deploy with environment variables
+    - name: Copy docker-compose.yml to paymesh indexer droplet
+      run: |
+        sshpass -v -p ${{ secrets.INDEXER_DROPLET_PASSWORD }} \
+        scp -o StrictHostKeyChecking=no \
+        the_last_indexer/docker-compose.yml \
+        root@${{ vars.INDEXER_DROPLET_IP }}:~
+
+    - name: Deploy indexer with environment variables
       uses: appleboy/ssh-action@master
       env:
         IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
@@ -174,7 +177,7 @@ jobs:
         envs: IMAGE_TAG
         script: |
           cd ~
-          
+
           # Create environment file
           cat > .env <<EOL
           DNA_TOKEN=${{ secrets.DNA_TOKEN }}
@@ -182,25 +185,24 @@ jobs:
           PAYMESH_API_KEY=${{ secrets.PAYMESH_API_KEY }}
           IMAGE_TAG=${IMAGE_TAG}
           EOL
-          
-          echo "Deploying with image tag: ${IMAGE_TAG}"
-          
-          # Stop, pull new images, and restart
+
+          echo "Deploying indexer with image tag: ${IMAGE_TAG}"
+
+          # Stop, pull new image, and restart
           docker compose --env-file .env stop
           docker compose --env-file .env pull
           docker compose --env-file .env up -d
-          
+
           # Cleanup old images - keep last 5 versions
-          echo "Cleaning up old images..."
+          echo "Cleaning up old indexer images..."
           docker images "paymesh/the-last-indexer" --format "{{.Repository}}:{{.Tag}}" | \
             grep -v latest | \
             sort -r | \
             tail -n +6 | \
             xargs -r docker rmi || true
-          
+
           # Remove dangling images
           docker image prune -f
-          
-          echo "Deployment complete!"
-          echo "Running containers:"
+
+          echo "Indexer deployment complete!"
           docker ps
