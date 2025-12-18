@@ -31,13 +31,13 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  indexer:
-    image: paymesh/the-last-indexer:latest
-    restart: always
-    environment:
-      DNA_TOKEN: "${DNA_TOKEN}"
-      API_URL: "${API_URL}"
-      PAYMESH_API_KEY: "${PAYMESH_API_KEY}"
+  # indexer:
+  #   image: paymesh/the-last-indexer:latest
+  #   restart: always
+  #   environment:
+  #     DNA_TOKEN: "${DNA_TOKEN}"
+  #     API_URL: "${API_URL}"
+  #     PAYMESH_API_KEY: "${PAYMESH_API_KEY}"
 
   
 volumes:
