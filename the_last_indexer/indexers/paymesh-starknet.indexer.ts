@@ -37,12 +37,11 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
   console.log("Crowd Funding Cache: ", crowd_funding_cache);
   console.log("Group Cache: ", group_cache);
-  console.log("starting block ", startingBlock-20000)
-
+  console.log("starting block ", 4434432);
   return defineIndexer(StarknetStream)({
     streamUrl: crowdfundingConfig.streamUrl || groupConfig.streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(startingBlock-20000),
+    startingBlock: BigInt(4434432),
     filter: {
       events: [
         {
@@ -209,13 +208,13 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           // Check if transfer is to crowdfunding pool
           if (crowd_funding_cache.includes(args.to)) {
             const { from, to, value } = JSON.parse(safeArgs);
-              donate_to_crowd_funding(
-                to,
-                value,
-                from,
-                event.address,
-                event.transactionHash
-              );
+            donate_to_crowd_funding(
+              to,
+              value,
+              from,
+              event.address,
+              event.transactionHash
+            );
             logger.info(`\n💡 Transfer event to crowdfunding ${to}`);
           }
           // Check if transfer is to group
