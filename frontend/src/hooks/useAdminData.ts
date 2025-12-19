@@ -10,13 +10,11 @@ import {
   ONE_USDC,
   normalizeAddress,
   strkTokenAddress,
+  USDC_ADDRESS_1,
+  USDC_ADDRESS_2,
 } from "@/utils/contract";
 import { useGetAllPools } from "./useContractInteraction";
 import { useGetAllGroups } from "./useContractInteraction";
-
-// USDC token address
-const USDC_TOKEN_ADDRESS =
-  "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 
 export function useContractTokenBalances(contractAddress: string) {
   const isValidAddress =
@@ -24,12 +22,20 @@ export function useContractTokenBalances(contractAddress: string) {
     contractAddress.startsWith("0x") &&
     contractAddress.length > 10;
 
-  // Fetch USDC balance - using STRK_ABI since both are ERC20 tokens with same interface
-  const { readData: usdcBalance } = useContractFetch(
+  // Fetch USDC 1 balance
+  const { readData: usdc1Balance } = useContractFetch(
     STRK_ABI,
     "balance_of",
     isValidAddress ? [contractAddress] : [],
-    USDC_TOKEN_ADDRESS
+    USDC_ADDRESS_1
+  );
+
+  // Fetch USDC 2 balance
+  const { readData: usdc2Balance } = useContractFetch(
+    STRK_ABI,
+    "balance_of",
+    isValidAddress ? [contractAddress] : [],
+    USDC_ADDRESS_2
   );
 
   // Fetch STRK balance
@@ -41,9 +47,13 @@ export function useContractTokenBalances(contractAddress: string) {
   );
 
   return {
-    usdcBalance:
-      usdcBalance && isValidAddress
-        ? Number(usdcBalance.toString()) / ONE_USDC
+    usdc1Balance:
+      usdc1Balance && isValidAddress
+        ? Number(usdc1Balance.toString()) / ONE_USDC
+        : null,
+    usdc2Balance:
+      usdc2Balance && isValidAddress
+        ? Number(usdc2Balance.toString()) / ONE_USDC
         : null,
     strkBalance:
       strkBalance && isValidAddress
@@ -76,7 +86,7 @@ export function useAdminStats() {
 
     // Calculate total earnings (sum of all balances in USDC)
     const totalEarnings = pools.reduce((sum, p) => {
-      return sum + Number.parseFloat(p.balance.toString()) / 1e18;
+      return sum + Number.parseFloat(p.balance.toString()) / ONE_USDC;
     }, 0);
 
     // Calculate platform fees (assuming platform percentage is applied)

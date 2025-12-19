@@ -6,7 +6,8 @@ import Image from "next/image";
 interface ContractInfoCardProps {
   title: string;
   address: string;
-  usdcBalance: number | null;
+  usdc1Balance: number | null;
+  usdc2Balance: number | null;
   strkBalance: number | null;
   onCopy: (address: string, key: string) => void;
   copiedAddress: string | null;
@@ -16,7 +17,8 @@ interface ContractInfoCardProps {
 export default function ContractInfoCard({
   title,
   address,
-  usdcBalance,
+  usdc1Balance,
+  usdc2Balance,
   strkBalance,
   onCopy,
   copiedAddress,
@@ -56,13 +58,32 @@ export default function ContractInfoCard({
               height={24}
               className="rounded-full"
             />
-            <span className="text-sm text-[#8398AD]">USDC Balance</span>
+            <span className="text-sm text-[#8398AD]">USDC (Legacy)</span>
           </div>
           <span className="text-lg font-semibold text-[#DFDFE0]">
-            {usdcBalance !== null
-              ? `${usdcBalance.toFixed(2)} USDC`
+            {usdc1Balance !== null
+              ? `${usdc1Balance.toFixed(2)} USDC`
               : copyKey === "paymesh"
-              ? "0"
+              ? "0.00 USDC"
+              : "Loading..."}
+          </span>
+        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between rounded-lg bg-[#0c111c]/50 p-3 border border-[#232542] gap-2 sm:gap-0">
+          <div className="flex items-center gap-2">
+            <Image
+              src={"/usdcImg.png"}
+              alt="icon"
+              width={24}
+              height={24}
+              className="rounded-full"
+            />
+            <span className="text-sm text-[#8398AD]">USDC (New)</span>
+          </div>
+          <span className="text-lg font-semibold text-[#DFDFE0]">
+            {usdc2Balance !== null
+              ? `${usdc2Balance.toFixed(2)} USDC`
+              : copyKey === "paymesh"
+              ? "0.00 USDC"
               : "Loading..."}
           </span>
         </div>

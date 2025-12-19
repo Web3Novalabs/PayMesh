@@ -44,7 +44,7 @@ export default function CombinedMonthlyChart() {
 
   if (loading) {
     return (
-      <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+      <div className="border border-[#1E2032] rounded-xl p-6">
         <h3 className="text-xl font-semibold text-[#DFDFE0] mb-4">
           Combined Monthly Payout Flow
         </h3>
@@ -57,7 +57,7 @@ export default function CombinedMonthlyChart() {
 
   if (error || data.length === 0) {
     return (
-      <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+      <div className="border border-[#1E2032] rounded-xl p-6">
         <h3 className="text-xl font-semibold text-[#DFDFE0] mb-4">
           Combined Monthly Payout Flow
         </h3>
@@ -73,7 +73,7 @@ export default function CombinedMonthlyChart() {
   const activeTokens = getActiveTokens(data);
 
   return (
-    <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+    <div className="border border-[#1E2032] rounded-xl p-6">
       <h3 className="text-xl font-semibold text-[#DFDFE0] mb-4">
         Combined Monthly Payout Flow (Groups + Crowdfunding)
       </h3>

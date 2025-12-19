@@ -351,7 +351,8 @@ export default function AdminPage() {
           <ContractInfoCard
             title="Crowdfunding Contract"
             address={CROWDFUNDINGADDRESS}
-            usdcBalance={crowdfundBalances.usdcBalance}
+            usdc1Balance={crowdfundBalances.usdc1Balance}
+            usdc2Balance={crowdfundBalances.usdc2Balance}
             strkBalance={crowdfundBalances.strkBalance}
             onCopy={copyToClipboard}
             copiedAddress={copiedAddress}
@@ -360,7 +361,8 @@ export default function AdminPage() {
           <ContractInfoCard
             title="Paymesh Contract (Group)"
             address={PAYMESH_ADDRESS}
-            usdcBalance={paymeshBalances.usdcBalance}
+            usdc1Balance={paymeshBalances.usdc1Balance}
+            usdc2Balance={paymeshBalances.usdc2Balance}
             strkBalance={paymeshBalances.strkBalance}
             onCopy={copyToClipboard}
             copiedAddress={copiedAddress}

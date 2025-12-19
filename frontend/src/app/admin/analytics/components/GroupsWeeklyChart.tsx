@@ -77,7 +77,7 @@ export default function GroupsWeeklyChart() {
 
   if (loading) {
     return (
-      <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+      <div className="border border-[#1E2032] rounded-xl p-6">
         <h3 className="text-xl font-semibold text-[#DFDFE0] mb-4">
           Groups Weekly Payout Flow (Daily Breakdown)
         </h3>
@@ -90,7 +90,7 @@ export default function GroupsWeeklyChart() {
 
   if (error || availableWeeks.length === 0) {
     return (
-      <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+      <div className="border border-[#1E2032] rounded-xl p-6">
         <h3 className="text-xl font-semibold text-[#DFDFE0] mb-4">
           Groups Weekly Payout Flow (Daily Breakdown)
         </h3>
@@ -106,7 +106,7 @@ export default function GroupsWeeklyChart() {
   const activeTokens = getActiveTokens(data);
 
   return (
-    <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+    <div className=" border border-[#1E2032] rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-[#DFDFE0]">
           Groups Weekly Payout Flow (Daily Breakdown)

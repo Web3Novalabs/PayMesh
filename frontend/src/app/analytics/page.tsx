@@ -9,6 +9,8 @@ import { GroupTransactionData } from "@/types/group";
 
 import Loading from "@/components/Loading";
 
+import { isUsdc } from "@/utils/contract";
+
 export default function Page() {
   const { address } = useAccount();
 
@@ -59,10 +61,7 @@ export default function Page() {
         "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
       ) {
         chartData[month].STRK += amount / 1e18;
-      } else if (
-        tokenAddress ===
-        "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8"
-      ) {
+      } else if (isUsdc(tokenAddress)) {
         chartData[month].USDC += amount / 1e6;
       } else if (
         tokenAddress ===

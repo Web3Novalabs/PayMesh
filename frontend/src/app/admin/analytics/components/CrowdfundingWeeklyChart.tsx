@@ -78,7 +78,7 @@ export default function CrowdfundingWeeklyChart() {
 
   if (loading) {
     return (
-      <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+      <div className="border border-[#1E2032] rounded-xl p-6">
         <h3 className="text-xl font-semibold text-[#DFDFE0] mb-4">
           Crowdfunding Weekly Payout Flow (Daily Breakdown)
         </h3>
@@ -91,7 +91,7 @@ export default function CrowdfundingWeeklyChart() {
 
   if (error || availableWeeks.length === 0) {
     return (
-      <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+      <div className="border border-[#1E2032] rounded-xl p-6">
         <h3 className="text-xl font-semibold text-[#DFDFE0] mb-4">
           Crowdfunding Weekly Payout Flow (Daily Breakdown)
         </h3>
@@ -107,7 +107,7 @@ export default function CrowdfundingWeeklyChart() {
   const activeTokens = getActiveTokens(data);
 
   return (
-    <div className="bg-[#0B0C15] border border-[#1E2032] rounded-xl p-6">
+    <div className="border border-[#1E2032] rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-[#DFDFE0]">
           Crowdfunding Weekly Payout Flow (Daily Breakdown)

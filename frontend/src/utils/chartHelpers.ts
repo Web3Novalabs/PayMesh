@@ -16,6 +16,13 @@ export const TOKEN_CONFIG: Record<string, TokenInfo> = {
     decimals: 6,
     color: "#2775CA",
   },
+  "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb": {
+    address:
+      "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb",
+    symbol: "USDC",
+    decimals: 6,
+    color: "#2775CA",
+  },
   "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8": {
     address:
       "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8",

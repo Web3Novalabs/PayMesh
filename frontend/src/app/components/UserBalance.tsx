@@ -1,140 +1,71 @@
 "use client";
 
+import Loading from "@/components/Loading";
 import { useAccount, useBalance } from "@starknet-react/core";
 import { useState } from "react";
-import Loading from "./Loading";
+import {
+  USDC_ADDRESS_1,
+  USDC_ADDRESS_2,
+  strkTokenAddress,
+} from "@/utils/contract";
 
-type Currency = "ETH" | "USD" | "STRK";
+type Currency = "ETH" | "USD" | "STRK" | "USDC";
 
 export default function UserBalance() {
   const { address } = useAccount();
-  const {
-    data: balance,
-    isLoading,
-    error,
-  } = useBalance({
-    token: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
-  });
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency>("ETH");
+  const { data: ethBalance, isLoading: isLoadingEth } = useBalance({ address });
 
-  // Mock exchange rates (in real app, fetch from API)
-  const exchangeRates = {
-    ETH: 1,
-    USD: 2500, // 1 ETH = $2500
-    STRK: 0.8, // 1 ETH = 0.8 STRK
-  };
+  const { data: usdc1Balance, isLoading: isLoadingUsdc1 } = useBalance({
+    token: USDC_ADDRESS_1,
+    address,
+  });
+
+  const { data: usdc2Balance, isLoading: isLoadingUsdc2 } = useBalance({
+    token: USDC_ADDRESS_2,
+    address,
+  });
+
+  const { data: strkBalance, isLoading: isLoadingStrk } = useBalance({
+    token: strkTokenAddress,
+    address,
+  });
+
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency>("USDC");
 
   const formatBalance = (amount: bigint | undefined, decimals: number = 18) => {
-    if (!amount) return "0.00";
+    if (!amount) return "0.0000";
     const divisor = BigInt(10 ** decimals);
     const whole = amount / divisor;
     const fraction = amount % divisor;
-    const fractionStr = fraction.toString().padStart(decimals, "0").slice(0, 4);
-    return `${whole}.${fractionStr}`;
-  };
-
-  const convertBalance = (balance: bigint | undefined, currency: Currency) => {
-    if (!balance) return "0.00";
-    const ethBalance = parseFloat(formatBalance(balance));
-
-    switch (currency) {
-      case "ETH":
-        return ethBalance.toFixed(4);
-      case "USD":
-        return (ethBalance * exchangeRates.USD).toFixed(2);
-      case "STRK":
-        return (ethBalance * exchangeRates.STRK).toFixed(4);
-      default:
-        return ethBalance.toFixed(4);
-    }
-  };
-
-  const getCurrencySymbol = (currency: Currency) => {
-    switch (currency) {
-      case "ETH":
-        return "Ξ";
-      case "USD":
-        return "$";
-      case "STRK":
-        return "STRK";
-      default:
-        return "";
-    }
+    const fractionStr = fraction.toString().padStart(decimals, "0");
+    return `${whole}.${fractionStr.slice(0, 4)}`;
   };
 
   if (!address) {
     return null;
   }
 
-  if (!balance) {
-    // For testing, show a mock balance
-    const mockBalance = BigInt("1000000000000000000"); // 1 ETH in wei
+  const isLoading =
+    isLoadingEth || isLoadingUsdc1 || isLoadingUsdc2 || isLoadingStrk;
 
-    return (
-      <div className="bg-white mt-20 rounded-lg shadow-sm border border-gray-200 p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-gray-700">Wallet Balance</h3>
-          <div className="flex space-x-1">
-            {(["ETH", "USD", "STRK"] as Currency[]).map((currency) => (
-              <button
-                key={currency}
-                onClick={() => setSelectedCurrency(currency)}
-                className={`px-2 py-1 text-xs rounded-md transition-colors ${
-                  selectedCurrency === currency
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                {currency}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex items-baseline space-x-2">
-          <span className="text-2xl font-bold text-gray-900">
-            {getCurrencySymbol(selectedCurrency)}
-            {convertBalance(mockBalance, selectedCurrency)}
-          </span>
-          <span className="text-sm text-gray-500">{selectedCurrency}</span>
-        </div>
-
-        <div className="mt-2 text-xs text-gray-500">
-          <div className="flex justify-between">
-            <span>ETH: {convertBalance(mockBalance, "ETH")} Ξ</span>
-            <span>USD: ${convertBalance(mockBalance, "USD")}</span>
-            <span>STRK: {convertBalance(mockBalance, "STRK")}</span>
-          </div>
-        </div>
-
-        {isLoading && (
-          <div className="flex items-center gap-2 text-xs text-blue-500 mt-2">
-            <Loading fullScreen={false} size={20} color="#3b82f6" />
-            Loading real balance...
-          </div>
-        )}
-        {error && (
-          <div className="text-xs text-red-500 mt-2">
-            Error: {error.message}
-          </div>
-        )}
-      </div>
-    );
-  }
+  const usdcCombined =
+    (usdc1Balance?.value || BigInt(0)) + (usdc2Balance?.value || BigInt(0));
 
   return (
-    <div className="bg-white mt-10 rounded-lg shadow-sm border border-gray-200 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-gray-700">Wallet Balance</h3>
-        <div className="flex space-x-1">
-          {(["ETH", "USD", "STRK"] as Currency[]).map((currency) => (
+    <div className="bg-[#FFFFFF05] mt-10 rounded-2xl shadow-sm border border-[#232542] p-5 backdrop-blur-sm">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-medium text-[#9BB4EE] uppercase tracking-wider">
+          Wallet Balance
+        </h3>
+        <div className="flex bg-[#0c111c] p-1 rounded-lg border border-[#232542]">
+          {(["USDC", "STRK", "ETH"] as Currency[]).map((currency) => (
             <button
               key={currency}
               onClick={() => setSelectedCurrency(currency)}
-              className={`px-2 py-1 text-xs rounded-md transition-colors ${
+              className={`px-3 py-1 text-xs rounded-md transition-all duration-200 ${
                 selectedCurrency === currency
-                  ? "bg-blue-100 text-blue-700 font-medium"
-                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                  ? "bg-[#4950B1] text-white shadow-lg"
+                  : "text-[#8398AD] hover:text-[#DFDFE0] hover:bg-[#FFFFFF0A]"
               }`}
             >
               {currency}
@@ -143,22 +74,50 @@ export default function UserBalance() {
         </div>
       </div>
 
-      <div className="flex items-baseline space-x-2">
-        <span className="text-2xl font-bold text-gray-900">
-          {getCurrencySymbol(selectedCurrency)}
-          {convertBalance(balance.value, selectedCurrency)}
-        </span>
-        <span className="text-sm text-gray-500">{selectedCurrency}</span>
-      </div>
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-baseline space-x-2">
+          <span className="text-3xl font-bold bg-gradient-to-r from-[#DFDFE0] to-[#8398AD] bg-clip-text text-transparent">
+            {selectedCurrency === "USDC"
+              ? formatBalance(usdcCombined, 6)
+              : selectedCurrency === "STRK"
+              ? formatBalance(strkBalance?.value)
+              : formatBalance(ethBalance?.value)}
+          </span>
+          <span className="text-sm font-medium text-[#8398AD]">
+            {selectedCurrency}
+          </span>
+        </div>
 
-      {/* Additional balance info */}
-      <div className="mt-2 text-xs text-gray-500">
-        <div className="flex justify-between">
-          <span>ETH: {convertBalance(balance.value, "ETH")} Ξ</span>
-          <span>USD: ${convertBalance(balance.value, "USD")}</span>
-          <span>STRK: {convertBalance(balance.value, "STRK")}</span>
+        {selectedCurrency === "USDC" && (
+          <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="bg-[#FFFFFF05] border border-[#232542] rounded-xl p-3">
+              <p className="text-[10px] text-[#8398AD] mb-1">USDC (Legacy)</p>
+              <p className="text-sm font-semibold text-[#DFDFE0]">
+                {formatBalance(usdc1Balance?.value, 6)}
+              </p>
+            </div>
+            <div className="bg-[#FFFFFF05] border border-[#232542] rounded-xl p-3">
+              <p className="text-[10px] text-[#8398AD] mb-1">USDC (New)</p>
+              <p className="text-sm font-semibold text-[#DFDFE0]">
+                {formatBalance(usdc2Balance?.value, 6)}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-between items-center text-[10px] font-medium text-[#8398AD] pt-2 border-t border-[#232542]">
+          <span>STRK: {formatBalance(strkBalance?.value)}</span>
+          <span className="w-1 h-1 bg-[#232542] rounded-full"></span>
+          <span>ETH: {formatBalance(ethBalance?.value)}</span>
         </div>
       </div>
+
+      {isLoading && (
+        <div className="mt-4 flex items-center gap-2 text-[10px] text-[#4950B1]">
+          <Loading fullScreen={false} size={15} color="#4950B1" />
+          <span>Syncing with blockchain...</span>
+        </div>
+      )}
     </div>
   );
 }
