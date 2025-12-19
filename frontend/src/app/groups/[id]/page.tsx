@@ -14,7 +14,7 @@ import GroupActions from "./components/GroupActions";
 import MembersTable from "./components/MembersTable";
 import GroupMonthlyFlowChart from "./components/GroupMonthlyFlowChart";
 import { copyToClipboard } from "@/lib/utils";
-import LoadingState from "@/components/ui/LoadingState";
+import Loading from "@/components/Loading";
 import { generateGroupHistoryPDF } from "@/utils/pdfGenerator";
 
 export default function GroupDetail() {
@@ -83,12 +83,7 @@ export default function GroupDetail() {
   };
 
   if (isLoading) {
-    return (
-      <LoadingState
-        message="Loading Group Details"
-        subMessage="Fetching your group information..."
-      />
-    );
+    return <Loading />;
   }
 
   if (error || !groupDetails) {

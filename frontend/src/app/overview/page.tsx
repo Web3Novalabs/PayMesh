@@ -5,6 +5,7 @@ import Image from "next/image";
 import coins from "../../../public/coin/Container (2).png";
 import YourGroupsCard from "./components/YourGroupsCard";
 import ActiveCrowdFundingCard from "./components/ActiveCrowdFundingCard";
+import Loading from "@/components/Loading";
 
 export default function Page() {
   const [hasMounted, setHasMounted] = useState(false);
@@ -14,7 +15,7 @@ export default function Page() {
   }, []);
 
   if (!hasMounted) {
-    return <div className="min-h-[75vh] w-full" />;
+    return <Loading />;
   }
 
   return (

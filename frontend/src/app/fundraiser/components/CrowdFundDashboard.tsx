@@ -18,7 +18,7 @@ import { useGetAllPools } from "@/hooks/useContractInteraction";
 import Link from "next/link";
 import { pool } from "@/types/usdcDataApi";
 import { compareAddresses, epocTimeReadable } from "@/utils/contract";
-import LoadingState from "@/components/Loading-state";
+import Loading from "@/components/Loading";
 import EmptyState from "./empty-state";
 import PaginationControls from "@/components/ui/PaginationControls";
 
@@ -86,12 +86,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   }, [pools, getPoolsData]);
 
   if (isLoadingPools && !pools) {
-    return (
-      <LoadingState
-        title="Loading Pools"
-        description="Fetching your active fundraisers..."
-      />
-    );
+    return <Loading />;
   }
 
   if (!isLoadingPools && (paginatedFundings?.length ?? 0) === 0) {

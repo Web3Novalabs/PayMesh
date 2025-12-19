@@ -19,7 +19,7 @@ import { useAccount } from "@starknet-react/core";
 import { CallData } from "starknet";
 import { CROWDFUNDINGADDRESS } from "@/hooks/blockchainWriteFunction";
 import CampaignCompleted from "./components/CampaignCompleted";
-import LoadingState from "@/components/Loading-state";
+import Loading from "@/components/Loading";
 import ContributeModal from "./components/ContributeModal";
 import { MyCleanQrCode } from "@/components/qr-code";
 
@@ -76,12 +76,7 @@ const FundraiseDetails = () => {
 
   // HANDLE INITIAL LOADING ONCE ONLY
   if (isInitialLoading) {
-    return (
-      <LoadingState
-        title="Loading fundraise details"
-        description="Please wait while we fetch the fundraise details"
-      />
-    );
+    return <Loading />;
   }
 
   // HANDLE NOT FOUND

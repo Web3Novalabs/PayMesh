@@ -20,7 +20,7 @@ import {
 } from "@/hooks/useContractInteraction";
 import { useAccount } from "@starknet-react/core";
 
-import LoadingState from "@/components/Loading-state";
+import Loading from "@/components/Loading";
 import EmptyState from "./components/empty-state";
 import PaginationControls from "@/components/ui/PaginationControls";
 
@@ -74,12 +74,7 @@ export default function Page() {
   const endIndex = startIndex + itemsPerPage;
 
   if (isLoading) {
-    return (
-      <LoadingState
-        title="Loading Groups"
-        description="Fetching your groups..."
-      />
-    );
+    return <Loading />;
   }
 
   return (

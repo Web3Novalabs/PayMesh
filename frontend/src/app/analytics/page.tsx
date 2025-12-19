@@ -7,14 +7,20 @@ import { useQuery } from "@tanstack/react-query";
 import { GroupService } from "@/services/groupService";
 import { GroupTransactionData } from "@/types/group";
 
+import Loading from "@/components/Loading";
+
 export default function Page() {
   const { address } = useAccount();
 
-  const { data: allGroups = [] } = useQuery<GroupTransactionData[]>({
+  const { data: allGroups = [], isLoading } = useQuery<GroupTransactionData[]>({
     queryKey: ["allGroups"],
     queryFn: () => GroupService.getAllGroups(),
     refetchInterval: 10000,
   });
+
+  if (isLoading) {
+    return <Loading />;
+  }
 
   const chartData = [
     { name: "Jan", USDT: 0, USDC: 0, STRK: 0, ETH: 0, wBTC: 0 },

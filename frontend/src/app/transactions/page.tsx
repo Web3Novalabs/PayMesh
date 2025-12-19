@@ -5,7 +5,7 @@ import PaginationControls from "@/components/ui/PaginationControls";
 import { GroupService } from "@/services/groupService";
 import { truncateAddress } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
-import LoadingState from "@/components/ui/LoadingState";
+import Loading from "@/components/Loading";
 
 const itemsPerPage = 10;
 
@@ -107,12 +107,9 @@ export default function Page() {
 
   return (
     <section className="w-full space-y-6 flex flex-col min-h-[75vh] max-w-sit-screen px-5 mx-auto">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-white">Transactions</h1>
-      </div>
 
       {isLoading ? (
-        <LoadingState />
+        <Loading  className="py-20" />
       ) : (
         <>
           <TransactionListTable transactions={currentData} />

@@ -2,6 +2,7 @@
 
 import { useAccount, useBalance } from "@starknet-react/core";
 import { useState } from "react";
+import Loading from "./Loading";
 
 type Currency = "ETH" | "USD" | "STRK";
 
@@ -15,7 +16,6 @@ export default function UserBalance() {
     token: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
   });
   const [selectedCurrency, setSelectedCurrency] = useState<Currency>("ETH");
-
 
   // Mock exchange rates (in real app, fetch from API)
   const exchangeRates = {
@@ -108,7 +108,8 @@ export default function UserBalance() {
         </div>
 
         {isLoading && (
-          <div className="text-xs text-blue-500 mt-2">
+          <div className="flex items-center gap-2 text-xs text-blue-500 mt-2">
+            <Loading fullScreen={false} size={20} color="#3b82f6" />
             Loading real balance...
           </div>
         )}
