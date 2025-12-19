@@ -37,12 +37,11 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
   console.log("Crowd Funding Cache: ", crowd_funding_cache);
   console.log("Group Cache: ", group_cache);
-  console.log("starting block ", startingBlock)
-
+  console.log("starting block ", 4434432);
   return defineIndexer(StarknetStream)({
     streamUrl: crowdfundingConfig.streamUrl || groupConfig.streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(startingBlock),
+    startingBlock: BigInt(4434432),
     filter: {
       events: [
         {
@@ -73,10 +72,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           address: WBTC_TOKEN_ADDRESS,
           keys: [TRANSFER_SELECTOR],
         },
-        {
-          address: USDC_TOKEN_ADDRESS_2,
-          keys: [TRANSFER_SELECTOR],
-        },
+        // {
+        //   address: USDC_TOKEN_ADDRESS_2,
+        //   keys: [TRANSFER_SELECTOR],
+        // },
       ],
     },
     plugins: [],
@@ -209,23 +208,13 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           // Check if transfer is to crowdfunding pool
           if (crowd_funding_cache.includes(args.to)) {
             const { from, to, value } = JSON.parse(safeArgs);
-            if (event.address === USDC_TOKEN_ADDRESS_2) {
-              donate_to_crowd_funding(
-                to,
-                value,
-                from,
-                USDC_TOKEN_ADDRESS,
-                event.transactionHash
-              );
-            } else {
-              donate_to_crowd_funding(
-                to,
-                value,
-                from,
-                event.address,
-                event.transactionHash
-              );
-            }
+            donate_to_crowd_funding(
+              to,
+              value,
+              from,
+              event.address,
+              event.transactionHash
+            );
             logger.info(`\n💡 Transfer event to crowdfunding ${to}`);
           }
           // Check if transfer is to group
