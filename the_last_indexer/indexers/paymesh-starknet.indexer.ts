@@ -37,11 +37,11 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
   console.log("Crowd Funding Cache: ", crowd_funding_cache);
   console.log("Group Cache: ", group_cache);
-  console.log("starting block ", 4434432);
+  console.log("starting block ", startingBlock - 5000);
   return defineIndexer(StarknetStream)({
     streamUrl: crowdfundingConfig.streamUrl || groupConfig.streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(4434432),
+    startingBlock: BigInt(startingBlock - 5000),
     filter: {
       events: [
         {
