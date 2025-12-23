@@ -153,9 +153,6 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 
         {/* Existing Funding Cards */}
         {paginatedFundings?.map((funding) => {
-          // Special Pool Logic
-          const SPECIAL_POOL_ADDRESS =
-            "0x0491e7064752699c7b15fe2476319b3d04bec0404f98f3d57c2e1cff2239fc1f";
           const USDC_TOKEN_ADDRESS =
             "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
 
@@ -176,10 +173,6 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               normalizedPoolAddr
             );
           });
-
-          const isSpecialPool =
-            normalizedPoolAddr.toLowerCase() ===
-            SPECIAL_POOL_ADDRESS.toLowerCase();
 
           // Calculate Balances and Targets
           let currentBalance = 0;
@@ -208,29 +201,13 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
             targetValue = rawTarget / decimals;
           } else {
             // Fallback to Contract Data
-            // funding.balance is from contract. implementation in hook seemed to not divide it.
-            // funding.target is from contract. implementation in hook divided it by 1e18.
-            // This mismatch causes issues if we just mix them.
-
-            // However, based on previous code:
-            // currentBalance = balance / 1e18 (or 1e6 special)
-            // targetValue = target (already divided by 1e18 in hook) OR 300 special.
-
-            currentBalance = isSpecialPool
-              ? Number.parseFloat(funding.balance.toString()) / 1e6
-              : Number.parseFloat(funding.balance.toString()) / 1e18;
-            targetValue = isSpecialPool
-              ? 300
-              : Number.parseFloat(funding.target.toString());
+            currentBalance =
+              Number.parseFloat(funding.balance.toString()) / 1e18;
+            targetValue = Number.parseFloat(funding.target.toString());
           }
 
-          if (isSpecialPool) {
-            targetValue = 300;
-          }
-
-          const isCompleted = isSpecialPool
-            ? currentBalance >= 300
-            : findPool?.crowd_funding.is_complete || funding.is_completed; // Use API or Contract completion status
+          const isCompleted =
+            findPool?.crowd_funding.is_complete || funding.is_completed;
 
           return (
             <div
