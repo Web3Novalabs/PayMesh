@@ -1,0 +1,44 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            paid_at::text as \"payout_at!\",\n            group_address,\n            token_address,\n            amount::text as \"amount!\",\n            tx_hash\n        FROM payments\n        ORDER BY paid_at DESC\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "payout_at!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "group_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "token_address",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "amount!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "tx_hash",
+        "type_info": "Varchar"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "1dc3836d0022f09069ff317fe90bb493ba753039ff14825748c3146881acd9d3"
+}

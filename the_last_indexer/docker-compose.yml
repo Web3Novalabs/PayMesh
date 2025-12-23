@@ -1,6 +1,6 @@
 services:
   indexer:
-    image: akshola00/paymesh-indexer:latest
+    image: paymesh/the-last-indexer:${IMAGE_TAG:-latest}
     restart: always
     environment:
       DNA_TOKEN: "${DNA_TOKEN}"

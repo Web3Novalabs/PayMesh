@@ -1,7 +1,7 @@
 name: Build, Test and Deploy to Prod
 
 on:
-  push:
+  push: 
     branches:
       - main
 
@@ -11,10 +11,21 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.tag.outputs.tag }}
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+
+    # Create unique tag from git commit + build number
+    - name: Generate unique tag
+      id: tag
+      run: |
+        SHORT_SHA=$(git rev-parse --short HEAD)
+        TAG="build-${{ github.run_number }}-${SHORT_SHA}"
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "Generated tag: $TAG"
 
     - name: Cache dependencies
       uses: actions/cache@v3
@@ -46,8 +57,10 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
 
-    - name: Build and push Docker images
+    - name: Build and push Docker images with unique tag
       uses: docker/bake-action@v2.3.0
+      env:
+        IMAGE_TAG: ${{ steps.tag.outputs.tag }}
       with:
         files: ./server/docker-bake.hcl
         push: true
@@ -55,12 +68,14 @@ jobs:
           *.cache-from=type=gha
           *.cache-to=type=gha,mode=max
 
-    # - name: Build and push indexer
-    #   uses: docker/build-push-action@v4
-    #   with:
-    #     context: ./the_last_indexer
-    #     push: true
-    #     tags: akshola00/paymesh-indexer:latest
+    - name: Build and push indexer with unique tag
+      uses: docker/build-push-action@v4
+      with:
+        context: ./the_last_indexer
+        push: true
+        tags: |
+          paymesh/the-last-indexer:${{ steps.tag.outputs.tag }}
+          paymesh/the-last-indexer:latest
         
   deploy:
     needs: build
@@ -84,12 +99,17 @@ jobs:
       
     - name: Deploy with environment variables
       uses: appleboy/ssh-action@master
+      env:
+        IMAGE_TAG: ${{ needs.build.outputs.image_tag }}
       with:
         host: ${{ vars.DROPLET_IP }}
         username: root
         password: ${{ secrets.DROPLET_PASSWORD }}
+        envs: IMAGE_TAG
         script: |
           cd ~
+          
+          # Create environment file
           cat > .env <<EOL
           RPC_URL=${{ secrets.RPC_URL }}
           PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}
@@ -108,12 +128,31 @@ jobs:
           JWT_EXPIRED_IN=${{ secrets.JWT_EXPIRED_IN }}
           JWT_MAXAGE=${{ secrets.JWT_MAXAGE }}
           PAYMESH_API_KEY=${{ secrets.PAYMESH_API_KEY }}
+          IMAGE_TAG=${IMAGE_TAG}
           EOL
           
+          echo "Deploying with image tag: ${IMAGE_TAG}"
+          
+          # Stop, pull new images, and restart
           docker compose --env-file .env stop
           docker compose --env-file .env pull
           docker compose --env-file .env up -d
-
+          
+          # Cleanup old images - keep last 5 versions
+          echo "Cleaning up old images..."
+          docker images "paymesh/server" --format "{{.Repository}}:{{.Tag}}" | \
+            grep -v latest | \
+            sort -r | \
+            tail -n +6 | \
+            xargs -r docker rmi || true
+          
+          
+          # Remove dangling images
+          docker image prune -f
+          
+          echo "Deployment complete!"
+          echo "Running containers:"
+          docker ps
     # - name: Copy docker-compose.yml to paymesh indexer droplet
     #   run: sshpass -v -p ${{ secrets.PAYMESH_DROPLET_PASSWORD }} scp -o StrictHostKeyChecking=no the_last_indexer/docker-compose.yml root@${{ vars.PAYMESH_DROPLET_IP }}:~
       

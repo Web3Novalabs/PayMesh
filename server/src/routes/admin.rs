@@ -17,7 +17,10 @@ pub fn router() -> OpenApiRouter<AppState> {
 
     let group_admin = OpenApiRouter::new()
         .routes(routes!(group_admin::get_groups_metrics))
-        .routes(routes!(group_admin::get_payments_totals));
+        .routes(routes!(group_admin::get_payments_totals))
+        .routes(routes!(group_admin::get_payout_timeline))
+        .routes(routes!(group_admin::get_group_payout_timeline))
+        .routes(routes!(group_admin::get_crowdfunding_payout_timeline));
 
     let crowd_funding_admin = OpenApiRouter::new()
         .routes(routes!(crowd_funding_admin::add_token))
