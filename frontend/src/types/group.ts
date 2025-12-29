@@ -112,3 +112,24 @@ export interface GroupMemberShare {
   isValidating?: boolean;
   networkResult?: string | null;
 }
+
+export interface GroupFullDetailResponse {
+  group_data: {
+    group_address: string;
+    group_name: string;
+    created_by: string;
+    usage_remaining: string;
+    created_at: string;
+    updated_at: string;
+    members: Array<{
+      member_address: string;
+      member_percentage: string;
+      is_active: boolean;
+      added_at: string;
+    }>;
+  };
+  share_usdc?: string;
+  share_usdt?: string;
+  share_strk?: string;
+  share_eth?: string;
+}

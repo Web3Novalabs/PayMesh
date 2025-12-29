@@ -5,7 +5,7 @@ import WalletGuard from "@/components/WalletGuard";
 import { useAccount } from "@starknet-react/core";
 import { useQuery } from "@tanstack/react-query";
 import { GroupService } from "@/services/groupService";
-import { GroupTransactionData } from "@/types/group";
+import { GroupFullDetailResponse, GroupTransactionData } from "@/types/group";
 
 import Loading from "@/components/Loading";
 
@@ -14,11 +14,56 @@ import { isUsdc } from "@/utils/contract";
 export default function Page() {
   const { address } = useAccount();
 
-  const { data: allGroups = [], isLoading } = useQuery<GroupTransactionData[]>({
+  // Fetch all groups first to identify which ones the user is part of
+  const { data: allGroups = [], isLoading: isLoadingGroups } = useQuery<
+    GroupFullDetailResponse[]
+  >({
     queryKey: ["allGroups"],
     queryFn: () => GroupService.getAllGroups(),
     refetchInterval: 10000,
   });
+
+  // Filter groups where user is a member or creator
+  const userGroups = React.useMemo(() => {
+    if (!address || !allGroups) return [];
+    return allGroups.filter((group) => {
+      // Check if creator
+      if (group.group_data.created_by.toLowerCase() === address.toLowerCase())
+        return true;
+      // Check if member
+      return group.group_data.members.some(
+        (m) => m.member_address.toLowerCase() === address.toLowerCase()
+      );
+    });
+  }, [allGroups, address]);
+
+  // Fetch details for each user group to get history
+  const { data: userGroupDetails = [], isLoading: isLoadingDetails } = useQuery<
+    GroupTransactionData[]
+  >({
+    queryKey: [
+      "userGroupDetails",
+      userGroups.map((g) => g.group_data.group_address),
+    ],
+    queryFn: async () => {
+      if (userGroups.length === 0) return [];
+      const promises = userGroups.map((group) =>
+        GroupService.getGroupDetailsByAddress(group.group_data.group_address)
+      );
+      return Promise.all(promises);
+    },
+    enabled: userGroups.length > 0,
+    refetchInterval: 10000,
+  });
+
+  console.log("Analytics Page Debug:");
+  console.log("Address:", address);
+  console.log("All Groups:", allGroups);
+  console.log("User Groups:", userGroups);
+  console.log("User Group Details:", userGroupDetails);
+
+  const isLoading =
+    isLoadingGroups || (userGroups.length > 0 && isLoadingDetails);
 
   if (isLoading) {
     return <Loading />;
@@ -39,8 +84,8 @@ export default function Page() {
     { name: "Dec", USDT: 0, USDC: 0, STRK: 0, ETH: 0, wBTC: 0 },
   ];
 
-  allGroups.forEach((item) => {
-    const history = item.history;
+  userGroupDetails.forEach((groupDetails) => {
+    const history = groupDetails.history;
     if (!history) return;
 
     history.forEach((tx) => {

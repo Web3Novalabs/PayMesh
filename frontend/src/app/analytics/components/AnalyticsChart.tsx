@@ -39,7 +39,7 @@ interface CustomTooltipProps {
 const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#FFFFFF05] border border-[#232542] p-4 rounded-xl shadow-2xl min-w-[150px]">
+      <div className="bg-[#1E2032] border border-moon-blue p-4 rounded-xl shadow-2xl min-w-[150px]">
         <p className="text-gray-400 text-sm mb-3">{label}</p>
         <div className="space-y-2">
           {payload.map((entry: TooltipPayload) => (
@@ -55,7 +55,11 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                 <span className="text-gray-400">{entry.name}</span>
               </div>
               <span className="text-white font-medium">
-                ${entry.value.toFixed(1)}
+                {["USDT", "USDC"].includes(entry.name) ? "$" : ""}
+                {entry.value.toFixed(2)}
+                {["STRK", "ETH", "wBTC"].includes(entry.name)
+                  ? ` ${entry.name}`
+                  : ""}
               </span>
             </div>
           ))}
@@ -68,9 +72,9 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 const AnalyticsChart = ({ data }: AnalyticsChartProps) => {
   return (
-    <div className="w-full h-full min-h-[500px] bg-[#FFFFFF05] border border-[#232542] rounded-2xl p-6 relative overflow-hidden">
+    <div className="w-full h-full min-h-[500px] bg-[#FFFFFF05] border border-moon-blue rounded-2xl p-6 relative overflow-hidden">
       <div className="mb-6">
-        <div className="inline-block px-4 py-2 bg-[#1A1C29] border border-[#232542] rounded-full text-sm text-[#FFFFFF]">
+        <div className="inline-block px-4 py-2 bg-[#1A1C29] border border-moon-blue rounded-full text-sm text-[#FFFFFF]">
           All Group Earnings
         </div>
       </div>
@@ -108,7 +112,7 @@ const AnalyticsChart = ({ data }: AnalyticsChartProps) => {
               type="monotone"
               dataKey="USDT"
               stroke="#26A17B"
-              strokeWidth={0} // Hidden line for tooltip trigger, or thin if visible
+              strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
@@ -116,7 +120,7 @@ const AnalyticsChart = ({ data }: AnalyticsChartProps) => {
               type="monotone"
               dataKey="USDC"
               stroke="#2775CA"
-              strokeWidth={0}
+              strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
@@ -124,7 +128,7 @@ const AnalyticsChart = ({ data }: AnalyticsChartProps) => {
               type="monotone"
               dataKey="STRK"
               stroke="#627EEA" // Using approx colors
-              strokeWidth={0}
+              strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
@@ -132,7 +136,7 @@ const AnalyticsChart = ({ data }: AnalyticsChartProps) => {
               type="monotone"
               dataKey="ETH"
               stroke="#A855F7"
-              strokeWidth={0}
+              strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
@@ -140,7 +144,7 @@ const AnalyticsChart = ({ data }: AnalyticsChartProps) => {
               type="monotone"
               dataKey="wBTC"
               stroke="#F59E0B"
-              strokeWidth={0}
+              strokeWidth={2}
               dot={false}
               activeDot={{ r: 4, strokeWidth: 0 }}
             />
