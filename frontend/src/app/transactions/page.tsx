@@ -3,82 +3,145 @@ import React, { useState } from "react";
 import TransactionListTable from "./components/TransactionListTable";
 import PaginationControls from "@/components/ui/PaginationControls";
 import { GroupService } from "@/services/groupService";
+import { GroupFullDetailResponse } from "@/types/group";
+import { GroupDetails } from "@/types/groups";
 import { truncateAddress } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import Loading from "@/components/Loading";
+
+import { isUsdc } from "@/utils/contract";
 
 const itemsPerPage = 10;
 
 export default function Page() {
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: rawData = [], isLoading } = useQuery({
+  // 1. Fetch all groups for pagination
+  const { data: allGroups = [], isLoading: isLoadingAll } = useQuery<
+    GroupFullDetailResponse[]
+  >({
     queryKey: ["allGroups"],
     queryFn: () => GroupService.getAllGroups(),
-    refetchInterval: 5000, // Refetch every 5 seconds as requested
+    refetchInterval: 10000,
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = rawData.map((item: any) => {
-    const group = item.group_data || {};
+  // Calculate pagination
+  const totalItems = allGroups.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
 
-    const tokenMap = {
-      usdc: { symbol: "USDC", decimals: 6, icon: "/usdcImg.png" },
-      usdt: { symbol: "USDT", decimals: 6, icon: "/usdtImg.png" },
-      strk: { symbol: "STRK", decimals: 18, icon: "/strkImg.png" },
-      eth: { symbol: "ETH", decimals: 18, icon: "/ethImg.png" },
-      // wBTC not explicitly in the log example but handling just in case if needed
-    };
+  // Get slice for current page
+  const currentGroupSlice = allGroups.slice(startIndex, endIndex);
 
-    const usdcAmount =
-      parseInt(item.share_usdc || "0") / Math.pow(10, tokenMap.usdc.decimals);
-    const usdtAmount =
-      parseInt(item.share_usdt || "0") / Math.pow(10, tokenMap.usdt.decimals);
-    const strkAmount =
-      parseInt(item.share_strk || "0") / Math.pow(10, tokenMap.strk.decimals);
-    const ethAmount =
-      parseInt(item.share_eth || "0") / Math.pow(10, tokenMap.eth.decimals);
+  // 2. Fetch full details (with history) ONLY for the groups on the current page
+  const { data: detailedGroups = [], isLoading: isLoadingDetails } = useQuery<
+    GroupDetails[]
+  >({
+    queryKey: [
+      "groupDetails",
+      currentGroupSlice.map((g) => g.group_data.group_address),
+    ],
+    queryFn: async () => {
+      if (currentGroupSlice.length === 0) return [];
+      const promises = currentGroupSlice.map((g) =>
+        GroupService.getGroupDetailsByAddress(g.group_data.group_address)
+      );
+      return Promise.all(promises);
+    },
+    enabled: currentGroupSlice.length > 0,
+    refetchInterval: 10000,
+  });
 
-    const totalAmount = usdcAmount + usdtAmount;
+  // 3. Process the DETAILED data to calculate totals using history and isUsdc
+  const processedData = detailedGroups.map((groupDetails) => {
+    // groupDetails is the full response from getGroupDetailsByAddress
+    // It should have 'group_data' (info) and 'history' (transactions)
+
+    // Fallback if data structure is slightly different (direct return vs nested)
+    const info = groupDetails;
+    const history = groupDetails.history || [];
+
+    let usdcTotal = 0;
+    let usdtTotal = 0;
+    let strkTotal = 0;
+    let ethTotal = 0;
+
+    // Aggregate from history
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    history.forEach((tx: any) => {
+      // tx has total_amount_paid and token_address
+      // We can use the total_amount_paid for the group or sum up members?
+      // "total_amount_paid" is usually the sum of all members for that tx.
+      // Let's verify structure. GroupPaymentHistoryResponse has total_amount_paid.
+
+      const amount = parseFloat(tx.total_amount_paid);
+      const addr = tx.token_address;
+
+      if (isUsdc(addr)) {
+        usdcTotal += amount / 1e6;
+      } else if (
+        addr ===
+        "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8"
+      ) {
+        // USDT mainnet address - typically 6 decimals
+        usdtTotal += amount / 1e6;
+      } else if (
+        addr ===
+        "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"
+      ) {
+        // STRK
+        strkTotal += amount / 1e18;
+      } else if (
+        addr ===
+        "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
+      ) {
+        // ETH
+        ethTotal += amount / 1e18;
+      }
+    });
 
     const breakdownList = [
       {
         token: "USDC",
-        amount: usdcAmount.toFixed(2),
-        icon: tokenMap.usdc.icon,
-        iconColor: "#2775CA", // USDC blue
+        amount: usdcTotal.toFixed(2),
+        icon: "/usdcImg.png",
+        iconColor: "#2775CA",
       },
       {
         token: "USDT",
-        amount: usdtAmount.toFixed(2),
-        icon: tokenMap.usdt.icon,
-        iconColor: "#26A17B", // USDT green
+        amount: usdtTotal.toFixed(2),
+        icon: "/usdtImg.png",
+        iconColor: "#26A17B",
       },
       {
         token: "STRK",
-        amount: strkAmount.toFixed(5),
-        icon: tokenMap.strk.icon,
-        iconColor: "#FF6B00", // Starknet orange
+        amount: strkTotal.toFixed(5),
+        icon: "/strkImg.png",
+        iconColor: "#FF6B00",
       },
       {
         token: "ETH",
-        amount: ethAmount.toFixed(5),
-        icon: tokenMap.eth.icon,
-        iconColor: "#627EEA", // Ethereum purple
+        amount: ethTotal.toFixed(5),
+        icon: "/ethImg.png",
+        iconColor: "#627EEA",
       },
     ].filter((b) => parseFloat(b.amount) > 0);
 
-    const createdDate = new Date(group.created_at || Date.now());
+    const totalUSD = usdcTotal + usdtTotal; // Assuming stablecoins ≈ USD
+
+    // Fix created_at date parsing
+    const createdDate = new Date(info.created_at || Date.now());
 
     return {
-      id: group.group_address,
+      id: info.group_address,
       groupName:
-        group.group_name && group.group_name.startsWith("0x")
-          ? decodeGroupName(group.group_name)
-          : group.group_name || "Unnamed Group",
-      groupAddress: truncateAddress(group.group_address || ""),
-      totalAmount: `$${totalAmount.toFixed(2)}`,
-      members: group.members ? group.members.length : 0,
+        info.group_name && info.group_name.startsWith("0x")
+          ? decodeGroupName(info.group_name)
+          : info.group_name || "Unnamed Group",
+      groupAddress: truncateAddress(info.group_address || ""),
+      totalAmount: `$${totalUSD.toFixed(2)}`,
+      members: info.members ? info.members.length : 0,
       time: createdDate.toLocaleTimeString(),
       date: createdDate.toLocaleDateString(),
       breakdown: breakdownList,
@@ -100,25 +163,21 @@ export default function Page() {
     }
   }
 
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentData = data.slice(startIndex, endIndex);
-
   return (
     <section className="w-full space-y-6 flex flex-col min-h-[75vh] max-w-sit-screen px-5 mx-auto">
-
-      {isLoading ? (
-        <Loading  className="py-20" />
+      {isLoadingAll ||
+      isLoadingDetails ||
+      (processedData.length === 0 && allGroups.length > 0) ? (
+        <Loading className="py-20" />
       ) : (
         <>
-          <TransactionListTable transactions={currentData} />
+          <TransactionListTable transactions={processedData} />
           <PaginationControls
             currentPage={currentPage}
             totalPages={totalPages}
             startIndex={startIndex}
             endIndex={endIndex}
-            totalItems={data.length}
+            totalItems={totalItems}
             onPageChange={setCurrentPage}
           />
         </>
