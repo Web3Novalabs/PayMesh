@@ -4,7 +4,7 @@
 //     let caller = get_caller_address();
 
 //     let is_member = self.is_group_member(group_id, caller);
-//     assert(is_member == true, 'caller is not a group member');
+//     assert(is_member == true, 'caller is not a group member'); p[oihuy]
 
 //     // Check if the group has a pending update
 //     let already_approved = self.update_approvals.read((group_id, caller));

@@ -13,6 +13,7 @@ import {
   STRK_TOKEN_ADDRESS,
   TRANSFER_SELECTOR,
   USDC_TOKEN_ADDRESS,
+  USDC_TOKEN_ADDRESS_2,
   USDT_TOKEN_ADDRESS,
   WBTC_TOKEN_ADDRESS,
 } from "../constants";
@@ -36,12 +37,11 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
   console.log("Crowd Funding Cache: ", crowd_funding_cache);
   console.log("Group Cache: ", group_cache);
-  console.log("starting block ", startingBlock)
-
+  console.log("starting block ", startingBlock - 10000);
   return defineIndexer(StarknetStream)({
     streamUrl: crowdfundingConfig.streamUrl || groupConfig.streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(3421017),
+    startingBlock: BigInt(startingBlock - 10000),
     filter: {
       events: [
         {
@@ -72,6 +72,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           address: WBTC_TOKEN_ADDRESS,
           keys: [TRANSFER_SELECTOR],
         },
+        // {
+        //   address: USDC_TOKEN_ADDRESS_2,
+        //   keys: [TRANSFER_SELECTOR],
+        // },
       ],
     },
     plugins: [],
@@ -84,7 +88,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
 
         // Crowdfunding Events
         if (eventKey === POOL_CREATED_SELECTOR) {
-          logger.info("Pool Created");
           const { args } = decodeEvent({
             strict: true,
             event,
@@ -100,7 +103,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           // create_crowd_funding(pool_address, creator, hexToString(pool_name), target_amount);
           logger.info(`\n💡 Crowdfunding created event ${pool_address}`);
         } else if (eventKey === POOL_PAID_SELECTOR) {
-          logger.info("Pool Paid");
           const { args } = decodeEvent({
             strict: true,
             event,
@@ -149,7 +151,6 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
             members
           );
         } else if (eventKey === GROUP_PAID_SELECTOR) {
-          logger.info("Group Paid Occurred");
           const { args } = decodeEvent({
             strict: true,
             event,

@@ -17,7 +17,7 @@ import { useGetAllPools } from "@/hooks/useContractInteraction";
 import { generateShortIdFromPoolId } from "@/utils/shareUtils";
 import Link from "next/link";
 import { pool, UsdcBalanceProps } from "@/types/usdcDataApi";
-import { compareAddresses } from "@/utils/contract";
+import { compareAddresses, normalizeAddress } from "@/utils/contract";
 
 interface CrowdFundDashboardProps {
   onCreateNew: () => void;
@@ -153,13 +153,62 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
 
         {/* Existing Funding Cards */}
         {paginatedFundings?.map((funding) => {
+          const USDC_TOKEN_ADDRESS =
+            "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
+
+          let normalizedPoolAddr = "";
+          try {
+            if (funding.pool_address) {
+              // Convert to hex string
+              normalizedPoolAddr =
+                "0x" + normalizeAddress(funding.pool_address.toString(16));
+            }
+          } catch (e) {
+            console.error("Error normalizing address", e);
+          }
+
           const findPool = poolData?.find((data) => {
             return compareAddresses(
               data.crowd_funding.pool_address,
-              //@ts-expect-error parmas can be undefined
-              funding.pool_address
+              normalizedPoolAddr
             );
           });
+
+          // Calculate Balances and Targets
+          let currentBalance = 0;
+          let targetValue = 0;
+
+          if (findPool) {
+            // Use API Data
+            const usdcToken = findPool.token_history.find((token) =>
+              compareAddresses(token.token_address, USDC_TOKEN_ADDRESS)
+            );
+
+            // Determine decimals based on token. Default 1e18 (Starknet), 1e6 for USDC
+            // We can infer from token address or just use raw ratio
+            const isUsdc = !!usdcToken;
+            const decimals = isUsdc ? 1e6 : 1e18;
+
+            const rawBalance = usdcToken
+              ? Number(usdcToken.balance)
+              : Number(findPool.token_history[0]?.balance || 0);
+
+            // Check if rawBalance is actually huge or small. API usually returns raw integer.
+
+            const rawTarget = Number(findPool.crowd_funding.target_amount);
+
+            currentBalance = rawBalance / decimals;
+            targetValue = rawTarget / decimals;
+          } else {
+            // Fallback to Contract Data
+            currentBalance =
+              Number.parseFloat(funding.balance.toString()) / 1e18;
+            targetValue = Number.parseFloat(funding.target.toString());
+          }
+
+          const isCompleted =
+            findPool?.crowd_funding.is_complete || funding.is_completed;
+
           return (
             <div
               key={funding.id}
@@ -195,7 +244,7 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
               {/* Progress Bar */}
               <div className="mb-4 grid gap-2">
                 <h2 className="text-white font-extrabold text-xl">
-                  {findPool?.crowd_funding.is_complete
+                  {/* {findPool?.crowd_funding.is_complete
                     ? 100
                     : Math.min(
                         (Number.parseFloat(funding.balance.toString()) /
@@ -203,11 +252,17 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                           Number.parseFloat(funding.target.toString())) *
                           100,
                         100
+                      ).toFixed(2)} % */}
+                  {isCompleted
+                    ? 100
+                    : Math.min(
+                        (currentBalance / targetValue) * 100,
+                        100
                       ).toFixed(2)}
                   %
                 </h2>
                 <div className="w-full bg-[#282e38] rounded-full h-2">
-                  <div
+                  {/* <div
                     className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
                     style={{
                       width: `${
@@ -220,6 +275,16 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
                                 100,
                               100
                             )
+                      }% `,
+                    }}
+                  ></div> */}
+                  <div
+                    className="bg-[#0073E6] h-2 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${
+                        isCompleted
+                          ? 100
+                          : Math.min((currentBalance / targetValue) * 100, 100)
                       }% `,
                     }}
                   ></div>

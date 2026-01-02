@@ -19,8 +19,19 @@ pub struct GroupRequest {
 pub struct GroupMembersRequest {
     #[validate(custom(function = "validate_address"))]
     pub addr: String,
-    #[validate(range(min = 1, max = 100))]
-    pub percentage: u8,
+    #[validate(range(min = 1.0, max = 100.0))]
+    pub percentage: f64,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct GetBasicGroupDetailsResponse {
+    pub group_address: String,
+    pub group_name: String,
+    pub created_by: String,
+    pub usage_remaining: String,
+    pub created_at: String,
+    pub updated_at: Option<String>,
+    pub members: Vec<GroupMemberResponse>,
 }
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -32,6 +43,23 @@ pub struct GetGroupDetailsResponse {
     pub created_at: String,
     pub updated_at: Option<String>,
     pub members: Vec<GroupMemberResponse>,
+    pub history: Vec<GroupPaymentHistoryResponse>,
+}
+
+#[derive(Debug, Serialize, ToSchema, Deserialize)]
+pub struct GroupPaymentHistoryResponse {
+    pub total_amount_paid: String,
+    pub token_address: String,
+    pub tx_hash: String,
+    pub paid_at: String,
+    pub members: Vec<GroupMemberPaymentResponse>,
+}
+
+#[derive(Debug, Serialize, ToSchema, Deserialize)]
+pub struct GroupMemberPaymentResponse {
+    pub member_address: String,
+    pub member_amount: String,
+    pub member_percentage: String,
 }
 
 #[derive(Debug, Deserialize, Validate, ToSchema)]
@@ -79,7 +107,7 @@ pub struct GroupsResponse {
 
 #[derive(Debug, Serialize, ToSchema)]
 pub struct GroupFullDetailResponse {
-    pub group_data: GetGroupDetailsResponse,
+    pub group_data: GetBasicGroupDetailsResponse,
     pub share_usdc: Option<String>,
     pub share_usdt: Option<String>,
     pub share_eth: Option<String>,

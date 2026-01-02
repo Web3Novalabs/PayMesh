@@ -17,6 +17,11 @@ const USER5_CONST: felt252 = 13141513;
 const USER6_CONST: felt252 = 1314162454;
 const USER7_CONST: felt252 = 1314132354;
 const EMERGENCY_WITHDRAW_CONST: felt252 = 13141325;
+const AUTO_SWAP_CONST: felt252 = 13141;
+
+pub fn AUTO_SWAP_ADDR() -> ContractAddress {
+    AUTO_SWAP_CONST.try_into().unwrap()
+}
 
 pub fn ADMIN_ADDR() -> ContractAddress {
     ADMIN_CONST.try_into().unwrap()
@@ -176,38 +181,40 @@ pub fn deploy_crowdfund_contract() -> (
     (crowd_fund, erc20_dispatcher, usdc_dispatcher, usdt_dispatcher)
 }
 
+pub const PRECISION: u256 = 1_000;
+
 pub fn group_member_two() -> Array<GroupMember> {
     let mut members = ArrayTrait::new();
-    members.append(GroupMember { addr: USER1_ADDR(), percentage: 60 });
-    members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 });
+    members.append(GroupMember { addr: USER1_ADDR(), percentage: 60 * PRECISION });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 40 * PRECISION });
 
     members
 }
 
 pub fn group_member_five() -> Array<GroupMember> {
     let mut members = ArrayTrait::new();
-    members.append(GroupMember { addr: USER1_ADDR(), percentage: 20 });
-    members.append(GroupMember { addr: USER2_ADDR(), percentage: 20 });
-    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 20 });
-    members.append(GroupMember { addr: USER3_ADDR(), percentage: 20 });
-    members.append(GroupMember { addr: EMERGENCY_WITHDRAW_ADDR(), percentage: 20 });
+    members.append(GroupMember { addr: USER1_ADDR(), percentage: 20 * PRECISION });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 20 * PRECISION });
+    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 20 * PRECISION });
+    members.append(GroupMember { addr: USER3_ADDR(), percentage: 20 * PRECISION });
+    members.append(GroupMember { addr: EMERGENCY_WITHDRAW_ADDR(), percentage: 20 * PRECISION });
 
     members
 }
 
 pub fn group_member_ten() -> Array<GroupMember> {
     let mut members = ArrayTrait::new();
-    members.append(GroupMember { addr: USER1_ADDR(), percentage: 10 });
-    members.append(GroupMember { addr: USER2_ADDR(), percentage: 10 });
-    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 10 });
-    members.append(GroupMember { addr: USER3_ADDR(), percentage: 10 });
-    members.append(GroupMember { addr: EMERGENCY_WITHDRAW_ADDR(), percentage: 10 });
+    members.append(GroupMember { addr: USER1_ADDR(), percentage: 10 * PRECISION });
+    members.append(GroupMember { addr: USER2_ADDR(), percentage: 10 * PRECISION });
+    members.append(GroupMember { addr: CREATOR_ADDR(), percentage: 10 * PRECISION });
+    members.append(GroupMember { addr: USER3_ADDR(), percentage: 10 * PRECISION });
+    members.append(GroupMember { addr: EMERGENCY_WITHDRAW_ADDR(), percentage: 10 * PRECISION });
 
-    members.append(GroupMember { addr: ADMIN_ADDR(), percentage: 10 });
-    members.append(GroupMember { addr: USER4_ADDR(), percentage: 10 });
-    members.append(GroupMember { addr: USER5_ADDR(), percentage: 10 });
-    members.append(GroupMember { addr: USER6_ADDR(), percentage: 10 });
-    members.append(GroupMember { addr: USER7_ADDR(), percentage: 10 });
+    members.append(GroupMember { addr: ADMIN_ADDR(), percentage: 10 * PRECISION });
+    members.append(GroupMember { addr: USER4_ADDR(), percentage: 10 * PRECISION });
+    members.append(GroupMember { addr: USER5_ADDR(), percentage: 10 * PRECISION });
+    members.append(GroupMember { addr: USER6_ADDR(), percentage: 10 * PRECISION });
+    members.append(GroupMember { addr: USER7_ADDR(), percentage: 10 * PRECISION });
 
     members
 }

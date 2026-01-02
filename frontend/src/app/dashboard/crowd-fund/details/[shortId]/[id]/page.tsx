@@ -207,7 +207,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                 />
                 <span className="text-[#DFDFE0]">Public donation</span>
               </label>
-              {/* <label className="flex items-center space-x-3 cursor-pointer">
+              <label className="flex items-center space-x-3 cursor-pointer">
                 <input
                   type="radio"
                   name="privacy"
@@ -216,7 +216,7 @@ const ContributeModal: React.FC<ContributeModalProps> = ({
                   className="w-4 h-4 text-[#434672] bg-[#FFFFFF0D] border-[#FFFFFF0D] focus:ring-[#434672]"
                 />
                 <span className="text-[#DFDFE0]">Anonymous donation</span>
-              </label> */}
+              </label>
             </div>
 
             {/* Anonymous donation requirement notice */}
@@ -497,12 +497,7 @@ Every contribution counts — let's build something amazing together! 💫
               <div className="flex justify-between items-center text-sm">
                 <span className="text-[#6EE7B7]">Final Amount Raised:</span>
                 <span className="text-[#10B981] font-bold">
-                  {/* {(Number.parseFloat(pool.balance.toString()) / 1e18).toFixed(
-                    2
-                  )}{" "} */}
-                  {formatAmountUsdc(
-                    usdcBalance?.token_history?.[0]?.balance as string
-                  )}{" "}
+                  {amountRaised}
                   USDC
                 </span>
               </div>

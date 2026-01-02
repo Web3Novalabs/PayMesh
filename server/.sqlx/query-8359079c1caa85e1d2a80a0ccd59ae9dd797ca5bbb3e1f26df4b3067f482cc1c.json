@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT id, name, pool_address, creator_address, target_amount::TEXT as \"target_amount!\", is_complete, description \n           FROM crowd_funding WHERE pool_address = $1",
+  "query": "SELECT id, name, pool_address, creator_address, target_amount::text as \"target_amount!\", is_complete , description, created_at::text as \"created_at!\" FROM crowd_funding WHERE pool_address = $1",
   "describe": {
     "columns": [
       {
@@ -37,6 +37,11 @@
         "ordinal": 6,
         "name": "description",
         "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at!",
+        "type_info": "Text"
       }
     ],
     "parameters": {
@@ -51,8 +56,9 @@
       false,
       null,
       false,
-      false
+      false,
+      null
     ]
   },
-  "hash": "bee463b01937bc713c03cb5ac8a95a7c257b356ebf82193e2f32f29059d01bbe"
+  "hash": "8359079c1caa85e1d2a80a0ccd59ae9dd797ca5bbb3e1f26df4b3067f482cc1c"
 }

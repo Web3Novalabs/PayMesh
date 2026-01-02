@@ -16,8 +16,9 @@ use crate::{
         utopia::GROUP_TAG,
     },
     routes::groups::groups_types::{
-        GetGroupDetailsResponse, GroupFullDetailResponse, GroupMemberResponse,
-        GroupMemberWithAddress, GroupRequest, GroupTokenTransfer, GroupsResponse,
+        GetBasicGroupDetailsResponse, GetGroupDetailsResponse, GroupFullDetailResponse,
+        GroupMemberResponse, GroupMemberWithAddress, GroupPaymentHistoryResponse, GroupRequest,
+        GroupTokenTransfer, GroupsResponse,
     },
     util::validate_address::validate_address_api_err,
 };
@@ -71,7 +72,7 @@ pub async fn create_group(
     }
 
     for group_member in payload.members {
-        let member_percentage: BigDecimal = group_member.percentage.into();
+        let member_percentage = group_member.percentage;
         sqlx::query!(
             r#"INSERT INTO group_members (group_address, member_address, member_percentage) VALUES ($1, $2, $3)"#,
             group_address,
@@ -146,6 +147,43 @@ pub async fn get_group(
         tracing::error!("Database error fetching group members: {}", e);
         ApiError::Internal("Database Error Occurred")
     })?;
+    let history: Vec<GroupPaymentHistoryResponse> = sqlx::query!(
+        r#"
+    SELECT
+        dh.tx_hash,
+        dh.token_address,
+        SUM(dh.token_amount)::text AS total_amount_paid,
+        COALESCE(MAX(dh.sent_at)::text, '') AS paid_at,
+        jsonb_agg(
+            jsonb_build_object(
+                'member_address', dh.member_address,
+                'member_amount', dh.token_amount::text,
+                'member_percentage',
+                    COALESCE(gm.member_percentage::text, '0')
+            )
+        ) AS members
+    FROM distributions_history dh
+    LEFT JOIN group_members gm 
+        ON gm.group_address = dh.group_address
+        AND gm.member_address = dh.member_address
+    WHERE dh.group_address = $1
+    GROUP BY dh.tx_hash, dh.token_address
+    ORDER BY MAX(dh.sent_at) DESC
+    "#,
+        group_address
+    )
+    .fetch_all(&state.db)
+    .await
+    .map_err(|e| map_sqlx_error(&e))?
+    .into_iter()
+    .map(|row| GroupPaymentHistoryResponse {
+        tx_hash: row.tx_hash,
+        token_address: row.token_address,
+        total_amount_paid: row.total_amount_paid.unwrap_or_default(),
+        paid_at: row.paid_at.unwrap_or_default(),
+        members: serde_json::from_value(row.members.unwrap_or_default()).unwrap_or_default(),
+    })
+    .collect::<Vec<_>>();
 
     Ok(Json(GetGroupDetailsResponse {
         group_address: group.group_address,
@@ -155,6 +193,7 @@ pub async fn get_group(
         created_at: group.created_at,
         updated_at: group.updated_at,
         members,
+        history,
     }))
 }
 
@@ -278,7 +317,7 @@ pub async fn get_groups(State(state): State<AppState>) -> Result<impl IntoRespon
             .unwrap_or_default();
 
         // Create GetGroupDetailsResponse
-        let group_details = GetGroupDetailsResponse {
+        let group_details = GetBasicGroupDetailsResponse {
             group_address: group.group_address,
             group_name: group.group_name,
             created_by: group.created_by,
