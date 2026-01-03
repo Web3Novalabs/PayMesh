@@ -20,6 +20,7 @@ import {
 import { crowdfunding_abi } from "crowdfunding_abi";
 import { myAbi } from "../abi";
 import { strk_abi } from "strk_abi";
+import { usdcAbi } from "usdc2abi";
 import { hexToString, startingBlock } from "../helpers";
 
 export default function (runtimeConfig: ApibaraRuntimeConfig) {
@@ -41,7 +42,7 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
   return defineIndexer(StarknetStream)({
     streamUrl: crowdfundingConfig.streamUrl || groupConfig.streamUrl,
     finality: "accepted",
-    startingBlock: BigInt(4434432),
+    startingBlock: BigInt(startingBlock),
     filter: {
       events: [
         {
@@ -72,10 +73,10 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
           address: WBTC_TOKEN_ADDRESS,
           keys: [TRANSFER_SELECTOR],
         },
-        // {
-        //   address: USDC_TOKEN_ADDRESS_2,
-        //   keys: [TRANSFER_SELECTOR],
-        // },
+        {
+          address: USDC_TOKEN_ADDRESS_2,
+          keys: [TRANSFER_SELECTOR],
+        },
       ],
     },
     plugins: [],
@@ -195,12 +196,25 @@ export default function (runtimeConfig: ApibaraRuntimeConfig) {
         }
         // Transfer Event - handled for both crowdfunding and groups
         else if (eventKey === TRANSFER_SELECTOR) {
-          const { args } = decodeEvent({
-            strict: true,
-            event,
-            abi: strk_abi,
-            eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer",
-          });
+          let args;
+          if (event.address == USDC_TOKEN_ADDRESS_2) {
+            const decoded = decodeEvent({
+              strict: true,
+              event,
+              abi: usdcAbi,
+              eventName: "stablecoin::fiat_token::events::Transfer",
+            });
+            args = decoded.args;
+          } else {
+            logger.info("ANOTHER TOKEN TRANSFER EVENT DETECTED");
+            const decoded = decodeEvent({
+              strict: true,
+              event,
+              abi: strk_abi,
+              eventName: "src::strk::erc20_lockable::ERC20Lockable::Transfer",
+            });
+            args = decoded.args;
+          }
           const safeArgs = JSON.stringify(args, (_, v) =>
             typeof v === "bigint" ? v.toString() : v
           );
