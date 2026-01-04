@@ -11,7 +11,11 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { AdminMetricsService } from "@/services/adminMetricsService";
+import {
+  AdminMetricsService,
+  VolumeSource,
+  ANALYSIS_CONFIG,
+} from "@/services/adminMetricsService";
 import {
   getAvailableWeeks,
   getWeekData,
@@ -19,10 +23,10 @@ import {
   getTokenColor,
   TOKEN_CONFIG,
 } from "@/utils/chartHelpers";
-import { DailyData, CrowdfundingPayoutRecord } from "@/types/adminMetrics";
+import { DailyData, PayoutRecord } from "@/types/adminMetrics";
 
 export default function CrowdfundingWeeklyChart() {
-  const [allPayouts, setAllPayouts] = useState<CrowdfundingPayoutRecord[]>([]);
+  const [allPayouts, setAllPayouts] = useState<PayoutRecord[]>([]);
   const [data, setData] = useState<DailyData[]>([]);
   const [availableWeeks, setAvailableWeeks] = useState<
     { weekNumber: number; year: number; label: string }[]
@@ -37,11 +41,22 @@ export default function CrowdfundingWeeklyChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response =
-          await AdminMetricsService.getCrowdfundingPayoutTimeline();
-        setAllPayouts(response.payouts);
+        const response = await AdminMetricsService.getVolume({
+          sources: VolumeSource.Crowdfunding,
+          direction: ANALYSIS_CONFIG.crowdfundingDirection,
+        });
 
-        const weeks = getAvailableWeeks(response.payouts);
+        // Map to PayoutRecord-compatible format
+        const payouts: PayoutRecord[] = response.map((item) => ({
+          payout_at: item.time,
+          amount: item.token_amount,
+          token_address: item.token_address,
+          source: "crowdfunding",
+        }));
+
+        setAllPayouts(payouts);
+
+        const weeks = getAvailableWeeks(payouts);
         setAvailableWeeks(weeks);
 
         // Select most recent week by default
@@ -52,7 +67,7 @@ export default function CrowdfundingWeeklyChart() {
             year: latestWeek.year,
           });
           const weekData = getWeekData(
-            response.payouts,
+            payouts,
             latestWeek.weekNumber,
             latestWeek.year
           );
@@ -61,7 +76,7 @@ export default function CrowdfundingWeeklyChart() {
 
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch crowdfunding payout timeline:", err);
+        console.error("Failed to fetch crowdfunding volume:", err);
         setError(true);
         setLoading(false);
       }

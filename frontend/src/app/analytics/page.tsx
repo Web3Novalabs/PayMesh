@@ -56,12 +56,6 @@ export default function Page() {
     refetchInterval: 10000,
   });
 
-  console.log("Analytics Page Debug:");
-  console.log("Address:", address);
-  console.log("All Groups:", allGroups);
-  console.log("User Groups:", userGroups);
-  console.log("User Group Details:", userGroupDetails);
-
   const isLoading =
     isLoadingGroups || (userGroups.length > 0 && isLoadingDetails);
 

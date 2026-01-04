@@ -11,14 +11,18 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { AdminMetricsService } from "@/services/adminMetricsService";
+import {
+  AdminMetricsService,
+  VolumeSource,
+  ANALYSIS_CONFIG,
+} from "@/services/adminMetricsService";
 import {
   groupByMonth,
   getActiveTokens,
   getTokenColor,
   TOKEN_CONFIG,
 } from "@/utils/chartHelpers";
-import { MonthlyData } from "@/types/adminMetrics";
+import { PayoutRecord, MonthlyData } from "@/types/adminMetrics";
 
 export default function CrowdfundingMonthlyChart() {
   const [data, setData] = useState<MonthlyData[]>([]);
@@ -28,13 +32,24 @@ export default function CrowdfundingMonthlyChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response =
-          await AdminMetricsService.getCrowdfundingPayoutTimeline();
-        const monthlyData = groupByMonth(response.payouts);
+        const response = await AdminMetricsService.getVolume({
+          sources: VolumeSource.Crowdfunding,
+          direction: ANALYSIS_CONFIG.crowdfundingDirection,
+        });
+
+        // Map to PayoutRecord-compatible format for helpers
+        const payouts = response.map((item) => ({
+          payout_at: item.time,
+          amount: item.token_amount,
+          token_address: item.token_address,
+          source: "crowdfunding",
+        }));
+
+        const monthlyData = groupByMonth(payouts as PayoutRecord[]);
         setData(monthlyData);
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch crowdfunding payout timeline:", err);
+        console.error("Failed to fetch crowdfunding volume:", err);
         setError(true);
         setLoading(false);
       }

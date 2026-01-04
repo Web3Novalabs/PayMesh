@@ -1,69 +1,53 @@
-import {
-  PaymentsTotalsResponse,
-  PayoutTimelineResponse,
-  GroupPayoutTimelineResponse,
-  CrowdfundingPayoutTimelineResponse,
-} from "../types/adminMetrics";
+export enum VolumeSource {
+  PaymentGroup = "PaymentGroup",
+  Crowdfunding = "Crowdfunding",
+  Both = "Both",
+}
+
+export enum FlowDirection {
+  Inflow = "Inflow",
+  Outflow = "Outflow",
+  Both = "Both",
+}
+
+export interface VolumeRequest {
+  from?: string;
+  to?: string;
+  token?: string;
+  sources?: VolumeSource;
+  direction?: FlowDirection;
+}
+
+export interface AnalyticsItem {
+  token_address: string;
+  token_amount: string;
+  time: string;
+  source: string;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
 
+// Central configuration for Analytics
+export const ANALYSIS_CONFIG = {
+  groupsDirection: FlowDirection.Outflow,
+  crowdfundingDirection: FlowDirection.Inflow,
+};
+
 export class AdminMetricsService {
-  /**
-   * Fetch aggregated transfer metrics (public)
-   */
-  static async getTransferMetrics(): Promise<PaymentsTotalsResponse> {
-    const response = await fetch(
-      `${API_URL}/admin/group_admin/transfer_metrics`
-    );
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch transfer metrics: ${response.statusText}`
-      );
-    }
-    return response.json();
-  }
+  static async getVolume(params: VolumeRequest): Promise<AnalyticsItem[]> {
+    const queryParams = new URLSearchParams();
+    if (params.from) queryParams.append("from", params.from);
+    if (params.to) queryParams.append("to", params.to);
+    if (params.token) queryParams.append("token", params.token);
+    if (params.sources) queryParams.append("sources", params.sources);
+    if (params.direction) queryParams.append("direction", params.direction);
 
-  /**
-   * Fetch combined payout timeline (groups + crowdfunding)
-   */
-  static async getPayoutTimeline(): Promise<PayoutTimelineResponse> {
-    const response = await fetch(
-      `${API_URL}/admin/group_admin/payout_timeline`
-    );
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch payout timeline: ${response.statusText}`
-      );
-    }
-    return response.json();
-  }
+    const url = `${API_URL}/analytics/admin/volume?${queryParams.toString()}`;
 
-  /**
-   * Fetch group-specific payout timeline
-   */
-  static async getGroupPayoutTimeline(): Promise<GroupPayoutTimelineResponse> {
-    const response = await fetch(
-      `${API_URL}/admin/group_admin/group_payout_timeline`
-    );
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch group payout timeline: ${response.statusText}`
-      );
-    }
-    return response.json();
-  }
+    const response = await fetch(url);
 
-  /**
-   * Fetch crowdfunding-specific payout timeline (withdrawals)
-   */
-  static async getCrowdfundingPayoutTimeline(): Promise<CrowdfundingPayoutTimelineResponse> {
-    const response = await fetch(
-      `${API_URL}/admin/group_admin/crowdfunding_payout_timeline`
-    );
     if (!response.ok) {
-      throw new Error(
-        `Failed to fetch crowdfunding payout timeline: ${response.statusText}`
-      );
+      throw new Error(`Failed to fetch volume metrics: ${response.statusText}`);
     }
     return response.json();
   }

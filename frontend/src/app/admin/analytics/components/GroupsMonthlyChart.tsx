@@ -11,14 +11,18 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { AdminMetricsService } from "@/services/adminMetricsService";
+import {
+  AdminMetricsService,
+  VolumeSource,
+  ANALYSIS_CONFIG,
+} from "@/services/adminMetricsService";
 import {
   groupByMonth,
   getActiveTokens,
   getTokenColor,
   TOKEN_CONFIG,
 } from "@/utils/chartHelpers";
-import { MonthlyData } from "@/types/adminMetrics";
+import { PayoutRecord, MonthlyData } from "@/types/adminMetrics";
 
 export default function GroupsMonthlyChart() {
   const [data, setData] = useState<MonthlyData[]>([]);
@@ -28,12 +32,24 @@ export default function GroupsMonthlyChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await AdminMetricsService.getGroupPayoutTimeline();
-        const monthlyData = groupByMonth(response.payouts);
+        const response = await AdminMetricsService.getVolume({
+          sources: VolumeSource.PaymentGroup,
+          direction: ANALYSIS_CONFIG.groupsDirection,
+        });
+
+        // Map to PayoutRecord-compatible format for helpers
+        const payouts = response.map((item) => ({
+          payout_at: item.time,
+          amount: item.token_amount,
+          token_address: item.token_address,
+          source: "group",
+        }));
+
+        const monthlyData = groupByMonth(payouts as PayoutRecord[]);
         setData(monthlyData);
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch group payout timeline:", err);
+        console.error("Failed to fetch group volume:", err);
         setError(true);
         setLoading(false);
       }

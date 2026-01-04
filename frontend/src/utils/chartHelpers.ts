@@ -1,7 +1,5 @@
 import {
   PayoutRecord,
-  GroupPayoutRecord,
-  CrowdfundingPayoutRecord,
   WeeklyData,
   MonthlyData,
   TokenInfo,
@@ -67,13 +65,32 @@ export function getWeekNumber(date: Date): number {
 }
 
 /**
+ * Helper to find token info handling case sensitivity, 0x prefix, and padding
+ */
+function findTokenInfo(address: string): TokenInfo | undefined {
+  if (!address) return undefined;
+
+  const normalize = (addr: string) =>
+    addr.toLowerCase().replace(/^0x/, "").padStart(64, "0");
+
+  const normalizedInput = normalize(address);
+
+  // Robust comparison against all config entries
+  return Object.values(TOKEN_CONFIG).find((token) => {
+    return normalize(token.address) === normalizedInput;
+  });
+}
+
+/**
  * Format token amount from smallest unit to human-readable number
  */
 export function formatTokenAmount(
   amount: string,
   tokenAddress: string
 ): number {
-  const token = TOKEN_CONFIG[tokenAddress];
+  const token = findTokenInfo(tokenAddress);
+  // Default to 18 decimals if unknown, or return 0?
+  // Returning 0 hides it. Let's try to handle it if we can, but 0 is safer for now.
   if (!token) return 0;
 
   const decimals = token.decimals;
@@ -84,22 +101,22 @@ export function formatTokenAmount(
  * Get token symbol from address
  */
 export function getTokenSymbol(tokenAddress: string): string {
-  return TOKEN_CONFIG[tokenAddress]?.symbol || "Unknown";
+  const token = findTokenInfo(tokenAddress);
+  return token?.symbol || "Unknown";
 }
 
 /**
  * Get token color for charts
  */
 export function getTokenColor(tokenAddress: string): string {
-  return TOKEN_CONFIG[tokenAddress]?.color || "#999999";
+  const token = findTokenInfo(tokenAddress);
+  return token?.color || "#999999";
 }
 
 /**
  * Group payouts by week
  */
-export function groupByWeek(
-  payouts: (PayoutRecord | GroupPayoutRecord | CrowdfundingPayoutRecord)[]
-): WeeklyData[] {
+export function groupByWeek(payouts: PayoutRecord[]): WeeklyData[] {
   const weekMap = new Map<string, WeeklyData>();
 
   payouts.forEach((payout) => {
@@ -134,9 +151,7 @@ export function groupByWeek(
 /**
  * Group payouts by month
  */
-export function groupByMonth(
-  payouts: (PayoutRecord | GroupPayoutRecord | CrowdfundingPayoutRecord)[]
-): MonthlyData[] {
+export function groupByMonth(payouts: PayoutRecord[]): MonthlyData[] {
   const monthMap = new Map<string, MonthlyData>();
 
   payouts.forEach((payout) => {
@@ -267,9 +282,7 @@ export interface DailyData {
   [key: string]: number | string; // For dynamic token amounts
 }
 
-export function groupByDayOfWeek(
-  payouts: (PayoutRecord | GroupPayoutRecord | CrowdfundingPayoutRecord)[]
-): DailyData[] {
+export function groupByDayOfWeek(payouts: PayoutRecord[]): DailyData[] {
   const dayMap = new Map<string, DailyData>();
 
   payouts.forEach((payout) => {
@@ -306,7 +319,7 @@ export function groupByDayOfWeek(
  * Get all available weeks from payouts
  */
 export function getAvailableWeeks(
-  payouts: (PayoutRecord | GroupPayoutRecord | CrowdfundingPayoutRecord)[]
+  payouts: PayoutRecord[]
 ): { weekNumber: number; year: number; label: string }[] {
   const weeks = new Set<string>();
 
@@ -337,7 +350,7 @@ export function getAvailableWeeks(
  * Get specific week's data
  */
 export function getWeekData(
-  payouts: (PayoutRecord | GroupPayoutRecord | CrowdfundingPayoutRecord)[],
+  payouts: PayoutRecord[],
   weekNumber: number,
   year: number
 ): DailyData[] {

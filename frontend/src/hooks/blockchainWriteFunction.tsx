@@ -252,7 +252,7 @@ export const createGroup = async (
         entrypoint: "approve",
         calldata: CallData.compile({
           spender: PAYMESH_ADDRESS,
-          amount: cairo.uint256(+formData?.usage * ONE_STK),
+          amount: cairo.uint256(+formData?.usage * (ONE_STK*4)),
         }),
       };
 

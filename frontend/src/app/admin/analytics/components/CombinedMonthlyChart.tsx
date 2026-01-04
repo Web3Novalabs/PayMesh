@@ -11,14 +11,19 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import { AdminMetricsService } from "@/services/adminMetricsService";
+import {
+  AdminMetricsService,
+  VolumeSource,
+  ANALYSIS_CONFIG,
+  FlowDirection,
+} from "@/services/adminMetricsService";
 import {
   groupByMonth,
   getActiveTokens,
   getTokenColor,
   TOKEN_CONFIG,
 } from "@/utils/chartHelpers";
-import { MonthlyData } from "@/types/adminMetrics";
+import { MonthlyData, PayoutRecord } from "@/types/adminMetrics";
 
 export default function CombinedMonthlyChart() {
   const [data, setData] = useState<MonthlyData[]>([]);
@@ -28,12 +33,45 @@ export default function CombinedMonthlyChart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await AdminMetricsService.getPayoutTimeline();
-        const monthlyData = groupByMonth(response.payouts);
+        // Fetch ALL volume (Inflow and Outflow) since we might need mixed types
+        const response = await AdminMetricsService.getVolume({
+          sources: VolumeSource.Both,
+          direction: FlowDirection.Both,
+        });
+
+        // Determine expected source strings based on config
+        const expectedGroupSource =
+          ANALYSIS_CONFIG.groupsDirection === FlowDirection.Inflow
+            ? "payment_group_in"
+            : "payment_group_out";
+
+        const expectedCrowdSource =
+          ANALYSIS_CONFIG.crowdfundingDirection === FlowDirection.Inflow
+            ? "crowdfunding_in"
+            : "crowdfunding_out";
+
+        // Filter and map
+        const payouts: PayoutRecord[] = response
+          .filter(
+            (item) =>
+              item.source === expectedGroupSource ||
+              item.source === expectedCrowdSource
+          )
+          .map((item) => ({
+            payout_at: item.time,
+            amount: item.token_amount,
+            token_address: item.token_address,
+            // Normalize source name for chart display if needed, or keep specific
+            source: item.source.includes("crowdfunding")
+              ? "crowdfunding"
+              : "group",
+          }));
+
+        const monthlyData = groupByMonth(payouts);
         setData(monthlyData);
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch combined payout timeline:", err);
+        console.error("Failed to fetch combined volume:", err);
         setError(true);
         setLoading(false);
       }

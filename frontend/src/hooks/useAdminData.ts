@@ -129,10 +129,6 @@ export function useCrowdFundReadValues(poolAddress: string) {
     CROWDFUNDINGADDRESS
   );
 
-  console.log("platformPercentage---- ", platformPercentage);
-  console.log("donationToken---- ", donationToken);
-  console.log("supportedTokens---- ", supportedTokens);
-
   const { readData: poolCreationFee } = useContractFetch(
     POOL_ABI,
     "get_pool_creation_fee",
