@@ -10,7 +10,7 @@ const Sidebar = () => {
           onClick={() => {
             router.back();
           }}
-          className="rounded-full w-fit border border-dim-white-border text-text-white py-3 px-4 capitalize bg-dim-gray"
+          className="rounded-full w-fit cursor-pointer border border-dim-white-border text-text-white py-3 px-4 capitalize bg-dim-gray"
         >
           back
         </button>
@@ -37,4 +37,4 @@ const Sidebar = () => {
   );
 };
 
-export default Sidebar
+export default Sidebar;
