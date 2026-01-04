@@ -12,6 +12,7 @@ pub mod libs {
 
 pub mod routes {
     pub mod admin;
+    pub mod analytics;
     pub mod crowd_funding;
     pub mod groups;
     pub mod health;
