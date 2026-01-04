@@ -12,8 +12,9 @@ use crate::{
         utopia::ADMIN_TAG,
     },
     routes::analytics::analytics_type::{
-        AnalyticsItem, AnalyticsRow, VolumeDetails, VolumeRequest,
-    }, util::validate_address::validate_date,
+        AnalyticsItem, AnalyticsRow, FlowDirection, VolumeDetails, VolumeRequest, VolumeSource,
+    },
+    util::validate_address::validate_date,
 };
 use sqlx::Arguments;
 #[axum::debug_handler]
@@ -37,32 +38,94 @@ use sqlx::Arguments;
 )]
 pub async fn get_volume(
     State(state): State<AppState>,
-    AdminUser(_hello): AdminUser,
+    // AdminUser(_hello): AdminUser,
     Query(params): Query<VolumeRequest>,
 ) -> Result<Json<Vec<AnalyticsItem>>, ApiError> {
-    let mut base_sql_command = String::from("SELECT *
-        FROM (
-            SELECT token_address, token_amount, created_at::timestamptz AS time, 'group_tx_hashes' AS source
-            FROM group_tx_hashes
+    let volume_source_payments_group_inflow = "
+                SELECT token_address, token_amount, created_at::timestamptz AS time, 'payment_group_in' AS source
+            FROM group_tx_hashes";
 
-            UNION ALL
-
-            SELECT token_address, amount AS token_amount, paid_at::timestamptz AS time, 'payments' AS source
+    let volume_source_payments_group_outflow = "
+            SELECT token_address, amount AS token_amount, paid_at::timestamptz AS time, 'payment_group_out' AS source
             FROM payments
+    ";
 
-            UNION ALL
-
-            SELECT token_address, amount AS token_amount, created_at::timestamptz AS time, 'donations' AS source
+    let volume_source_crowdfunding_inflow = "
+                SELECT token_address, amount AS token_amount, created_at::timestamptz AS time, 'crowdfunding_in' AS source
             FROM donations
-
-            UNION ALL
-
-            SELECT token_address, amount AS token_amount, created_at::timestamptz AS time, 'withdrawals' AS source
+    ";
+    let volume_source_crowdfunding_outflow = "
+                       SELECT token_address, amount AS token_amount, created_at::timestamptz AS time, 'crowdfunding_out' AS source
             FROM withdrawals
-        ) AS all_tx");
+    ";
+
+    let union_all = " UNION ALL ";
+
+    let volume_source = params.sources.clone().unwrap_or(VolumeSource::Both);
+
+    let flow_direction = params.direction.clone().unwrap_or(FlowDirection::Both);
+
+    let mut base_sql_command = String::from(
+        "SELECT *
+        FROM (
+
+        ",
+    );
 
     let mut _i: i32 = 1;
     let mut args: sqlx::postgres::PgArguments = sqlx::postgres::PgArguments::default();
+
+    match volume_source {
+        VolumeSource::PaymentGroup => match flow_direction {
+            FlowDirection::Inflow => {
+                base_sql_command.push_str(volume_source_payments_group_inflow);
+            }
+            FlowDirection::Outflow => {
+                base_sql_command.push_str(volume_source_payments_group_outflow);
+            }
+            FlowDirection::Both => {
+                base_sql_command.push_str(volume_source_payments_group_inflow);
+                base_sql_command.push_str(union_all);
+                base_sql_command.push_str(volume_source_payments_group_outflow);
+            }
+        },
+        VolumeSource::Crowdfunding => match flow_direction {
+            FlowDirection::Inflow => {
+                base_sql_command.push_str(volume_source_crowdfunding_inflow);
+            }
+            FlowDirection::Outflow => {
+                base_sql_command.push_str(volume_source_crowdfunding_outflow);
+            }
+            FlowDirection::Both => {
+                base_sql_command.push_str(volume_source_crowdfunding_inflow);
+                base_sql_command.push_str(union_all);
+                base_sql_command.push_str(volume_source_crowdfunding_outflow);
+            }
+        },
+        VolumeSource::Both => match flow_direction {
+            FlowDirection::Inflow => {
+                base_sql_command.push_str(volume_source_payments_group_inflow);
+                base_sql_command.push_str(union_all);
+                base_sql_command.push_str(volume_source_crowdfunding_inflow);
+            }
+            FlowDirection::Outflow => {
+                base_sql_command.push_str(volume_source_payments_group_outflow);
+                base_sql_command.push_str(union_all);
+                base_sql_command.push_str(volume_source_crowdfunding_outflow);
+            }
+            FlowDirection::Both => {
+                base_sql_command.push_str(volume_source_payments_group_inflow);
+                base_sql_command.push_str(union_all);
+                base_sql_command.push_str(volume_source_payments_group_outflow);
+                base_sql_command.push_str(union_all);
+                base_sql_command.push_str(volume_source_crowdfunding_inflow);
+                base_sql_command.push_str(union_all);
+                base_sql_command.push_str(volume_source_crowdfunding_outflow);
+            }
+        },
+    }
+
+    base_sql_command.push_str(") AS all_tx");
 
     if let (Some(from), Some(to)) = (params.from.as_ref(), params.to.as_ref()) {
         validate_date(&from)?;
@@ -72,9 +135,9 @@ pub async fn get_volume(
             _i,
             _i + 1
         ));
-        args.add(to.clone())
-            .map_err(|_| ApiError::Internal("Failed to add limit arg"))?;
         args.add(from.clone())
+            .map_err(|_| ApiError::Internal("Failed to add limit arg"))?;
+        args.add(to.clone())
             .map_err(|_| ApiError::Internal("Failed to add limit arg"))?;
         _i += 2;
     } else if let Some(from) = params.from.as_ref() {
