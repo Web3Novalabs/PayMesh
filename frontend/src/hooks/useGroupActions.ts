@@ -85,7 +85,7 @@ export const useGroupActions = () => {
           entrypoint: "approve",
           calldata: CallData.compile({
             spender: PAYMESH_ADDRESS,
-            amount: cairo.uint256(ONE_STK),
+            amount: cairo.uint256(ONE_STK * 4),
           }),
           // calldata: [PAYMESH_ADDRESS, cairo.uint256(ONE_STK)],
         };
