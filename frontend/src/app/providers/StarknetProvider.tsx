@@ -5,8 +5,9 @@ import {
   InjectedConnector,
   paymasterRpcProvider,
 } from "@starknet-react/core";
-import { mainnet, sepolia } from "@starknet-react/chains";
+import { mainnet } from "@starknet-react/chains";
 import { jsonRpcProvider } from "@starknet-react/core";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const chains = [mainnet];
 // const chains = [sepolia];
@@ -16,6 +17,7 @@ const connectors = [
 ];
 
 export function StarknetProvider({ children }: { children: React.ReactNode }) {
+  const queryClient = new QueryClient();
   return (
     <StarknetConfig
       paymasterProvider={paymasterRpcProvider({
@@ -36,7 +38,7 @@ export function StarknetProvider({ children }: { children: React.ReactNode }) {
         rpc: () => ({ nodeUrl: process.env.NEXT_PUBLIC_RPC_URL }),
       })}
     >
-      {children}
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </StarknetConfig>
   );
 }

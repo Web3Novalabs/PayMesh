@@ -3,12 +3,26 @@ import { uint256, RpcProvider } from "starknet";
 
 export const PAYMESH_ADDRESS =
   "0x01710ab6e17d6809cd9d5e9b22e6bb1d1d09ca40f50449ea7ac81d67bef80f31";
+// "0x01be0fc9d374adc3b63dc87032d5828ed0a73ac0b773d5d611287739e0259d00" // main/major testing contract on mainnet
+// "0x011aaf724f9259a5d55fc54f5c40e63b35bb614b492af1a41f137951779c31de";  // new testing contract deploy on 17/12/2025
 // "0x03eb5cc3d473d59331c48096cafa360d52b49fcd6a08b14a6811223c773a2d73";
 // // export const CONTRACT_ADDRESS =
 // //   "0x0319c0feb56d2352681e58efc8aefa12efe0389b020efdcf7b822971a999f8c2";
 // // ;
 export const strkTokenAddress =
   "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
+
+export const USDC_ADDRESS_1 =
+  "0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8";
+export const USDC_ADDRESS_2 =
+  "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb";
+
+export const USDC_ADDRESSES = [USDC_ADDRESS_1, USDC_ADDRESS_2];
+
+export const isUsdc = (address: string): boolean => {
+  if (!address) return false;
+  return USDC_ADDRESSES.some((usdcAddr) => compareAddresses(address, usdcAddr));
+};
 
 export const ONE_STK = 1000000000000000000;
 export const ONE_USDC = 1000000;
@@ -73,6 +87,40 @@ export function epocTime(time: string) {
   const date = new Date(+epochSeconds * 1000); // multiply by 1000 to convert to milliseconds
 
   return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+}
+
+export function epocTimeReadable(dateString: string) {
+  if (!dateString) return "Unknown Date";
+
+  let date: Date;
+
+  // If the date contains "-", it's the ISO format from your API
+  if (dateString.includes("-")) {
+    date = new Date(dateString);
+  } else {
+    // Fallback: handle dd/mm/yyyy format
+    const parts = dateString.split("/");
+    if (parts.length !== 3) return "Invalid date";
+    const [day, month, year] = parts.map(Number);
+    date = new Date(year, month - 1, day);
+  }
+
+  if (isNaN(date.getTime())) return "Invalid date";
+
+  const day = date.getDate();
+  const monthName = date.toLocaleString("default", { month: "short" });
+  const year = date.getFullYear();
+
+  const suffix =
+    day % 10 === 1 && day !== 11
+      ? "st"
+      : day % 10 === 2 && day !== 12
+      ? "nd"
+      : day % 10 === 3 && day !== 13
+      ? "rd"
+      : "th";
+
+  return `${monthName} ${day}${suffix}, ${year}`;
 }
 
 export function getTimeFromEpoch(time: string) {

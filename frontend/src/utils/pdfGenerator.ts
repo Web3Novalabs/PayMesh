@@ -121,6 +121,6 @@ export const generateGroupHistoryPDF = async (groupDetails: GroupDetails) => {
   doc.text(new Date().toLocaleString(), 14, finalY + 15);
 
   doc.save(
-    `Paymesh_History_${groupDetails.group_name.replace(/\\s+/g, "_")}.pdf`
+    `Paymesh_History_${groupDetails.group_name.replace(/\s+/g, "_")}.pdf`
   );
 };

@@ -5,6 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --font-dmsans: var(--font-dmsans), sans-serif;
+  --font-anton: var(--font-anton), sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
@@ -42,6 +44,17 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  --spacing-sit-screen: 1440px;
+  --color-text-white: #dddddd;
+  --color-moon-blue: #232542;
+  --color-purple-bg: #575eb7;
+  --color-blue-btn: #10273e;
+  --color-dim-white-border: #ffffff1a;
+  --color-card-bg: #ffffff05;
+  --color-blue-text: #0073e6;
+  --color-dim-gray: #ffffff0d;
+  --color-text-gray: #8398ad;
 }
 
 .border-gradient {
@@ -121,7 +134,7 @@
   position: relative;
   align-items: center;
   /* padding: 1.5rem 5rem;  */
-  border-radius: 4px; /* fully rounded like your screenshot */
+  border-radius: 40px; /* fully rounded like your screenshot */
   background: linear-gradient(90deg, #434672, #755a5a);
   z-index: 0;
 }
@@ -130,8 +143,8 @@
   content: "";
   position: absolute;
   inset: 1.15px; /* border thickness */
-  border-radius: 4px; /* keep same rounded shape */
-  background: #191e28; /* inner background (same as your container bg) */
+  border-radius: 40px; /* keep same rounded shape */
+  background: #0c121d; /* inner background (same as your container bg) */
   z-index: -1;
 }
 
@@ -231,3 +244,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+

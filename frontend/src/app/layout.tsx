@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { DM_Sans, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { StarknetProvider } from "./providers/StarknetProvider";
-import { QueryProvider } from "./providers/QueryProvider";
 import { Toaster } from "react-hot-toast";
 import { Analytics } from "@vercel/analytics/next";
+import { Anton } from "next/font/google";
+import bg from "../../public/Stars.svg";
+import Nav from "@/components/nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,6 +16,20 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const anton = Anton({
+  weight: ["400"], // Anton only has one weight
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-anton",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "700", "900"], // Choose the weights you need
+  display: "swap",
+  variable: "--font-dmsans",
 });
 
 export const metadata: Metadata = {
@@ -87,26 +103,28 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`bg-no-repeat bg-fixed bg h-full bg-cover py-7 ${dmSans.variable} ${anton.variable} ${geistSans.variable} ${geistMono.variable} antialiased font-dmsans`}
         suppressHydrationWarning={true}
+        style={{
+          backgroundImage: `url(${bg.src})`,
+        }}
       >
-        <QueryProvider>
-          <StarknetProvider>
-            {children}
-            <Analytics />
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: "#434672",
-                  color: "#E2E2E2",
-                  border: "1px solid #755A5A",
-                },
-              }}
-            />
-          </StarknetProvider>
-        </QueryProvider>
+        <StarknetProvider>
+          <Nav />
+          <main className="mt-28 ">{children}</main>
+          <Analytics />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: "#434672",
+                color: "#E2E2E2",
+                border: "1px solid #755A5A",
+              },
+            }}
+          />
+        </StarknetProvider>
       </body>
     </html>
   );

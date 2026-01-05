@@ -1,12 +1,26 @@
+"use client";
+
 import React from "react";
-import LandingPage from "../app/components/LandingPage";
+import HeroSection from "./landing/components/HeroSection";
+import IntroSection from "./landing/components/IntroSection";
+import FeaturesSection from "./landing/components/FeaturesSection";
+import TestimonialsSection from "./landing/components/TestimonialsSection";
+import StatsSection from "./landing/components/StatsSection";
+import FaqSection from "./landing/components/FaqSection";
+import Footer from "./landing/components/Footer";
 
-const page = () => {
+export default function Page() {
   return (
-    <div>
-      <LandingPage />
-    </div>
+    <main className="min-h-screen w-full text-white overflow-x-hidden">
+      <HeroSection />
+      <div className="py-[100px]">
+        <IntroSection />
+        <FeaturesSection />
+      </div>
+      <TestimonialsSection />
+      <StatsSection />
+      <FaqSection />
+      <Footer />
+    </main>
   );
-};
-
-export default page;
+}

@@ -6,12 +6,12 @@ edition = "2024_07"
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest.html
 
 [dependencies]
-starknet = "2.11.4"
+starknet = "2.14.0"
 openzeppelin = "1.0.0"
 
 [dev-dependencies]
-snforge_std = "0.44.0"
-assert_macros = "2.11.4"
+snforge_std = "0.54.0"
+assert_macros = "2.14.0"
 
 [[target.starknet-contract]]
 sierra = true
@@ -51,3 +51,6 @@ allow-prebuilt-plugins = ["snforge_std"]
 
 # [features]                                                 # Used for conditional compilation
 # enable_for_tests = []                                      # Feature name and list of other features that should be enabled with it
+
+# 0x05fa7287292b2939e9f881f56d789d973ebc7ecb24e61cd44eed16f64156886b -- fundraising class hash 02-01-2026
+# 0x028a53221004142cc94764ccec9ecbcdf6d8057837bbab8eb57665b9ff50e479 -- autoshare class hash 17-12-2025

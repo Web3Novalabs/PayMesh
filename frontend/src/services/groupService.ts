@@ -5,7 +5,6 @@ import {
   EditGroupRequest,
   SplitFundsRequest,
 } from "@/types/group";
-
 import { GroupDetails } from "@/types/groups";
 
 const API_BASE_URL =
@@ -18,6 +17,7 @@ export class GroupService {
   ): Promise<GroupDetails> {
     try {
       const response = await fetch(`${API_BASE_URL}/groups/${address}`);
+      console.log(response);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -214,6 +214,20 @@ export class GroupService {
       return await response.json();
     } catch (error) {
       console.error("Error removing member from group:", error);
+      throw error;
+    }
+  }
+  // Get all groups
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  static async getAllGroups(): Promise<any[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/groups`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error("Error fetching all groups:", error);
       throw error;
     }
   }

@@ -330,17 +330,19 @@ const create_group = (
   usageCount: number,
   members: Array<{ addr: string; percentage: number }>
 ) => {
+  const validMembers = members
+    .map((member) => ({
+      addr: member.addr,
+      percentage: Number(member.percentage) / 1000, // Convert from scaled value to decimal
+    }));
+
   const body = JSON.stringify({
     created_by: creatorAddress,
     group_address: address,
     group_name: groupName,
-    members: members.map((member) => ({
-      addr: member.addr,
-      percentage: Number(member.percentage),
-    })),
+    members: validMembers,
     usage_remaining: Number(usageCount),
   });
-
   fetch(`${process.env.API_URL}/groups`, {
     method: "POST",
     headers: {

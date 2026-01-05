@@ -6,6 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function truncateAddress(address: string) {
+  if (!address || address.length < 10) return address;
   return address.slice(0, 6) + "..." + address.slice(-4);
 }
 
@@ -21,4 +22,8 @@ export async function copyToClipboard(
     console.error("Failed to copy: ", err);
     onError?.(err);
   }
+}
+
+export function formatAmountUsdc(amount: string | number) {
+  return (Number(amount) / 1e6).toFixed(2);
 }
