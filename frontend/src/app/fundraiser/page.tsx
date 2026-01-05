@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import CrowdFundDashboard from "./components/CrowdFundDashboard";
 import CreateCrowdFundForm from "./components/CreateCrowdFundForm";
-import WalletConnect from "@/app/components/WalletConnect";
 import { useAccount } from "@starknet-react/core";
 
 type currentView = "dashboard" | "create";

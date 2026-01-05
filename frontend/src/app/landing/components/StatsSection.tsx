@@ -2,8 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { AdminMetricsService } from "@/services/adminMetricsService";
+import {
+  AdminMetricsService,
+  VolumeSource,
+  FlowDirection,
+} from "@/services/adminMetricsService";
 import { formatCompactNumber } from "@/utils/chartHelpers";
+import { USDC_ADDRESSES, compareAddresses } from "@/utils/contract";
+
+const USDT_ADDRESS =
+  "0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8";
 
 export default function StatsSection() {
   const [totalDisbursed, setTotalDisbursed] = useState<number>(0);
@@ -13,13 +21,34 @@ export default function StatsSection() {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const metrics = await AdminMetricsService.getTransferMetrics();
+        const response = await AdminMetricsService.getVolume({
+          sources: VolumeSource.Both,
+          direction: FlowDirection.Both,
+        });
 
-        // Sum USDC and USDT combined totals (both have 6 decimals)
-        const usdc = parseFloat(metrics.total_usdc_combined) / 1e6;
-        const usdt = parseFloat(metrics.total_usdt_combined) / 1e6;
+        let total = 0;
 
-        setTotalDisbursed(usdc + usdt);
+        response.forEach((item) => {
+          // Logic: Crowdfunding Inflow + Group Outflow
+          const isTargetSource =
+            item.source === "crowdfunding_in" ||
+            item.source === "payment_group_out";
+
+          if (!isTargetSource) return;
+
+          // Logic: Only USDC (both) + USDT
+          const isUSDC = USDC_ADDRESSES.some((addr) =>
+            compareAddresses(addr, item.token_address)
+          );
+          const isUSDT = compareAddresses(USDT_ADDRESS, item.token_address);
+
+          if (isUSDC || isUSDT) {
+            // Both have 6 decimals
+            total += parseFloat(item.token_amount) / 1e6;
+          }
+        });
+
+        setTotalDisbursed(total);
         setLoading(false);
       } catch (err) {
         console.error("Failed to fetch metrics:", err);

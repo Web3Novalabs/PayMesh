@@ -151,7 +151,7 @@ export function useFundraisingActions() {
     }
   };
 
-  const setPlatformFeeToken = async (value: string) => {
+  const setPlatformFeeToken = async (_value: string) => {
     throw new Error("set_platform_fee_token not supported by contract ABI");
   };
 

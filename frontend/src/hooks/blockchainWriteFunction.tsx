@@ -162,9 +162,7 @@ export const donate = async (
           multicall.transaction_hash
         );
         console.log("result1", result1);
-        const withdraw = await sdk.withdraw(multicall.transaction_hash, [
-          pool_address,
-        ]);
+        await sdk.withdraw(multicall.transaction_hash, [pool_address]);
         setIsSuccess(true);
       } else {
         const Call = {
@@ -252,7 +250,7 @@ export const createGroup = async (
         entrypoint: "approve",
         calldata: CallData.compile({
           spender: PAYMESH_ADDRESS,
-          amount: cairo.uint256(+formData?.usage * (ONE_STK*4)),
+          amount: cairo.uint256(+formData?.usage * (ONE_STK * 4)),
         }),
       };
 
