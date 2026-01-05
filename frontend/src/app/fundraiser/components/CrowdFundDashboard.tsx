@@ -41,10 +41,25 @@ const CrowdFundDashboard: React.FC<CrowdFundDashboardProps> = ({
   // console.log(pools);
 
   const filteredFundings = pools?.filter((funding) => {
+    // console.log(funding);
     const matchesSearch = funding.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
-    const matchesFilter = filter === "all" || true;
+
+    const findPool = poolData?.find((data) => {
+      return compareAddresses(
+        data.crowd_funding.pool_address,
+        //@ts-expect-error params can be undefined
+        funding.pool_address
+      );
+    });
+
+    const isComplete =
+      findPool?.crowd_funding.is_complete ?? funding.is_completed;
+
+    const matchesFilter =
+      filter === "all" ? true : filter === "active" ? !isComplete : isComplete;
+
     return matchesSearch && matchesFilter;
   });
 
