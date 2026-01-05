@@ -35,13 +35,13 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
         disabled={section == 1}
         className={`${
           section == 1 ? "opacity-0" : ""
-        }  rounded-full px-4 py-3 bg-dim-gray w-fit h-fit border-dim-white-border border`}
+        }  rounded-full px-4 py-3 bg-dim-gray w-fit h-fit border-dim-white-border border cursor-pointer`}
       >
         Previous
       </button>
       <button
         onClick={next}
-        className="rounded-full px-4 py-3 bg-purple-bg w-fit h-fit"
+        className="rounded-full px-4 py-3 bg-purple-bg w-fit h-fit cursor-pointer"
       >
         {section === 4
           ? isSubmitting
@@ -76,4 +76,4 @@ const NavigationButtons: React.FC<NavigationButtonsProps> = ({
   );
 };
 
-export default NavigationButtons
+export default NavigationButtons;
