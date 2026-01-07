@@ -119,21 +119,22 @@ export default function Nav() {
       )}
 
       {pathname === "/" && (
-        <nav className="flex sm:justify-between justify-center max-w-sit-screen items-stretch uppercase font-anton text-xl mx-auto gap-4 w-full">
-          <div className="flex justify-between items-center gap-6 border border-[#232542] rounded-full py-1 px-3 cursor-pointer w-full">
+        <nav className="flex justify-center max-w-sit-screen items-stretch uppercase font-anton text-xl mx-auto gap-4 w-fit">
+          <div className="flex justify-between items-center gap-6 md:gap-10 border border-[#232542] rounded-full py-1 px-1 cursor-pointer w-full">
             <Link
               href="/"
-              className="flex items-center gap-3 cursor-pointer z-50 relative"
+              className="flex items-center cursor-pointer z-50 relative"
             >
               <Image className="" src={logo} alt="paymesh logo" />
-              <h1 className="text-base md:text-[28px] font-normal">Paymesh</h1>
             </Link>
+
+            <h1 className="text-base md:text-[28px] font-normal">Paymesh</h1>
 
             <Link
               href="/overview"
               className={`
               bg-purple-bg
-            cursor-pointer  font-extrabold text-xs sm:text-sm font-dmsans px-3 sm:px-6 py-2 grid place-content-center rounded-full`}
+            cursor-pointer font-extrabold text-xs sm:text-sm font-dmsans px-3 sm:px-6 py-4 md:py-3 grid place-content-center rounded-full`}
             >
               LAUNCH APP
             </Link>
