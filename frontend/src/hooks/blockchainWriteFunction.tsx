@@ -123,6 +123,7 @@ export const create_pool = async (
     console.error("Blockchain function - Error occurred:", error);
     // setIsError(true);
     toast.error("error creating a pool");
+    throw error;
   } finally {
     console.log(
       "Blockchain function - Finally block, setting isSubmitting to false"

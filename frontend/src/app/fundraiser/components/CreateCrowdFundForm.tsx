@@ -95,18 +95,23 @@ const CreateCrowdFundForm: React.FC<CreateCrowdFundFormProps> = ({
     setIsSuccess(false);
     setPoolAddress(""); // Reset pool address
     // console.log("Calling create_pool function", formData);
-    create_pool(
-      formData,
-      account,
-      setIsSubmitting,
-      setIsSuccess,
-      setPoolAddress
-    ).then(() => {
+    try {
+      await create_pool(
+        formData,
+        account,
+        setIsSubmitting,
+        setIsSuccess,
+        setPoolAddress
+      );
+
       // Manually trigger a refetch after pool creation
       console.log("Pool created, triggering refetch...");
       refetchPools();
       onSubmit();
-    });
+    } catch (error) {
+      console.error("Pool creation failed:", error);
+      setIsSubmitting(false); // Ensure submitting state is reset on error
+    }
   };
 
   const resetForm = () => {
