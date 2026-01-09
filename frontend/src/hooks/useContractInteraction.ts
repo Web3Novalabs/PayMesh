@@ -5,6 +5,7 @@ import {
   getTimeFromEpoch,
   ONE_STK,
   PAYMESH_ADDRESS,
+  normalizeAddress,
 } from "../utils/contract";
 import { Abi } from "starknet";
 import { PAYMESH_ABI } from "@/abi/swiftswap_abi";
@@ -411,4 +412,39 @@ export function useGetGroupsUsage(id: number | undefined) {
   }, [usage, usageCount]);
 
   return transaction;
+}
+
+export function useGetPoolAddress(addr: string) {
+  const [formattedPool, setFormattedPool] = useState<Pool | undefined>(
+    undefined
+  );
+  const { readData: poolAddress } = useContractFetch(
+    POOL_ABI,
+    "get_pool_by_address",
+    [addr ? `0x${normalizeAddress(addr)}` : "0x0"],
+    CROWDFUNDINGADDRESS
+  );
+
+  useEffect(() => {
+    if (!poolAddress) return;
+    const data = poolAddress;
+
+    const formatted = {
+      balance: +data.balance?.toString(),
+      beneficiary: `0x0${data["beneficiary"]?.toString(16)}`,
+      pool_address: `0x0${data["pool_address"]?.toString(16)}`,
+      name: data?.name,
+      id: +data?.id.toString(),
+      donors: +data?.donors.toString(),
+      is_completed: data?.is_completed,
+      create_at: epocTime(data?.create_at?.toString()),
+      creator: `0x0${data["creator"]?.toString(16)}`,
+      target: +data?.target?.toString() / ONE_STK,
+      description: data.description,
+    };
+
+    setFormattedPool(formatted);
+  }, [poolAddress]);
+
+  return formattedPool;
 }

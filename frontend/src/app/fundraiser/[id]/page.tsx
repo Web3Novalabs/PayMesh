@@ -22,12 +22,13 @@ import CampaignCompleted from "./components/CampaignCompleted";
 import Loading from "@/components/Loading";
 import ContributeModal from "./components/ContributeModal";
 import { MyCleanQrCode } from "@/components/qr-code";
+import { useGetPoolAddress } from "@/hooks/useContractInteraction";
 
 const FundraiseDetails = () => {
   const router = useRouter();
   const params = useParams();
   const fundRaiseAddr = params.id;
-  const { address, account } = useAccount();
+  const { account } = useAccount();
 
   const [copySuccess, setCopySuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -39,6 +40,10 @@ const FundraiseDetails = () => {
   // NEW STATES FOR CLEAN LOADING
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [hasFetchedOnce, setHasFetchedOnce] = useState(false);
+
+  const poolAddressDetailsFromContract = useGetPoolAddress(
+    fundRaiseAddr as string
+  );
 
   const fetchDetails = useCallback(async () => {
     try {
@@ -296,8 +301,10 @@ const FundraiseDetails = () => {
             Description
           </h2>
 
-          <div className="text-[#8398AD] text-sm leading-relaxed px-6 space-y-4 flex-1">
-            {fetchFundraiseDetails?.crowd_funding?.description}
+          <div className="text-[#8398AD] mt-2 text-sm leading-relaxed px-6 space-y-4 flex-1">
+            {fetchFundraiseDetails?.crowd_funding?.description ||
+              poolAddressDetailsFromContract?.description ||
+              "No description provided"}
           </div>
         </div>
 

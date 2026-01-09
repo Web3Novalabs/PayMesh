@@ -18,7 +18,7 @@ export const POOL_ABI = [
       },
       {
         name: "pending_word_len",
-        type: "core::integer::u32",
+        type: "core::internal::bounded_int::BoundedInt::<0, 30>",
       },
     ],
   },
@@ -215,6 +215,22 @@ export const POOL_ABI = [
       },
       {
         type: "function",
+        name: "get_pool_by_address",
+        inputs: [
+          {
+            name: "pool_address",
+            type: "core::starknet::contract_address::ContractAddress",
+          },
+        ],
+        outputs: [
+          {
+            type: "contract::base::crowd_fund_type::Pool",
+          },
+        ],
+        state_mutability: "view",
+      },
+      {
+        type: "function",
         name: "paymesh_donate",
         inputs: [
           {
@@ -303,6 +319,18 @@ export const POOL_ABI = [
           },
         ],
         state_mutability: "view",
+      },
+      {
+        type: "function",
+        name: "set_pool_creation_fee",
+        inputs: [
+          {
+            name: "fee",
+            type: "core::integer::u256",
+          },
+        ],
+        outputs: [],
+        state_mutability: "external",
       },
       {
         type: "function",
@@ -403,10 +431,56 @@ export const POOL_ABI = [
       },
       {
         type: "function",
+        name: "set_platform_fee_token",
+        inputs: [
+          {
+            name: "token",
+            type: "core::starknet::contract_address::ContractAddress",
+          },
+        ],
+        outputs: [],
+        state_mutability: "external",
+      },
+      {
+        type: "function",
+        name: "get_platform_fee_token",
+        inputs: [],
+        outputs: [
+          {
+            type: "core::starknet::contract_address::ContractAddress",
+          },
+        ],
+        state_mutability: "view",
+      },
+      {
+        type: "function",
         name: "withdraw",
         inputs: [],
         outputs: [],
         state_mutability: "external",
+      },
+      {
+        type: "function",
+        name: "set_auto_swapping_address",
+        inputs: [
+          {
+            name: "auto_swappr",
+            type: "core::starknet::contract_address::ContractAddress",
+          },
+        ],
+        outputs: [],
+        state_mutability: "external",
+      },
+      {
+        type: "function",
+        name: "get_auto_swapping_address",
+        inputs: [],
+        outputs: [
+          {
+            type: "core::starknet::contract_address::ContractAddress",
+          },
+        ],
+        state_mutability: "view",
       },
     ],
   },
