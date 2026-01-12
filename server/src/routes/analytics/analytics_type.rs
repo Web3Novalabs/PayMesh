@@ -42,6 +42,14 @@ pub enum FlowDirection {
     Both,
 }
 
+#[derive(Debug, Serialize, ToSchema, Deserialize, IntoParams)]
+pub struct DisbursedVolumeRequest {
+    pub from: Option<String>,
+    pub to: Option<String>,
+    pub token: Option<String>,
+    pub sources: Option<VolumeSource>, // payment_group / crowdfunding / both
+}
+
 pub type AnalyticsRow = (String, BigDecimal, chrono::DateTime<chrono::Utc>, String);
 
 #[derive(Debug, Serialize, ToSchema)]
@@ -50,4 +58,10 @@ pub struct AnalyticsItem {
     pub token_amount: String,
     pub time: String,
     pub source: String,
+}
+
+#[derive(Debug, Serialize, ToSchema)]
+pub struct DisbursedResponse {
+    pub token_address: String,
+    pub token_amount: String,
 }

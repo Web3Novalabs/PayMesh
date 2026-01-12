@@ -12,12 +12,13 @@ use crate::{
         utopia::ADMIN_TAG,
     },
     routes::analytics::analytics_type::{
-        AnalyticsItem, AnalyticsRow, FlowDirection, VolumeDetails, VolumeRequest, VolumeSource,
+        AnalyticsItem, AnalyticsRow, DisbursedResponse, DisbursedVolumeRequest, FlowDirection,
+        VolumeDetails, VolumeRequest, VolumeSource,
     },
     util::validate_address::validate_date,
 };
 use sqlx::Arguments;
-#[axum::debug_handler]
+
 #[utoipa::path(
     method(get),
     description = "Get volume processed",
@@ -191,4 +192,134 @@ pub async fn get_volume(
         .collect();
 
     Ok(Json(items))
+}
+
+#[utoipa::path(
+    method(get),
+    description = "Get total disbursed volume",
+    path = "/disbursed-volume",
+    responses(
+        (status = OK, description = "Success", body = Vec<DisbursedResponse>),
+        (status = INTERNAL_SERVER_ERROR, description = "Database Error | Failed to get disbursed volume", body = ApiError),
+    ),
+    params(
+        DisbursedVolumeRequest,
+    ),
+    tag = ADMIN_TAG,
+    security(
+        ("bearer" = [])
+    )
+)]
+pub async fn get_disbursed_volume(
+    State(state): State<AppState>,
+    Query(params): Query<DisbursedVolumeRequest>,
+) -> Result<Json<Vec<DisbursedResponse>>, ApiError> {
+    let payment_group_disbursement = "
+        SELECT token_address, amount AS token_amount, paid_at::timestamptz AS time
+        FROM payments
+    ";
+
+    let crowdfunding_disbursement = "
+        SELECT token_address, amount AS token_amount, created_at::timestamptz AS time
+        FROM withdrawals
+    ";
+
+    let union_all = " UNION ALL ";
+
+    let volume_source = params.sources.clone().unwrap_or(VolumeSource::Both);
+
+    let mut base_sql = String::from(
+        "SELECT token_address, SUM(token_amount) AS token_amount
+         FROM (",
+    );
+
+    match volume_source {
+        VolumeSource::PaymentGroup => {
+            base_sql.push_str(payment_group_disbursement);
+        }
+        VolumeSource::Crowdfunding => {
+            base_sql.push_str(crowdfunding_disbursement);
+        }
+        VolumeSource::Both => {
+            base_sql.push_str(payment_group_disbursement);
+            base_sql.push_str(union_all);
+            base_sql.push_str(crowdfunding_disbursement);
+        }
+    }
+
+    base_sql.push_str(") AS disbursements");
+
+    let mut args = sqlx::postgres::PgArguments::default();
+    let mut i: i32 = 1;
+    let mut has_where = false;
+
+    // Date filters
+    if let (Some(from), Some(to)) = (params.from.as_ref(), params.to.as_ref()) {
+        validate_date(from)?;
+        validate_date(to)?;
+
+        base_sql.push_str(&format!(
+            " WHERE time BETWEEN ${}::timestamptz AND ${}::timestamptz",
+            i,
+            i + 1
+        ));
+
+        args.add(from.clone())
+            .map_err(|_| ApiError::Internal("Failed to add limit arg"))?;
+        args.add(to.clone())
+            .map_err(|_| ApiError::Internal("Failed to add limit arg"))?;
+        i += 2;
+        has_where = true;
+    } else if let Some(from) = params.from.as_ref() {
+        validate_date(from)?;
+
+        base_sql.push_str(&format!(" WHERE time >= ${}::timestamptz", i));
+
+        args.add(from.clone())
+            .map_err(|_| ApiError::Internal("Failed to add limit arg"))?;
+        i += 1;
+        has_where = true;
+    } else if let Some(to) = params.to.as_ref() {
+        validate_date(to)?;
+
+        base_sql.push_str(&format!(" WHERE time <= ${}::timestamptz", i));
+
+        args.add(to.clone())
+            .map_err(|_| ApiError::Internal("Failed to add limit arg"))?;
+        i += 1;
+        has_where = true;
+    }
+
+    // Token filter
+    if let Some(token) = params.token.as_ref() {
+        if has_where {
+            base_sql.push_str(&format!(" AND token_address = ${}", i));
+        } else {
+            base_sql.push_str(&format!(" WHERE token_address = ${}", i));
+        }
+
+        args.add(token.clone())
+            .map_err(|_| ApiError::Internal("Failed to add limit arg"))?;
+        i += 1;
+    }
+
+    base_sql.push_str(" GROUP BY token_address;");
+
+    let rows: Vec<(String, BigDecimal)> = sqlx::query_as_with(&base_sql, args)
+        .fetch_all(&state.db)
+        .await
+        .map_err(|e| {
+            dbg!(&e);
+            map_sqlx_error(&e)
+        })?;
+
+    let response = rows
+        .into_iter()
+        .map(|(token_address, token_amount)| DisbursedResponse {
+            token_address,
+            token_amount: token_amount.to_string(),
+        })
+        .collect();
+
+    Ok(Json(response))
 }
