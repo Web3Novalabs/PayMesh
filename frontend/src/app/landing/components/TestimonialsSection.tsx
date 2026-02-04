@@ -5,34 +5,52 @@ import { motion } from "framer-motion";
 
 const testimonials = [
   {
-    name: "Paymesh User",
-    handle: "@paymesh_defi",
-    text: "Somewhere out there, someone’s working hard for a dream—and this community is quietly helping them get there.",
+    tag: "Group Payments",
+    quote:
+      "We use Paymesh to pay our staff and saves us a lot of time and stress. ",
+    name: "Victor A.",
+    role: "co-founder of runescard",
+    company: "Kaduna, Nigeria",
   },
   {
-    name: "Paymesh User",
-    handle: "@paymesh_defi",
-    text: "The AgentNation Discord isn’t huge but is growing, little by little, through people who believe in possibilities. 🌍",
+    tag: "Group Savings",
+    quote:
+      "My friend group started a travel fund on PayMesh. We've been contributing weekly and watching our vacation fund grow. The transparency keeps everyone accountable.",
+    name: "Savage K.",
+    role: "Marketing Lead",
+    company: "Nigeria",
   },
   {
-    name: "Paymesh User",
-    handle: "@paymesh_defi",
-    text: "Every contribution tells a story of support, of connection, of what’s possible when we build together.",
+    tag: "Team Expenses",
+    quote:
+      "Managing team lunch money used to be a headache. Now we just have a PayMesh group wallet. Everyone contributes, I order, done. It's that simple.",
+    name: "Ebube O.",
+    role: "Founder of Fortichain",
+    company: "Nigeria",
   },
   {
-    name: "Paymesh User",
-    handle: "@paymesh_defi",
-    text: "Somewhere out there, someone’s working hard for a dream—and this community is quietly helping them get there.",
+    tag: "Event Planning",
+    quote:
+      "Used Paymesh to pay some beta testers who helped us test the app. It was seamless and efficient.",
+    name: "Onuora One.",
+    role: "CEO of InheritX",
+    company: "Ghana",
   },
   {
-    name: "Paymesh User",
-    handle: "@paymesh_defi",
-    text: "The AgentNation Discord isn’t huge but is growing, little by little, through people who believe in possibilities. 🌍",
+    tag: "Fundraising",
+    quote:
+      "We raised funds for the Buidl End of year party using Paymesh. It was super easy and we hit our target in less than 72 hours.",
+    name: "Mr Dave.",
+    role: "Founder of the Buidl",
+    company: "Nigeria",
   },
   {
-    name: "Paymesh User",
-    handle: "@paymesh_defi",
-    text: "Every contribution tells a story of support, of connection, of what’s possible when we build together.",
+    tag: "Crowdfunding",
+    quote:
+      "Did some transactions with Paymesh and i have to give them their flowers.",
+    name: "Blessing M.",
+    role: "Beta Tester",
+    company: "Switzerland",
   },
 ];
 
@@ -88,19 +106,27 @@ export default function TestimonialsSection() {
           {testimonials.map((t, i) => (
             <motion.div
               key={i}
-              className="bg-[#0E0F19] border border-[#232542] p-6 rounded-xl hover:border-[#5B63D6] transition-colors"
+              className="bg-[#0E0F19] border border-[#232542] p-5 rounded-xl hover:border-[#5B63D6] transition-colors flex flex-col items-start"
               variants={itemVariants}
             >
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-[#5B63D6] rounded-full flex items-center justify-center font-bold text-white">
-                  P
-                </div>
-                <div>
-                  <div className="text-white font-bold text-sm">{t.name}</div>
-                  <div className="text-[#8398AD] text-xs">{t.handle}</div>
+              <div className="inline-block bg-[#5B63D6]/20 border border-[#5B63D6]/30 px-3 py-1 rounded-full mb-4">
+                <span className="text-xs font-bold text-[#5B63D6] uppercase tracking-wider">
+                  {t.tag}
+                </span>
+              </div>
+
+              <p className="text-[#E2E2E2] text-base leading-relaxed mb-4 flex-grow">
+                &ldquo;{t.quote}&rdquo;
+              </p>
+
+              <div className="mt-auto border-t border-[#232542] w-full pt-2">
+                <div className="text-white font-bold text-base">{t.name}</div>
+                <div className="text-[#8398AD] text-xs mt-1">
+                  <span className="font-medium text-[#5B63D6]">{t.role}</span>
+                  <span className="mx-1.5 text-[#232542]">•</span>
+                  {t.company}
                 </div>
               </div>
-              <p className="text-[#E2E2E2] text-sm leading-relaxed">{t.text}</p>
             </motion.div>
           ))}
         </motion.div>
