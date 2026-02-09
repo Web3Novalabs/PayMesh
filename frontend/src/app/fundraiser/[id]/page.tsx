@@ -23,6 +23,8 @@ import Loading from "@/components/Loading";
 import ContributeModal from "./components/ContributeModal";
 import { MyCleanQrCode } from "@/components/qr-code";
 import { useGetPoolAddress } from "@/hooks/useContractInteraction";
+import { XShareButtonWithPoolImage } from "./components/share-btn";
+import { formatAmountUsd } from "@/utils/currency-formatter";
 
 const FundraiseDetails = () => {
   const router = useRouter();
@@ -153,7 +155,12 @@ const FundraiseDetails = () => {
       setIsSubmitting(false);
     }
   };
-
+  const samplePoolData = {
+    amountRaised: `${formatAmountUsd(+amountRaised)} USD`,
+    remainingAmount: `${formatAmountUsd(+targetAmount - +amountRaised)} USD`,
+    targetAmount: `${formatAmountUsd(+targetAmount)} USD`,
+    fundraiserId: fetchFundraiseDetails?.crowd_funding?.pool_address ?? "",
+  };
   return (
     <div className="space-y-6 my-16 max-w-sit-screen px-5 mx-auto">
       {fetchFundraiseDetails?.crowd_funding?.is_complete && (
@@ -167,22 +174,19 @@ const FundraiseDetails = () => {
 
       <button
         onClick={() => router.push("/fundraiser")}
-        className="flex items-center cursor-pointer bg-[#FFFFFF0D] border border-[#FFFFFF1A] gap-2 text-[#DFDADA] hover:text-[#DFDFE0] py-3 px-4 rounded-4xl hover:bg-[#232542] mb-12"
+        className="flex items-center cursor-pointer bg-[#FFFFFF0D] border border-[#FFFFFF1A] gap-2 text-[#DFDADA] hover:text-[#DFDFE0] py-3 px-4 rounded-4xl hover:bg-moon-blue mb-12"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Fundraisers
       </button>
 
-      <div className="bg-[#FFFFFF05] border border-[#232542] rounded-lg">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-[#232542] py-4 px-6">
+      <div className="bg-[#FFFFFF05] border border-moon-blue rounded-lg">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-moon-blue py-4 px-6">
           <div className="flex items-center justify-between w-full md:w-auto gap-4">
             <h2 className="text-[#E2E2E2] font-semibold text-base leading-tight truncate max-w-[200px] sm:max-w-md">
               {fetchFundraiseDetails?.crowd_funding?.name}
             </h2>
-            <button className="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 cursor-pointer hover:bg-gray-100 transition-colors shrink-0">
-              <span className="text-[#030407] text-sm">Share</span>
-              <Share2 className="w-4 h-4 text-[#030407]" />
-            </button>
+            <XShareButtonWithPoolImage poolData={samplePoolData} />
           </div>
 
           <div className="flex items-center justify-between md:justify-end space-x-2 bg-[#0C121D] py-2 px-5 rounded-full w-full md:w-auto max-w-full">
@@ -220,7 +224,7 @@ const FundraiseDetails = () => {
 
         <div className="px-6 py-4 flex flex-col xl:flex-row items-center justify-between gap-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:items-center gap-4 w-full xl:w-auto">
-            <div className="flex items-center justify-between sm:justify-start space-x-2 border border-[#232542] w-full sm:w-fit rounded-full py-2.5 px-4">
+            <div className="flex items-center justify-between sm:justify-start space-x-2 border border-moon-blue w-full sm:w-fit rounded-full py-2.5 px-4">
               <h3 className="text-[#8398AD] border-r border-[#8398AD] pr-2">
                 Amount Raised
               </h3>
@@ -229,7 +233,7 @@ const FundraiseDetails = () => {
               </span>
             </div>
 
-            <div className="flex items-center justify-between sm:justify-start space-x-2 border border-[#232542] w-full sm:w-fit rounded-full py-2.5 px-4">
+            <div className="flex items-center justify-between sm:justify-start space-x-2 border border-moon-blue w-full sm:w-fit rounded-full py-2.5 px-4">
               <h3 className="text-[#8398AD] border-r border-[#8398AD] pr-2">
                 Target Amount
               </h3>
@@ -296,8 +300,8 @@ const FundraiseDetails = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-24 gap-4">
-        <div className="lg:col-span-19 py-6 bg-[#FFFFFF05] border border-[#232542] rounded-lg flex flex-col h-full">
-          <h2 className="text-[#E2E2E2] font-semibold border-b px-6 border-[#232542] pb-4 text-base">
+        <div className="lg:col-span-19 py-6 bg-[#FFFFFF05] border border-moon-blue rounded-lg flex flex-col h-full">
+          <h2 className="text-[#E2E2E2] font-semibold border-b px-6 border-moon-blue pb-4 text-base">
             Description
           </h2>
 
@@ -308,8 +312,8 @@ const FundraiseDetails = () => {
           </div>
         </div>
 
-        <div className="lg:col-span-5 py-6 bg-[#FFFFFF05] border border-[#232542] rounded-lg flex flex-col h-full">
-          <h2 className="text-[#E2E2E2] px-6 pb-4 border-b border-[#232542] text-center font-semibold text-base">
+        <div className="lg:col-span-5 py-6 bg-[#FFFFFF05] border border-moon-blue rounded-lg flex flex-col h-full">
+          <h2 className="text-[#E2E2E2] px-6 pb-4 border-b border-moon-blue text-center font-semibold text-base">
             Scan to fund address
           </h2>
 
